@@ -1,4 +1,4 @@
-<!-- $Id: index.tpl,v 1.25 2007-01-02 14:26:59 sven Exp $ -->
+<!-- $Id$ -->
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>

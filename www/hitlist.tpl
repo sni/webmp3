@@ -1,4 +1,4 @@
-<!-- $Id: hitlist.tpl,v 1.5 2005/09/20 08:48:17 sven Exp $ -->
+<!-- $Id$ -->
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>

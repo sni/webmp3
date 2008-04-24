@@ -1,4 +1,4 @@
-<!-- $Id: loadPl.tpl,v 1.1 2005/06/06 14:36:37 sven Exp $ -->
+<!-- $Id$ -->
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
