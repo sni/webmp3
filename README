@@ -1,0 +1,22 @@
+WebMP3
+
+- installation
+- usage
+
+
+- installation -
+
+1. gunzip & untar in a directory of your choice, useful is a directory in your webserver documentroot
+2. add your webserver user to group audio or make shure the user has the right to execute the binarys
+   and is able to use your sound device
+3. make shure you have installed php4
+4. make shure the webserver user is able to write in your project directory
+5. edit config.php
+
+- usage -
+
+1. open your browser and open the site
+2. doubleclick on a directory opens it
+3. doubleclick on a file adds it or plays it
+
+if something is going wrong you should take a look at your logfile (defined in config.php)
