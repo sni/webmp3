@@ -21,10 +21,12 @@ body
   font-size: 100.01%;
 }
 
-#status {
-  font-family: "Times New Roman", Times, serif;
-  font-size:10pt;
-  width: 100px;
+.x-btn.repeat-btn .x-btn-text {
+   background-image: url('images/control_norepeat_blue.png') ! important;
+}
+
+.x-btn-pressed.repeat-btn .x-btn-text {
+   background-image: url('images/control_repeat_blue.png') ! important;
 }
 
 -->

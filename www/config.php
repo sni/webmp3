@@ -18,9 +18,10 @@ $config["streamBin"]  = "/usr/bin/mplayer";                  # binary for playin
 $config["playStrOpt"] = array("-quiet", "-really-quiet");    # additional options
 $config["streamUrlPre"] = "http_proxy://localhost:8001/";    # requiered for proxy support
 
-#$config["aumixBin"]   = "/usr/bin/aumix";       # executable to change volume
-$config["aumixBin"]   = "/usr/bin/true";       # executable to change volume
-$config["searchPath"] = "/Users/sven/Music/";          # path with your mp3/ogg files
+$config["aumixBin"]   = "/usr/bin/aumix";       # executable to change volume
+#$config["aumixBin"]   = "/usr/bin/true";       # executable to change volume
+#$config["searchPath"] = "/Users/sven/Music/";          # path with your mp3/ogg files
+$config["searchPath"] = "/opt/projects/webmp3/musik/";          # path with your mp3/ogg files
 $config["playlist"]   = "playlist.dat";         # a file with your playlist and other temporary data
 $config["hitlist"]    = "hitlist.dat";          # a file with your played songs
 $config["picWidth"]   = 120;                    # width of preview picture

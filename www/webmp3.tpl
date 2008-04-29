@@ -10,127 +10,255 @@
   <meta name="description" content="">
   <meta name="keywords" content="">
   <link rel="stylesheet" href="webmp3.css">
+  <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
   <title>WebMP3</title>
     <link rel="stylesheet" type="text/css" href="extjs/ext-all.css">
     <script type="text/javascript" src="extjs/ext-base.js"></script>
     <script type="text/javascript" src="extjs/ext-all.js"></script>
     <script type="text/javascript" src="extjs/slider.js"></script>
     <link rel="stylesheet" type="text/css" href="extjs/slider.css">
-    <link rel="stylesheet" type="text/css" href="extjs/layout-browser.css">
 </head>
-<body id="docs">
-<!--  <div id="loading-mask" style=""></div>
-  <div id="loading">
-    <div class="loading-indicator"><img src="extjs/waiting.gif" width=48 height=48 style="margin-right:8px;" alt="Loading..."/>Loading...</div>
-  </div>
--->
-<div id="border-layout"></div>
-<div id="status"></div>
-<div id="filesystem"></div>
+<body>
+<div id="viewport"></div>
 
 <script type="text/javascript">
 <!--
 
 Ext.onReady(function(){
 
+/****************************************
+ * Event Handler
+ ***************************************/
+    function onButtonToggle(item, pressed){
+        var msg = Ext.get('statustext');
+        msg.load({
+            url: 'webmp3.php',
+            params: 'action=set'+item.text+'&param=' + pressed,
+            text: 'setting '+item.text+' to '+pressed
+        });
+        if(item.text == "Mute") {
+            item.setText("Unmute");
+        } else if(item.text == "Unmute") {
+            item.setText("Mute");
+        }
+        if(item.text == "Repeat") {
+        }
+    }
 
-  webmp3.slider = new Ext.Slider({
-          width: 214,
-          value: 0,
-          minValue: 0,
-          maxValue: 100,
-          keyIncrement: 5
+/****************************************
+ * Volume Slider
+ ***************************************/
+    webmp3.slider = new Ext.Slider({
+        width: 214,
+        value: 0,
+        minValue: 0,
+        maxValue: 100,
+        keyIncrement: 5
     });
 
-  webmp3.slider.on("change", function(slider, value) {
+    webmp3.slider.on("change", function(slider, value) {
         webmp3.now=new Date();
         diff_time = webmp3.now.getTime() - webmp3.lastChange.getTime();
         if(diff_time > 300) {
-          var msg = Ext.get('status');
-          msg.load({
-              url: 'webmp3.php',
-              params: 'action=setVolume&vol=' + slider.getValue(),
-              text: 'setting volume...' + slider.getValue()
-          });
-          webmp3.lastChange = new Date();
+            var msg = Ext.get('statustext');
+            msg.load({
+                url: 'webmp3.php',
+                params: 'action=setVolume&vol=' + slider.getValue(),
+                text: 'setting volume...' + slider.getValue()
+            });
+            webmp3.lastChange = new Date();
         }
-  });
+    });
 
 
 /****************************************
- * Navigation
+ * Top Navigation Toolbar
  ***************************************/
+    webmp3.navtoolbar = new Ext.Toolbar({
+        margins: '0 0 0 0',
+        items: [
+                    {
+                    text: 'Prev',
+                    tooltip: 'Prev',
+                    cls:"x-btn-text-icon",
+                    icon: 'images/control_rewind_blue.png',
+                    }, '-', {
+                    text: 'Play',
+                    tooltip: 'Play',
+                    enableToggle: true,
+                    toggleHandler: onButtonToggle,
+                    cls:"x-btn-text-icon",
+                    icon: 'images/control_play_blue.png',
+                    }, '-', {
+                    text: 'Pause',
+                    tooltip: 'Pause',
+                    enableToggle: true,
+                    toggleHandler: onButtonToggle,
+                    cls:"x-btn-text-icon",
+                    icon: 'images/control_pause_blue.png',
+                    }, '-',{
+                    text: 'Next',
+                    tooltip: 'Next',
+                    cls:"x-btn-text-icon",
+                    icon: 'images/control_fastforward_blue.png',
+                    }, '-',
+                    webmp3.slider
+                    ,'-',{
+                    text: 'Mute',
+                    tooltip: 'Mute',
+                    enableToggle: true,
+                    toggleHandler: onButtonToggle,
+                    cls:"x-btn-text-icon",
+                    icon: 'images/sound_mute.png',
+                    }, '-',{
+                    text: 'Quiet',
+                    enableToggle: true,
+                    toggleHandler: onButtonToggle,
+                    tooltip: 'Quiet',
+                    cls:"x-btn-text-icon",
+                    icon: 'images/sound_low.png',
+                    }
+                ]
+    });
 
-webmp3.navigation = new Ext.Toolbar({
-    heightAuto: true,
-	region:'north',
-	margins: '0 0 0 0',
+/****************************************
+ * Navigation Title Toolbar
+ ***************************************/
+webmp3.titlebar = new Ext.Toolbar({
+    margins: '0 0 0 0',
     items: [
                 {
-                  text: 'Prev',
-                  tooltip: 'Prev',
-                  cls:"x-btn-text-icon",
-                  icon: 'images/control_rewind_blue.png',
+                    xtype: 'tbtext',
+                    text: 'Artist:'
+                }, ' ', {
+                    xtype: 'tbtext',
+                    text: 'blub band'
                 }, '-', {
-                  text: 'Play',
-                  tooltip: 'Play',
-                  cls:"x-btn-text-icon",
-                  icon: 'images/control_play_blue.png',
+                    xtype: 'tbtext',
+                    text: 'Album:'
+                }, ' ', {
+                    xtype: 'tbtext',
+                    text: 'Sampler'
                 }, '-', {
-                  text: 'Pause',
-                  tooltip: 'Pause',
-                  cls:"x-btn-text-icon",
-                  icon: 'images/control_pause_blue.png',
-                }, '-',{
-                  text: 'Next',
-                  tooltip: 'Next',
-                  cls:"x-btn-text-icon",
-                  icon: 'images/control_fastforward_blue.png',
-                }, '-',
-                  webmp3.slider
-                ,'-',{
-                  text: 'Mute',
-                  tooltip: 'Mute',
-                  cls:"x-btn-text-icon",
-                  icon: 'images/sound_mute.png',
-                }, '-',{
-                  text: 'Quiet',
-                  tooltip: 'Quiet',
-                  cls:"x-btn-text-icon",
-                  icon: 'images/sound_low.png',
+                    xtype: 'tbtext',
+                    text: 'Track:'
+                }, ' ', {
+                    xtype: 'tbtext',
+                    text: '01'
+                }, '-', {
+                    xtype: 'tbtext',
+                    text: 'Title:'
+                }, ' ', {
+                    xtype: 'tbtext',
+                    text: 'blub bla blah blah'
+                }
+           ]
+});
+
+/****************************************
+ * Navigation Status Toolbar
+ ***************************************/
+webmp3.statusbar = new Ext.Toolbar({
+    margins: '0 0 0 0',
+    height: 26,
+    ctCls: 'vertical-align: middle',
+    cls: 'vertical-align: middle',
+    style: 'vertical-align: middle',
+    items: [
+                {
+                    xtype: 'tbtext',
+                    text: 'Status:'
+                }, '-', {
+                    xtype: 'panel',
+                    html: '',
+                    border: false,
+                    id: 'statustext',
                 }
             ]
 });
 
 /****************************************
+ * Navigation Playing Toolbar
+ ***************************************/
+webmp3.playingbar = new Ext.Toolbar({
+    margins: '0 0 0 0',
+    items: [
+                {
+                    xtype: 'tbtext',
+                    text: 'Item 1'
+                }, '-', {
+                    xtype: 'tbtext',
+                    text: 'Item 1'
+                }
+           ]
+});
+/****************************************
+ * Playlist Data Store
+ ***************************************/
+    webmp3.navigation = new Ext.Panel({
+        layout:'table',
+        title: 'WebMP3',
+        height: 156,
+        region:'north',
+        margins: '0 0 0 0',
+        defaults: {
+            // applied to each contained panel
+            bodyStyle:'padding:0px'
+        },
+        layoutConfig: {
+            // The total column count must be specified here
+            columns: 3
+        },
+        items: [{
+            height: 120,
+            width: 120,
+            html: '<img src="cache.jpg">',
+            rowspan: 4
+        },{
+            items: [webmp3.navtoolbar]
+        },{
+            height: 120,
+            width: 120,
+            html: '<img src="cache.jpg">',
+            rowspan: 4
+        },{
+            items: [webmp3.statusbar]
+        },{
+            items: [webmp3.playingbar]
+        },{
+            items: [webmp3.titlebar]
+        }
+        ]
+    });
+
+/****************************************
  * Playlist Data Store
  ***************************************/
     webmp3.PlaylistDataStore = new Ext.data.Store({
-      id: 'PlaylistDataStore',
-      autoLoad: true,
-      proxy: new Ext.data.HttpProxy({
+        id: 'PlaylistDataStore',
+        autoLoad: true,
+        proxy: new Ext.data.HttpProxy({
                 url: 'webmp3.php',
                 method: 'POST'
-            }),
-            baseParams:{action: "getPlaylist"},
-      reader: new Ext.data.JsonReader({
-        root: 'results',
-        totalProperty: 'total',
-        id: 'id'
-      },[
-		{name: 'artist',  mapping: 'artist',   type: 'string'},
-		{name: 'album',   mapping: 'album',    type: 'string'},
-		{name: 'nr',      mapping: 'tracknum', type: 'int'},
-		{name: 'title',   mapping: 'title',    type: 'string'},
-		{name: 'length',  mapping: 'length',   type: 'string'}
-
-      ])
+        }),
+        baseParams:{action: "getPlaylist"},
+        reader: new Ext.data.JsonReader({
+            root: 'results',
+            totalProperty: 'total',
+            id: 'id'
+        },[
+            {name: 'artist',  mapping: 'artist',   type: 'string'},
+            {name: 'album',   mapping: 'album',    type: 'string'},
+            {name: 'nr',      mapping: 'tracknum', type: 'int'},
+            {name: 'title',   mapping: 'title',    type: 'string'},
+            {name: 'length',  mapping: 'length',   type: 'string'}
+        ])
     });
 
 /****************************************
  * Playlist CheckboxSelectionModel
  ***************************************/
-webmp3.psm = new Ext.grid.CheckboxSelectionModel({
+    webmp3.psm = new Ext.grid.CheckboxSelectionModel({
         listeners: {
           beforerowselect : function (sm, rowIndex, keep, rec) {
 
@@ -162,40 +290,42 @@ webmp3.psm = new Ext.grid.CheckboxSelectionModel({
                 }
             }
         }
-    });  
+    });
 
 /****************************************
- * Playlist
+ * Playlist Grid
  ***************************************/
-	webmp3.playlistGrid = new Ext.grid.GridPanel({
-        	collapsible: false,
+    webmp3.playlistGrid = new Ext.grid.GridPanel({
+            collapsible: false,
                 enableDragDrop: true,
                 autoExpandColumn: 'title',
                 sm: webmp3.psm,
-		region:'center',
-		margins: '5 0 0 0',
-		store: webmp3.PlaylistDataStore,
-		columns: [
-			{header: 'Length', sortable: true, dataIndex: 'length', width: 30 },
-			{header: 'Artist', sortable: true, dataIndex: 'artist'},
-			{header: 'Album',  sortable: true, dataIndex: 'album'},
-			{header: 'Nr',     sortable: true, dataIndex: 'nr', width: 30 },
-			{header: 'Title',  sortable: true, dataIndex: 'title'},
-		],
-		viewConfig: {
-			forceFit: true
-		},
-		title: 'Playlist',
-		width: 500,
+        region:'center',
+        margins: '5 0 0 0',
+        store: webmp3.PlaylistDataStore,
+        columns: [
+            {header: 'Length', sortable: true, dataIndex: 'length', width: 30 },
+            {header: 'Artist', sortable: true, dataIndex: 'artist'},
+            {header: 'Album',  sortable: true, dataIndex: 'album'},
+            {header: 'Nr',     sortable: true, dataIndex: 'nr', width: 30 },
+            {header: 'Title',  sortable: true, dataIndex: 'title'},
+        ],
+        viewConfig: {
+            forceFit: true
+        },
+        title: 'Playlist',
+        width: 500,
         height:400,
         draggable: true,
         id: 'playlistGrid',
-        bbar: [
+        tbar: [
                   {
-                    text: 'Repeat is Off',
+                    text: 'Repeat',
                     tooltip: 'Repeat',
-                    cls:"x-btn-text-icon",
-                    icon: 'images/control_repeat_blue.png',
+                    cls: 'x-btn-text-icon repeat-btn',
+                    enableToggle: true,
+                    toggleHandler: onButtonToggle,
+                    //icon: 'images/control_norepeat_blue.png',
                   }, '-', {
                     text: 'Clear',
                     tooltip: 'Clear',
@@ -216,7 +346,7 @@ webmp3.psm = new Ext.grid.CheckboxSelectionModel({
                     tooltip: 'add Stream',
                   }
               ]
-	});
+    });
 
 
 
@@ -226,68 +356,68 @@ webmp3.psm = new Ext.grid.CheckboxSelectionModel({
 /****************************************
  * Filesystem Searchfield
  ***************************************/
-webmp3.SearchField = Ext.extend(Ext.form.TwinTriggerField, {
-    initComponent : function(){
-        webmp3.SearchField.superclass.initComponent.call(this);
-        this.on('specialkey', function(f, e){
-            if(e.getKey() == e.ENTER){
-                this.onTrigger2Click();
+    webmp3.SearchField = Ext.extend(Ext.form.TwinTriggerField, {
+        initComponent : function(){
+            webmp3.SearchField.superclass.initComponent.call(this);
+            this.on('specialkey', function(f, e){
+                if(e.getKey() == e.ENTER){
+                    this.onTrigger2Click();
+                }
+            }, this);
+        },
+
+        validationEvent:false,
+        validateOnBlur:false,
+        trigger1Class:'x-form-clear-trigger',
+        trigger2Class:'x-form-search-trigger',
+        hideTrigger1:true,
+        width:180,
+        hasSearch : false,
+        paramName : 'query',
+
+        onTrigger1Click : function(){
+            if(this.hasSearch){
+                this.el.dom.value = '';
+                var o = {start: 0, limit: 15};
+                this.store.baseParams = this.store.baseParams || {};
+                this.store.baseParams[this.paramName] = '';
+                this.store.reload({params:o});
+                this.triggers[0].hide();
+                this.hasSearch = false;
             }
-        }, this);
-    },
+        },
 
-    validationEvent:false,
-    validateOnBlur:false,
-    trigger1Class:'x-form-clear-trigger',
-    trigger2Class:'x-form-search-trigger',
-    hideTrigger1:true,
-    width:180,
-    hasSearch : false,
-    paramName : 'query',
-
-    onTrigger1Click : function(){
-        if(this.hasSearch){
-            this.el.dom.value = '';
+        onTrigger2Click : function(){
+            var v = this.getRawValue();
+            if(v.length < 1){
+                this.onTrigger1Click();
+                return;
+            }
             var o = {start: 0, limit: 15};
             this.store.baseParams = this.store.baseParams || {};
-            this.store.baseParams[this.paramName] = '';
+            this.store.baseParams[this.paramName] = v;
             this.store.reload({params:o});
-            this.triggers[0].hide();
-            this.hasSearch = false;
+            this.hasSearch = true;
+            this.triggers[0].show();
         }
-    },
-
-    onTrigger2Click : function(){
-        var v = this.getRawValue();
-        if(v.length < 1){
-            this.onTrigger1Click();
-            return;
-        }
-        var o = {start: 0, limit: 15};
-        this.store.baseParams = this.store.baseParams || {};
-        this.store.baseParams[this.paramName] = v;
-        this.store.reload({params:o});
-        this.hasSearch = true;
-        this.triggers[0].show();
-    }
-});
+    });
 
 /****************************************
  * Filesystem CheckboxSelectionModel
  ***************************************/
-webmp3.fsm = new Ext.grid.CheckboxSelectionModel({
+    webmp3.fsm = new Ext.grid.CheckboxSelectionModel({
         listeners: {
-          beforerowselect : function (sm, rowIndex, keep, rec) {
-            if (this.deselectingFlag && this.grid.enableDragDrop){
-              this.deselectingFlag = false;
-              this.deselectRow(rowIndex);
-              return this.deselectingFlag;
+             beforerowselect : function (sm, rowIndex, keep, rec) {
+                if (this.deselectingFlag && this.grid.enableDragDrop){
+                    this.deselectingFlag = false;
+                    this.deselectRow(rowIndex);
+                    return this.deselectingFlag;
+                }
+                return keep;
             }
-            return keep;
-          }
         },
         onMouseDown : function(e, t){
-            if (e.button === 0 ){ 
+            if (e.button === 0 ){
                 e.stopEvent();
                 var row = e.getTarget('.x-grid3-row');
                 if(row){
@@ -305,52 +435,64 @@ webmp3.fsm = new Ext.grid.CheckboxSelectionModel({
                 }
             }
         }
-    });  
+    });
 
 /****************************************
  * Filesystem
  ***************************************/
-
     webmp3.FilesystemDataStore = new Ext.data.Store({
-      id: 'FilesystemDataStore',
-      autoLoad: true,
-      proxy: new Ext.data.HttpProxy({
+        id: 'FilesystemDataStore',
+        autoLoad: true,
+        proxy: new Ext.data.HttpProxy({
                 url: 'webmp3.php',
                 method: 'POST'
-            }),
-            baseParams:{action: "getFilesystem"},
-      reader: new Ext.data.JsonReader({
-        root: 'results',
-        totalProperty: 'total',
-        id: 'id'
-      },[
-    	{name: 'file',    mapping: 'file',    type: 'string'},
-		{name: 'display', mapping: 'display', type: 'string'},
-		{name: 'type',    mapping: 'type',    type: 'string'}
-
-      ])
+        }),
+        baseParams:{action: "getFilesystem"},
+        reader: new Ext.data.JsonReader({
+            root: 'results',
+            totalProperty: 'total',
+            id: 'id'
+        },[
+            {name: 'file',    mapping: 'file',    type: 'string'},
+            {name: 'display', mapping: 'display', type: 'string'},
+            {name: 'type',    mapping: 'type',    type: 'string'}
+        ])
     });
 
-	var fileGrid = new Ext.grid.GridPanel({
-		collapsible: true,
-		region:'east',
-		margins: '5 0 0 0',
+    var fileGrid = new Ext.grid.GridPanel({
+        collapsible: true,
+        region:'east',
+        margins: '5 0 0 0',
         enableDragDrop: true,
         autoExpandColumn: 'file',
         sm: webmp3.fsm,
         store: webmp3.FilesystemDataStore,
-		columns: [
-			{header: 'Files & Directories', sortable: false, dataIndex: 'display'},
+        columns: [
+            {header: 'Files & Directories', sortable: false, dataIndex: 'display'},
             {header: 'File',    sortable: false, hidden: true, hideable: false, dataIndex: 'file', width: '90%'},
             {header: 'Type',    sortable: false, hidden: true, hideable: false,  dataIndex: 'type'}
-		],
-		viewConfig: {
-			forceFit: true
-		},
-		title: 'Filesystem',
-		width: 500,
+        ],
+        viewConfig: {
+            forceFit: true
+        },
+        listeners: {
+            celldblclick: function(grid, rowIndex, columnIndex, e) {
+                var record = grid.getStore().getAt(rowIndex);  // Get the Record
+                var fieldName = grid.getColumnModel().getDataIndex(columnIndex); // Get field name
+                //var data = record.get(fieldName);
+                var data = record.get('file');
+                //alert("dblclick: "+data);
+                webmp3.FilesystemDataStore.load({
+                    url: 'webmp3.php',
+                    params: 'action=getFilesystem&aktPath=' + record.get('file'),
+                    text: 'loading files for '+record.get('file')
+                });
+            }
+        },
+        title: 'Filesystem',
+        width: 500,
         height:400,
-        bbar: [
+        tbar: [
                   {
                     text: 'Add',
                     tooltip: 'Add selected files to the playlist',
@@ -369,27 +511,39 @@ webmp3.fsm = new Ext.grid.CheckboxSelectionModel({
                             })
               ]
 
-	});
+    });
 
 
-// initialise layout
-webmp3.border = new Ext.Panel({
-    title: 'WebMP3',
-    layout:'border',
-    renderTo: 'border-layout',
-    height: 600,
-    defaults: {
-        bodyStyle: 'padding:15px'
-    },
-    items: [ 
-     webmp3.navigation
-    ,webmp3.playlistGrid 
-    ,fileGrid
-    ]
-});
-// initialise current settings
-//webmp3.slider.setValue('<!--php: volume -->', 1);
+/****************************************
+ * Main Border Layout Panel
+ ***************************************/
+    webmp3.border = new Ext.Viewport({
+        layout: 'border',
+        defaults: {
+            activeItem: 0
+        },
+        title: 'WebMP3',
+        layout:'border',
+        renderTo: 'viewport',
+        margins: '0 0 0 0',
+        defaults: {
+            bodyStyle: 'padding:3px'
+        },
+        items: [ 
+        webmp3.navigation
+        ,webmp3.playlistGrid 
+        ,fileGrid
+        ]
+    });
 
+/****************************************
+ * Initialization
+ ***************************************/
+    // initialize tool tips
+    Ext.QuickTips.init();
+
+    // initialize current settings
+    //webmp3.slider.setValue('<!--php: volume -->', 1);
 });
 -->
 </script>

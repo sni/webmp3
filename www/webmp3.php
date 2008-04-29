@@ -50,6 +50,12 @@ include("Action.php");
 # action_updateTagCache()
 #
 # action_getFilesystem()
+# action_setRepeat()
+# action_setPlay()
+# action_setPause()
+# action_setMute()
+# action_setUnmute()
+# action_setQuiet()
 #
 #
 #################################################################
@@ -798,29 +804,33 @@ function action_search()
 function action_getFilesystem()
 {
     doPrint("got json filesystem get request");
-    
+    doPrint($_REQUEST);
     global $config;
     $aktPath = "";
+    doPrint("1".$aktPath);
     if(isset($_REQUEST["aktPath"])) {
         $aktPath = $_REQUEST["aktPath"];
     }
-
-    if(is_file($config["searchPath"].$aktPath)) {
-        $aktPath = dirname($config["searchPath"].$aktPath);
-        $aktPath = str_replace($config["searchPath"], "", $aktPath);
+    doPrint("2".$aktPath);
+    $aktPath = realpath($config["searchPath"]."/".$aktPath);
+    doPrint("2.1".$aktPath);
+    if(is_file($aktPath)) {
+        $aktPath = dirname($aktPath);
+        doPrint("3".$aktPath);
     }
-    if(!is_dir($config["searchPath"].$aktPath)) {
+    if(!is_dir($aktPath)) {
         $aktPath = "";
+        doPrint("4".$aktPath);
     }
-
+    doPrint("5".$aktPath);
     $filesystem = array();
     # Filesystem    
     $files = array();
     $dirs  = array();
-    if ($handle = opendir($config["searchPath"].$aktPath)) {
+    if ($handle = opendir($aktPath)) {
         while (false !== ($file = readdir($handle))) {
             if ($file != "." && $file != "..") {
-                if(is_dir($config["searchPath"].$aktPath."/".$file)) {
+                if(is_dir($aktPath."/".$file)) {
                     $dirs[] = $file;
                 } else {
                     $ext = substr($file, -4);
@@ -834,6 +844,11 @@ function action_getFilesystem()
     }
     natcasesort($dirs);
     natcasesort($files);
+
+    if($aktPath != "") {
+        array_unshift($filesystem, array("display" => "..",  "file" => "..",  "type" => "D"));
+    }
+
     foreach($dirs as $dir) {
         $filesystem[] = array("display" => crossUrlDecode($dir),  "file" => htmlentities($dir),  "type" => "D");
     }
@@ -878,5 +893,64 @@ function action_getPlaylist()
 }
 
 #################################################################
+
+function action_setRepeat()
+{
+    if(!defined($_REQUEST['param'])) {
+        exit;
+    }
+    print $_REQUEST['param'];
+}
+
+#################################################################
+
+function action_setPlay()
+{
+    if(!defined($_REQUEST['param'])) {
+        exit;
+    }
+    sleep(1);
+    print $_REQUEST['param'];
+}
+
+#################################################################
+
+function action_setPause()
+{
+    if(!defined($_REQUEST['param'])) {
+        exit;
+    }
+    print $_REQUEST['param'];
+}
+
+#################################################################
+
+function action_setMute()
+{
+    if(!defined($_REQUEST['param'])) {
+        exit;
+    }
+    print $_REQUEST['param'];
+}
+
+#################################################################
+
+function action_setUnmute()
+{
+    if(!defined($_REQUEST['param'])) {
+        exit;
+    }
+    print $_REQUEST['param'];
+}
+
+#################################################################
+
+function action_setQuiet()
+{
+    if(!defined($_REQUEST['param'])) {
+        exit;
+    }
+    print $_REQUEST['param'];
+}
 
 ?>
