@@ -59,7 +59,7 @@ function action_default()
         if($track) {
             $data["curTrack"] = $track;
             storeData($data);
-            system('$(which php5) play.php >> /tmp/webmp3play.log 2>&1 &');
+            system($config["cliPHPbinary"].' play.php >> '.$config["logfile"].' 2>&1 &');
         } else {
             storeData($data);
         }

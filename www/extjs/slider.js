@@ -7,16 +7,8 @@
  */
 
 Ext.onReady(function(){
-Ext.namespace("webmp3");
-webmp3.slider = new Ext.Slider({
-        renderTo: 'volume-slider',
-        width: 214,
-        value: 0,
-        minValue: 0,
-        maxValue: 100,
-        keyIncrement: 5,
-        plugins: new Ext.ux.SliderTip()
-    });
+  Ext.namespace("webmp3");
+  webmp3.lastChange = new Date();
 });
 
 
@@ -33,9 +25,9 @@ Ext.ux.SliderTip = Ext.extend(Ext.Tip, {
         slider.on('drag', this.onSlide, this);
         slider.on('dragend', this.hide, this);
         slider.on('destroy', this.destroy, this);
-        slider.on('dragend', this.onDragEnd, this);
-        slider.on('change', this.onChange, this);
-        this.lastChange = new Date();
+//        slider.on('dragend', this.onDragEnd, this);
+//        slider.on('change', this.onChange, this);
+//        this.lastChange = new Date();
     },
 
     onSlide : function(slider){
@@ -48,10 +40,10 @@ Ext.ux.SliderTip = Ext.extend(Ext.Tip, {
     onChange : function(slider){
         this.now=new Date();
         diff_time = this.now.getTime() - this.lastChange.getTime();
-        if(diff_time > 500) {
+        if(diff_time > 300) {
           var msg = Ext.get('status');
           msg.load({
-              url: 'index.php',
+              url: 'webmp3.php',
               params: 'action=setVolume&vol=' + slider.getValue(),
               text: 'setting volume...' + slider.getValue()
           });
@@ -62,7 +54,7 @@ Ext.ux.SliderTip = Ext.extend(Ext.Tip, {
     onDragEnd : function(slider){
         var msg = Ext.get('status');
         msg.load({
-            url: 'index.php',
+            url: 'webmp3.php',
             params: 'action=setVolume&vol=' + slider.getValue(),
             text: 'setting volume...' + slider.getValue()
         });

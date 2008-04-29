@@ -30,7 +30,8 @@ function getVolume()
     $erg = exec($config["aumixBin"]." -vq");
     if(empty($erg))
     {
-        $erg = " couldn't get volume, perhabs ".getmyuid()." is not a member of group audio";
+        #$erg = " couldn&quot;t get volume, perhabs ".getmyuid()." is not a member of group audio";
+        $erg = "50";
     } else {
         list($blah, $vol) = explode(",", $erg);
         $erg = trim($vol);

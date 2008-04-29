@@ -2,6 +2,9 @@
 
 $config = array();
 
+$config["logfile"]      = "/tmp/webmp3.log";                      # place for our logfile
+$config["cliPHPbinary"] = "/Applications/MAMP/bin/php5/bin/php";  # where is the command php binary?
+
 #$config["ext"][".mp3"]["binary"] = "/usr/bin/mpg321";
 #$config["ext"][".mp3"]["option"] = array("-q");
 $config["ext"][".mp3"]["binary"] = "/usr/bin/mplayer";
@@ -15,13 +18,13 @@ $config["streamBin"]  = "/usr/bin/mplayer";                  # binary for playin
 $config["playStrOpt"] = array("-quiet", "-really-quiet");    # additional options
 $config["streamUrlPre"] = "http_proxy://localhost:8001/";    # requiered for proxy support
 
-$config["aumixBin"]   = "/usr/bin/aumix";       # executable to change volume
-$config["searchPath"] = "/var/music/";          # path with your mp3/ogg files
+#$config["aumixBin"]   = "/usr/bin/aumix";       # executable to change volume
+$config["aumixBin"]   = "/usr/bin/true";       # executable to change volume
+$config["searchPath"] = "/Users/sven/Music/";          # path with your mp3/ogg files
 $config["playlist"]   = "playlist.dat";         # a file with your playlist and other temporary data
 $config["hitlist"]    = "hitlist.dat";          # a file with your played songs
 $config["picWidth"]   = 120;                    # width of preview picture
 $config["picHeight"]  = 120;                    # height of the preview picture
-$config["logfile"]    = "/tmp/webmp3play.log";  # logfile for error/debug messages
 $config["plDir"]      ="./playlists/";          # folder for your saved playlists
 $config["quietVol"]   = "25";                   # volume to set if someone presses the quiet button
 $config["tagCache"]   = "tagCache.dat";

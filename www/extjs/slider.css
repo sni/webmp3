@@ -6,15 +6,16 @@
  * http://extjs.com/license
  */
 
-#custom-slider {
+#volume-slider {
     width:214px;
     padding-top:6px;
     background-image:url(images/ticks.gif);
 }
-#custom-slider .x-slider-thumb {
-    background-image:url(images/slider-thumb.png);
-}
-
-h3 {
-    padding:15px 0 5px;
-}
+.x-slider-inner{position:relative;left:0;top:0;overflow:visible;zoom:1;}
+.x-slider-focus{position:absolute;left:0;top:0;width:1px;height:1px;line-height:1px;font-size:1px;-moz-outline:0 none;outline:0 none;-moz-user-select:normal;-khtml-user-select:normal;}
+.x-slider-horz{padding-left:7px;background:transparent url(images/slider-bg.png) no-repeat 0 -22px;}
+.x-slider-horz .x-slider-end{padding-right:7px;zoom:1;background:transparent url(images/slider-bg.png) no-repeat right -44px;}
+.x-slider-horz .x-slider-inner{background:transparent url(images/slider-bg.png) repeat-x 0 0;height:22px;}
+.x-slider-horz .x-slider-thumb{width:14px;height:15px;position:absolute;left:0;top:3px;background:transparent url(images/slider-thumb.png) no-repeat 0 0;}
+.x-slider-horz .x-slider-thumb-over{background-position:-14px -15px;}
+.x-slider-horz .x-slider-thumb-drag{background-position:-28px -30px;}

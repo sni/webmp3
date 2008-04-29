@@ -1,4 +1,7 @@
 <?php
+#################################################################
+# $Id:$
+#################################################################
 
 error_reporting(2047);
 
@@ -46,6 +49,9 @@ include("Action.php");
 # action_doAddStream()
 # action_updateTagCache()
 #
+# action_getFilesystem()
+#
+#
 #################################################################
 
 function action_default()
@@ -60,233 +66,9 @@ function action_default()
     if(!isset($data["title"]))  { $data["title"]  = ""; }
     if(!isset($data["volume"])) { $data["volume"] = getVolume(); }
 
-    if(isset($_GET["aktPath"])) {
-        $_POST["aktPath"] = $_GET["aktPath"];
-    }
-    if(!isset($_POST["aktPath"])) {
-        $aktPath = "";
-    } else {
-        $aktPath = $_POST["aktPath"];
-    }
-
-    # 2 strips needed
-    $aktPath = stripslashes($aktPath);
-    $aktPath = stripslashes($aktPath);
-
-    $aktPath = realpath($config["searchPath"].$aktPath);
-    $aktPath = str_replace($config["searchPath"], "", $aktPath);
-    $aktPath = str_replace("/mnt", "", $aktPath);
-
-    if(is_file($config["searchPath"].$aktPath)) {
-        $aktPath = dirname($config["searchPath"].$aktPath);
-        $aktPath = str_replace($config["searchPath"], "", $aktPath);
-    }
-    if(!is_dir($config["searchPath"].$aktPath)) {
-        $aktPath = "";
-    }
-
-    $filesystem           = array();
-    $directory            = array();
-    $fileSystemBackground = "";
-    $search               = "";
-    $PathLinks = "<a href=\"?aktPath=/\">filesystem: /</a>";
-    if((isset($_POST["search"]) AND !empty($_POST["search"])) OR (isset($_GET["search"]) AND !empty($_GET["search"]))) {
-        if(isset($_POST["search"])) {
-            $search = $_POST["search"];
-        } else {
-            $search = $_GET["search"];
-        }
-
-        doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." searched for: ".$search);
-        $contents = "";
-        $handle = popen("grep -i ".escapeshellarg($search)." ".$config["tagCache"]. "| sort ", "r");
-        while (!feof($handle)) {
-            $contents .= fread($handle, 8192);
-        }
-        $files = explode("\n", $contents);
-        # print $contents;
-        foreach($files as $file) {
-            $fileArray = explode(";-;", $file);
-            $displ = $fileArray[0];
-            if(strlen($fileArray[0] > 70)) {
-              $displ = substr($fileArray[0], -70);
-            }
-            $filesystem[] = array("display" => crossUrlDecode($displ), "file" => htmlentities($fileArray[0]));
-        }
-        $PathLinks .= " - <a href=\"?search=".$search."\">Search Result for: ".$search."</a>";
-    } else {
-        # Filesystem
-        $fileSystemBackground = getPictureForPath($config["searchPath"].$aktPath);
-        if(!empty($fileSystemBackground)) { $fileSystemBackground = "<a href=\"index.php?action=pic&pic=".$fileSystemBackground."&full=yes\"><img src='index.php?action=pic&pic=".$fileSystemBackground."' border=0 width='".$config["picWidth"]."' height='".$config["picHeight"]."'></a>"; }
-    
-        $files = array();
-        $dirs  = array();
-        if ($handle = opendir($config["searchPath"].$aktPath)) {
-            while (false !== ($file = readdir($handle))) {
-                if ($file != "." && $file != "..") {
-                    if(is_dir($config["searchPath"].$aktPath."/".$file)) {
-                        $dirs[] = $file;
-                    } else {
-                        $ext = substr($file, -4);
-                        if(in_array($ext, array_keys($config["ext"]))) {
-                            $files[] = $file;
-                        }
-                    }
-                }
-            }
-            closedir($handle);
-        }
-        natcasesort($dirs);
-        natcasesort($files);
-        foreach($dirs as $dir) {
-            $directory[] = array("file" => $dir);
-        }
-        foreach($files as $file) {
-            $filesystem[] = array("display" => crossUrlDecode($file), "file" => htmlentities($file));
-        }
-    }
-
-    # Path Links
-    $tmpPath   = "/";
-    $allPaths  = explode("/", $aktPath);
-    foreach($allPaths as $path) {
-        if(!empty($path)) {
-            $tmpPath   .= $path."/";
-            $PathLinks .= "<a href=\"?aktPath=".$tmpPath."\">$path/</a>";
-        }
-    }
-
-    # check if its really playing
-    if(isset($data["cpid"]) AND !empty($data["cpid"])) {
-        ob_start();
-        $test = system("ps -p ".$data["cpid"]." | grep -v PID");
-        ob_end_clean();
-        if(empty($test)) {
-            sleep(2);
-            action_next();
-        }
-    }
-
-    $mute = "mute";
-    if($data["mute"] == 1) {
-        $mute = "unmute";
-        $data["volume"] = 0;
-    }
-    $quiet = "quiet";
-    if(isset($data["quiet"]) AND $data["quiet"] == 1) {
-        $quiet = "unquiet";
-        $data["volume"] = $config["quietVol"];
-    }
-
-    $play = "play";
-    $status = "not playing";
-    if(!empty($data["cpid"])) {
-        $play = "stop";
-        $status = "playing, pid(".$data["cpid"].")";
-    }
-
-    if(!isset($data["curTrack"])) { $data["curTrack"] = ""; }
-    foreach($data["playlist"] as $key => $entry) {
-        if($key == $data["curTrack"]) {
-            $data["playlist"][$key]["status"] = "*";
-        } else {
-            $data["playlist"][$key]["status"] = "&nbsp;";
-        }
-    }
-
-    $remaining = "remaining";
-    $stream    = "false";
-    if(isset($data["playingStream"]) AND $data["playingStream"] == 1 AND isset($data["cpid"])) {
-        $stream = "true";
-    }
-    if(isset($data["curTrack"])
-       AND !empty($data["cpid"])
-       AND isset($data["playlist"][$data["curTrack"]]["stream"])
-       AND $data["playlist"][$data["curTrack"]]["stream"] == 1) {
-
-        $remaining = "playing";
-    }
-    $started = 0;
-    if(isset($data["start"]) AND !empty($data["start"])) {
-        $started = $data["start"];
-    }
-
-    $repeat = "repeat is off";
-    if($data["repeat"] == 1) {
-        $repeat = "repeat is on";
-    }
-
-    $remMin = "";
-    $remSec = "";
-#print "<pre>"; print_r($data); print "</pre>";
-    if(!empty($data["length"])) {
-        $data["length"] = $data["length"] - (time() - $data["start"]);
-        $remMin = floor($data["length"] / 60);
-        $remSec = floor($data["length"] % 60);
-    }
-
-    $playingPic = "";
-    if($play == "stop" AND isset($data["playingPic"]) AND !empty($data["playingPic"])) {
-        $playingPic = "<a href=\"index.php?action=pic&pic=".$data["playingPic"]."&full=yes\"><img src=\"index.php?action=pic&pic=".$data["playingPic"]."\" border=0width='".$config["picWidth"]."' height='".$config["picHeight"]."'></a>";
-    }
-
-    if(!isset($data["totalTime"])) {
-        $data["totalTime"] = "0:00";
-    }
-
-    $filename  = "";
-    if(isset($data["curTrack"]) AND isset($data["playlist"][$data["curTrack"]])) {
-
-        if(isset($data["playlist"][$data["curTrack"]]["artist"])) {
-            $artist = $data["playlist"][$data["curTrack"]]["artist"];
-            $wikiLink = "<a href=\"http://en.wikipedia.org/wiki/".str_replace(" ", "_", $artist)."\">".$artist."</a>";
-            $data["title"] = str_replace($artist, $wikiLink, $data["title"]);
-        }
-        $filename  = str_replace($config["searchPath"], "", $data["playlist"][$data["curTrack"]]["filename"]);
-    }
-
-    $pageTitle = "WebMP3s";
-    if($play == "stop") {
-        if(     isset($data["playlist"][$data["curTrack"]]["tracknum"]) 
-            AND !empty($data["playlist"][$data["curTrack"]]["tracknum"])
-            AND isset($data["playlist"][$data["curTrack"]]["title"])
-            AND !empty($data["playlist"][$data["curTrack"]]["title"])
-        ) {
-            $pageTitle = $data["playlist"][$data["curTrack"]]["tracknum"]." - ".$data["playlist"][$data["curTrack"]]["title"];
-        } else {
-            $pageTitle = $filename;
-        }
-    }
-
-    # Debug
-    # print "<pre>"; print_r($data); print "</pre>";
-
     $t = new template();
-    $t -> main("index.tpl");
+    $t -> main("webmp3.tpl");
     $t -> code(array(
-        "aktPath"       => $aktPath,
-        "playlist"      => $data["playlist"],
-        "filesystem"    => $filesystem,
-        "PathLinks"     => $PathLinks,
-        "fileSystemBackground"  => $fileSystemBackground,
-        "playingPic"    => $playingPic,
-        "directory"     => $directory,
-        "volume"        => getVolume(),
-        "mute"          => $mute,
-        "quiet"         => $quiet,
-        "play"          => $play,
-        "status"        => $status,
-        "repeat"        => $repeat,
-        "title"         => $data["title"],
-        "remMin"        => $remMin,
-        "remSec"        => $remSec,
-        "totalTime"     => $data["totalTime"],
-        "remaining"     => $remaining,
-        "stream"        => $stream,
-        "started"       => $started,
-        "filename"      => $filename,
-        "pageTitle"     => $pageTitle,
-        "search"        => $search,
     ));
     $temp = $t -> return_template();
     print $temp;
@@ -311,7 +93,7 @@ function action_changeDir()
         $_POST["aktPath"] = $_POST["aktPath"]."/".$_POST["to"];
     }
 
-    redirect("index.php?aktPath=".urlencode($_POST["aktPath"])."/");
+    redirect("webmp3.php?aktPath=".urlencode($_POST["aktPath"])."/");
 }
 
 #################################################################
@@ -354,9 +136,9 @@ function action_changePlaylist()
     }
 
     if(isset($_REQUEST["search"]) AND !empty($_REQUEST["search"])) {
-        redirect("index.php?aktPath=".$_POST["aktPath"]."&search=".$_REQUEST["search"]);
+        redirect("webmp3.php?aktPath=".$_POST["aktPath"]."&search=".$_REQUEST["search"]);
     } else {
-        redirect("index.php?aktPath=".$_POST["aktPath"]);
+        redirect("webmp3.php?aktPath=".$_POST["aktPath"]);
     }
 }
 
@@ -372,7 +154,7 @@ function action_volUp() {
     $data["volume"] = getVolume();
     storeData($data);
 
-    redirect("index.php?aktPath=".$_GET["aktPath"]);
+    redirect("webmp3.php?aktPath=".$_GET["aktPath"]);
 }
 
 #################################################################
@@ -387,7 +169,7 @@ function action_volDown() {
     $data["volume"] = getVolume();
     storeData($data);
 
-    redirect("index.php?aktPath=".$_GET["aktPath"]);
+    redirect("webmp3.php?aktPath=".$_GET["aktPath"]);
 }
 
 #################################################################
@@ -395,13 +177,18 @@ function action_volDown() {
 function action_setVolume()
 {
     global $config;
-    exec($config["aumixBin"]." -v ".escapeshellarg($_GET["vol"]));
+    if(!isset($_REQUEST["vol"])) {
+      print "no params??";
+      exit;
+    }
+    exec($config["aumixBin"]." -v ".escapeshellarg($_REQUEST["vol"]));
 
-    $data = getData();
-    $data["mute"]  = 0;
-    $data["quiet"] = 0;
-    $data["volume"] = getVolume();
-    storeData($data);
+    doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." setting volume to ".$_REQUEST["vol"]);
+    #$data = getData();
+    #$data["mute"]  = 0;
+    #$data["quiet"] = 0;
+    #$data["volume"] = getVolume();
+    #storeData($data);
 }
 
 #################################################################
@@ -426,9 +213,9 @@ function action_mute() {
     storeData($data);
 
     if(isset($_REQUEST["search"]) AND !empty($_REQUEST["search"])) {
-        redirect("index.php?aktPath=".$_GET["aktPath"]."&search=".$_REQUEST["search"]);
+        redirect("webmp3.php?aktPath=".$_GET["aktPath"]."&search=".$_REQUEST["search"]);
     } else {
-        redirect("index.php?aktPath=".$_GET["aktPath"]);
+        redirect("webmp3.php?aktPath=".$_GET["aktPath"]);
     }
 }
 
@@ -455,9 +242,9 @@ function action_quiet() {
     storeData($data);
 
     if(isset($_REQUEST["search"]) AND !empty($_REQUEST["search"])) {
-        redirect("index.php?aktPath=".$_GET["aktPath"]."&search=".$_REQUEST["search"]);
+        redirect("webmp3.php?aktPath=".$_GET["aktPath"]."&search=".$_REQUEST["search"]);
     } else {
-        redirect("index.php?aktPath=".$_GET["aktPath"]);
+        redirect("webmp3.php?aktPath=".$_GET["aktPath"]);
     }
 }
 
@@ -465,6 +252,7 @@ function action_quiet() {
 
 function action_play()
 {
+    global $config;
     $data = getData();
     if(isset($_GET["track"])) {
         $data["curTrack"] = $_GET["track"];
@@ -472,13 +260,13 @@ function action_play()
         sleep(1);
     }
 
-    system('HOME=/tmp $(which php5) play.php >> /tmp/webmp3play.log 2>&1 &');
+    system($config["cliPHPbinary"].' play.php >> '.$config["logfile"].' 2>&1 &');
 
     sleep(1);
     if(isset($_REQUEST["search"]) AND !empty($_REQUEST["search"])) {
-        redirect("index.php?aktPath=".$_GET["aktPath"]."&search=".$_REQUEST["search"]);
+        redirect("webmp3.php?aktPath=".$_GET["aktPath"]."&search=".$_REQUEST["search"]);
     } else {
-        redirect("index.php?aktPath=".$_GET["aktPath"]);
+        redirect("webmp3.php?aktPath=".$_GET["aktPath"]);
     }
 }
 
@@ -505,9 +293,9 @@ function action_stop()
     storeData($data);
 
     if(isset($_REQUEST["search"]) AND !empty($_REQUEST["search"])) {
-        redirect("index.php?aktPath=".$_GET["aktPath"]."&search=".$_REQUEST["search"]);
+        redirect("webmp3.php?aktPath=".$_GET["aktPath"]."&search=".$_REQUEST["search"]);
     } else {
-        redirect("index.php?aktPath=".$_GET["aktPath"]);
+        redirect("webmp3.php?aktPath=".$_GET["aktPath"]);
     }
 }
 
@@ -515,6 +303,7 @@ function action_stop()
 
 function action_next()
 {
+    global $config;
     doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." pressed next");
 
     $data = getData();
@@ -532,14 +321,14 @@ function action_next()
 
         $data["curTrack"] = $track;
         storeData($data);
-        system('HOME=/tmp $(which php5) play.php >> /tmp/webmp3play.log 2>&1 &');
+        system($config["cliPHPbinary"].' play.php >> '.$config["logfile"].' 2>&1 &');
     }
 
     sleep(2);
     if(isset($_REQUEST["search"]) AND !empty($_REQUEST["search"])) {
-        redirect("index.php?aktPath=".$_GET["aktPath"]."&search=".$_REQUEST["search"]);
+        redirect("webmp3.php?aktPath=".$_GET["aktPath"]."&search=".$_REQUEST["search"]);
     } else {
-        redirect("index.php?aktPath=".$_GET["aktPath"]);
+        redirect("webmp3.php?aktPath=".$_GET["aktPath"]);
     }
 }
 
@@ -547,6 +336,7 @@ function action_next()
 
 function action_prev()
 {
+    global $config;
     doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." pressed prev");
 
     $data = getData();
@@ -560,14 +350,14 @@ function action_prev()
 
         $data["curTrack"] = $track;
         storeData($data);
-        system('HOME=/tmp $(which php5) play.php >> /tmp/webmp3play.log 2>&1 &');
+        system($config["cliPHPbinary"].' play.php >> '.$config["logfile"].' 2>&1 &');
     }
 
     sleep(2);
     if(isset($_REQUEST["search"]) AND !empty($_REQUEST["search"])) {
-        redirect("index.php?aktPath=".$_GET["aktPath"]."&search=".$_REQUEST["search"]);
+        redirect("webmp3.php?aktPath=".$_GET["aktPath"]."&search=".$_REQUEST["search"]);
     } else {
-        redirect("index.php?aktPath=".$_GET["aktPath"]);
+        redirect("webmp3.php?aktPath=".$_GET["aktPath"]);
     }
 }
 
@@ -579,14 +369,17 @@ function action_clear()
 
     $data = getData();
 
-    $data["playlist"]  = array();
-    $data["totalTime"] = "0";
+    $data["playlist"]   = array();
+    $data["totalTime"]  = "0";
+    $data["cachedPic"]  = "";
+    $data["playingPic"] = "";
+    $data["curTrack"]   = "";
     storeData($data);
 
     if(isset($_REQUEST["search"]) AND !empty($_REQUEST["search"])) {
-        redirect("index.php?aktPath=".$_GET["aktPath"]."&search=".$_REQUEST["search"]);
+        redirect("webmp3.php?aktPath=".$_GET["aktPath"]."&search=".$_REQUEST["search"]);
     } else {
-        redirect("index.php?aktPath=".$_GET["aktPath"]);
+        redirect("webmp3.php?aktPath=".$_GET["aktPath"]);
     }
 }
 
@@ -606,9 +399,9 @@ function action_sort()
     storeData($data);
 
     if(isset($_REQUEST["search"]) AND !empty($_REQUEST["search"])) {
-        redirect("index.php?aktPath=".$_GET["aktPath"]."&search=".$_REQUEST["search"]);
+        redirect("webmp3.php?aktPath=".$_GET["aktPath"]."&search=".$_REQUEST["search"]);
     } else {
-        redirect("index.php?aktPath=".$_GET["aktPath"]);
+        redirect("webmp3.php?aktPath=".$_GET["aktPath"]);
     }
 }
 
@@ -628,9 +421,9 @@ function action_shuffle()
     storeData($data);
 
     if(isset($_REQUEST["search"]) AND !empty($_REQUEST["search"])) {
-        redirect("index.php?aktPath=".$_GET["aktPath"]."&search=".$_REQUEST["search"]);
+        redirect("webmp3.php?aktPath=".$_GET["aktPath"]."&search=".$_REQUEST["search"]);
     } else {
-        redirect("index.php?aktPath=".$_GET["aktPath"]);
+        redirect("webmp3.php?aktPath=".$_GET["aktPath"]);
     }
 }
 
@@ -650,9 +443,9 @@ function action_repeat()
     storeData($data);
 
     if(isset($_REQUEST["search"]) AND !empty($_REQUEST["search"])) {
-        redirect("index.php?aktPath=".$_GET["aktPath"]."&search=".$_REQUEST["search"]);
+        redirect("webmp3.php?aktPath=".$_GET["aktPath"]."&search=".$_REQUEST["search"]);
     } else {
-        redirect("index.php?aktPath=".$_GET["aktPath"]);
+        redirect("webmp3.php?aktPath=".$_GET["aktPath"]);
     }
 }
 
@@ -902,7 +695,7 @@ function action_addFile()
         $data["playlist"] = playlistAdd($data["playlist"], $file);
         storeData($data);
     }
-    redirect("index.php?action=hitlist&reload=1");
+    redirect("webmp3.php?action=hitlist&reload=1");
 }
 
 #################################################################
@@ -913,7 +706,7 @@ function action_clearHitlist()
     $data["mostPlayed"] = array();
     storeData($data);
 
-    redirect("index.php?action=hitlist&reload=1");
+    redirect("webmp3.php?action=hitlist&reload=1");
 }
 
 #################################################################
@@ -998,6 +791,90 @@ function action_search()
     $_POST["aktPath"] = "";
     $_GET["aktPath"] = "";
     action_default();
+}
+
+#################################################################
+
+function action_getFilesystem()
+{
+    doPrint("got json filesystem get request");
+    
+    global $config;
+    $aktPath = "";
+    if(isset($_REQUEST["aktPath"])) {
+        $aktPath = $_REQUEST["aktPath"];
+    }
+
+    if(is_file($config["searchPath"].$aktPath)) {
+        $aktPath = dirname($config["searchPath"].$aktPath);
+        $aktPath = str_replace($config["searchPath"], "", $aktPath);
+    }
+    if(!is_dir($config["searchPath"].$aktPath)) {
+        $aktPath = "";
+    }
+
+    $filesystem = array();
+    # Filesystem    
+    $files = array();
+    $dirs  = array();
+    if ($handle = opendir($config["searchPath"].$aktPath)) {
+        while (false !== ($file = readdir($handle))) {
+            if ($file != "." && $file != "..") {
+                if(is_dir($config["searchPath"].$aktPath."/".$file)) {
+                    $dirs[] = $file;
+                } else {
+                    $ext = substr($file, -4);
+                    if(in_array($ext, array_keys($config["ext"]))) {
+                        $files[] = $file;
+                    }
+                }
+            }
+        }
+        closedir($handle);
+    }
+    natcasesort($dirs);
+    natcasesort($files);
+    foreach($dirs as $dir) {
+        $filesystem[] = array("display" => crossUrlDecode($dir),  "file" => htmlentities($dir),  "type" => "D");
+    }
+    foreach($files as $file) {
+        $filesystem[] = array("display" => crossUrlDecode($file), "file" => htmlentities($file), "type" => "F");
+    }
+
+    if(count($filesystem) > 0) {
+        $data = json_encode($filesystem);
+        echo '({"total":"'.count($filesystem).'","results":'.$data.'})';
+    } else {
+        echo '({"total":"0", "results":""})';
+    }
+}
+
+#################################################################
+
+function action_getPlaylist()
+{
+    doPrint("got json playlist request");
+    
+    global $config;
+    $data = getData();
+    
+    $playlist = array();
+    foreach($data['playlist'] as $key => $entry) {
+        $playlist[] = array(
+            "tracknum"  => $entry['tracknum'],
+            "artist"    => $entry['artist'],
+            "album"     => $entry['album'],
+            "title"     => $entry['title'],
+            "length"    => $entry['length'],
+        );
+    }
+
+    if(count($playlist) > 0) {
+        $data = json_encode($playlist);
+        echo '({"total":"'.count($playlist).'","results":'.$data.'})';
+    } else {
+        echo '({"total":"0", "results":""})';
+    }
 }
 
 #################################################################
