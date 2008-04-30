@@ -7,8 +7,8 @@ error_reporting(2047);
 
 ### INCLUDES ###
 include("config.php");
-$config["searchPath"] = realpath($config["searchPath"]);
-if($config["accControl"] == 1 AND isset($_SERVER["REMOTE_ADDR"]) AND !in_array($_SERVER["REMOTE_ADDR"], $config["allowedIPs"])) { 
+#$config["searchPath"] = realpath($config["searchPath"]);
+if($config["accControl"] == 1 AND isset($_SERVER["REMOTE_ADDR"]) AND !in_array($_SERVER["REMOTE_ADDR"], $config["allowedIPs"])) {
     die($_SERVER["REMOTE_ADDR"]." ist nicht zugelassen"); 
 }
 
@@ -76,6 +76,7 @@ function action_default()
     $t = new template();
     $t -> main("webmp3.tpl");
     $t -> code(array(
+        "volume"    => getVolume(),
     ));
     $temp = $t -> return_template();
     print $temp;
@@ -818,7 +819,7 @@ function action_getFilesystem()
     }
 
     $aktPath = getPath($aktPath, $append);
-    doPrint("got json filesystem get request for: ".$config["searchPath"].$aktPath);
+    doPrint("got json filesystem get request for: ".$aktPath);
 
     $filesystem = array();
     # Filesystem    
@@ -847,10 +848,12 @@ function action_getFilesystem()
     }
 
     foreach($dirs as $dir) {
-        $filesystem[] = array("display" => crossUrlDecode($dir),  "file" => htmlentities($dir),  "type" => "D");
+        #$filesystem[] = array("display" => crossUrlDecode($dir),  "file" => htmlentities($dir),  "type" => "D");
+        $filesystem[] = array("display" => crossUrlDecode($dir),  "file" => $dir,  "type" => "D");
     }
     foreach($files as $file) {
-        $filesystem[] = array("display" => crossUrlDecode($file), "file" => htmlentities($file), "type" => "F");
+        #$filesystem[] = array("display" => crossUrlDecode($file), "file" => htmlentities($file), "type" => "F");
+        $filesystem[] = array("display" => crossUrlDecode($file), "file" => $file, "type" => "F");
     }
 
     if(count($filesystem) > 0) {
@@ -866,10 +869,10 @@ function action_getFilesystem()
 function action_getPlaylist()
 {
     doPrint("got json playlist request");
-    
+
     global $config;
     $data = getData();
-    
+
     $playlist = array();
     foreach($data['playlist'] as $key => $entry) {
         $playlist[] = array(
@@ -891,59 +894,9 @@ function action_getPlaylist()
 
 #################################################################
 
-function action_setRepeat()
+function action_setToggle()
 {
-    if(!defined($_REQUEST['param'])) {
-        exit;
-    }
-    print $_REQUEST['param'];
-}
-
-#################################################################
-
-function action_setPlay()
-{
-    if(!defined($_REQUEST['param'])) {
-        exit;
-    }
-    sleep(1);
-    print $_REQUEST['param'];
-}
-
-#################################################################
-
-function action_setPause()
-{
-    if(!defined($_REQUEST['param'])) {
-        exit;
-    }
-    print $_REQUEST['param'];
-}
-
-#################################################################
-
-function action_setMute()
-{
-    if(!defined($_REQUEST['param'])) {
-        exit;
-    }
-    print $_REQUEST['param'];
-}
-
-#################################################################
-
-function action_setUnmute()
-{
-    if(!defined($_REQUEST['param'])) {
-        exit;
-    }
-    print $_REQUEST['param'];
-}
-
-#################################################################
-
-function action_setQuiet()
-{
+    doPrint($_REQUEST);
     if(!defined($_REQUEST['param'])) {
         exit;
     }
@@ -955,7 +908,7 @@ function action_setQuiet()
 function action_getPath()
 {
     doPrint("got json getPath request");
-    doPrint($_REQUEST);
+    #doPrint($_REQUEST);
     global $config;
 
     if(!isset($_REQUEST['aktPath'])) {

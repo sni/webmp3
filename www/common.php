@@ -587,38 +587,66 @@ function formatDateTime($time = 0)
 function getPath($path = "", $append = "") {
     global $config;
 
-    $origRequest = realpath("/".$path."/".$append);
-    doPrint("1: ".$origRequest);
+    # doPrint("getPath('".$path."', '".$append."')");
+    $path   = strip_tags($path);
+    $append = strip_tags($append);
+
+    # strip of trailing /
+    $config["searchPath"] = preg_replace("/\/$/", "", $config["searchPath"]);
+
+    doPrint("getPath('".$path."', '".$append."')");
+    if($path == "") { $path = "/"; }
+
+    $origRequest = "/".$path."/".$append;
+    #doPrint("0: ".$origRequest);
+    $origRequest = preg_replace("/\/+/", "/", $origRequest);
+    #doPrint("1: ".$origRequest);
 
     $aktPath = $config["searchPath"]."/".$path."/".$append;
-    doPrint("2: ".$aktPath);
-    $aktPath = realpath($aktPath);
-    doPrint("3: ".$aktPath);
+
+    $aktPath = preg_replace("/\/+/", "/", $aktPath);
+    #doPrint("2: ".$aktPath);
+
+    #$aktPath = realpath($aktPath);
+    # do the realpath thing...
+    $origRequest = myRealpath($origRequest);
+    $aktPath     = myRealpath($aktPath);
+    #doPrint("3: ".$aktPath);
+
     if(is_file($aktPath)) {
         $aktPath = dirname($aktPath);
-        doPrint("4: ".$aktPath);
+        #doPrint("4: ".$aktPath);
     }
     if(!is_dir($aktPath)) {
         $aktPath = "";
-        doPrint("5: ".$aktPath);
+        #doPrint("5: ".$aktPath);
     }
-    doPrint("6: ".$aktPath);
+    #doPrint("6: ".$aktPath);
 
-    $ok = 0;
-    foreach($config["validPaths"] as $checkPath) {
-        if(strpos($aktPath, $checkPath) === 0) {
-            $ok = 1;
-        } 
+    if(strpos($aktPath, $config["searchPath"]) !== 0) {
+        $origRequest = "/";
+        $aktPath = $config["searchPath"];
+        #doPrint("6.1: wrong path, resetting");
     }
-    if($ok == 1) {
-        if(strpos($origRequest, "/") !== 0) {
-            $origRequest = "/".$origRequest;
-        }
-        return $origRequest;
-    } else {
-        doPrint("7: /");
-        return('/');
+
+    if(strpos($origRequest, "/") !== 0) {
+        $origRequest = "/".$origRequest;
     }
+    #doPrint("7: ".$origRequest);
+    return $origRequest;
+}
+
+#########################################################################################
+
+function myRealpath($path) {
+    while(strpos($path, "..") !== false) {
+        $pathElems = split("/", $path);
+        $key = array_search('..', $pathElems);
+        array_splice($pathElems, $key -1 , 2);
+        $path = join("/", $pathElems);
+    }
+    return($path);
+    $path = str_replace("/.", "", $path);
 }
 
 #########################################################################################

@@ -8,6 +8,7 @@
 
 Ext.onReady(function(){
   Ext.namespace("webmp3");
+  webmp3.sliderInit = 1;
   webmp3.lastChange = new Date();
 });
 
@@ -38,26 +39,30 @@ Ext.ux.SliderTip = Ext.extend(Ext.Tip, {
     },
 
     onChange : function(slider){
-        this.now=new Date();
-        diff_time = this.now.getTime() - this.lastChange.getTime();
-        if(diff_time > 300) {
-          var msg = Ext.get('status');
-          msg.load({
-              url: 'webmp3.php',
-              params: 'action=setVolume&vol=' + slider.getValue(),
-              text: 'setting volume...' + slider.getValue()
-          });
-          this.lastChange = new Date();
+        if(webmp3.sliderInit == 0) {
+            this.now=new Date();
+            diff_time = this.now.getTime() - this.lastChange.getTime();
+            if(diff_time > 300) {
+                var msg = Ext.get('status');
+                msg.load({
+                    url: 'webmp3.php',
+                    params: 'action=setVolume&vol=' + slider.getValue(),
+                    text: 'setting volume...' + slider.getValue()
+                });
+                this.lastChange = new Date();
+            }
         }
     },
 
     onDragEnd : function(slider){
         var msg = Ext.get('status');
-        msg.load({
-            url: 'webmp3.php',
-            params: 'action=setVolume&vol=' + slider.getValue(),
-            text: 'setting volume...' + slider.getValue()
-        });
+        if(webmp3.sliderInit == 0) {
+            msg.load({
+                url: 'webmp3.php',
+                params: 'action=setVolume&vol=' + slider.getValue(),
+                text: 'setting volume...' + slider.getValue()
+            });
+        }
     },
 
     getText : function(slider){

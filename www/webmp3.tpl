@@ -26,8 +26,6 @@
 
 Ext.onReady(function(){
 
-    webmp3.aktPath = "";
-
 /****************************************
  * Event Handler
  ***************************************/
@@ -35,7 +33,7 @@ Ext.onReady(function(){
         var msg = Ext.get('statustext');
         msg.load({
             url: 'webmp3.php',
-            params: 'action=set'+item.text+'&param=' + pressed,
+            params: 'action=setToggle&button='+item.text+'&param=' + pressed,
             text: 'setting '+item.text+' to '+pressed
         });
         if(item.text == "Mute") {
@@ -351,10 +349,6 @@ webmp3.playingbar = new Ext.Toolbar({
     });
 
 
-
-
-
-
 /****************************************
  * Filesystem Searchfield
  ***************************************/
@@ -483,19 +477,18 @@ webmp3.playingbar = new Ext.Toolbar({
                 var fieldName = grid.getColumnModel().getDataIndex(columnIndex); // Get field name
                 //var data = record.get(fieldName);
                 var data = record.get('file');
-                webmp3.FilesystemDataStore.load({
-                    url: 'webmp3.php',
-                    params: 'action=getFilesystem&aktPath=' + webmp3.aktPath + '&append=' + record.get('file'),
-                    text: 'loading files for '+record.get('file')
-                });
                 var filestatus = Ext.get('filestatus');
+                webmp3.aktPath = document.getElementById('filestatus').innerHTML;
                 filestatus.load({
                     url: 'webmp3.php',
                     params: 'action=getPath&aktPath=' + webmp3.aktPath + '&append=' + record.get('file'),
                     text: 'loading files for '+record.get('file')
                 });
-                //webmp3.aktPath = document.getElementById('filestatus').innerHTML;
-                //alert(webmp3.aktPath);
+                webmp3.FilesystemDataStore.load({
+                    url: 'webmp3.php',
+                    params: 'action=getFilesystem&aktPath=' + webmp3.aktPath + '&append=' + record.get('file'),
+                    text: 'loading files for '+record.get('file')
+                });
             }
         },
         title: 'Filesystem',
@@ -520,7 +513,7 @@ webmp3.playingbar = new Ext.Toolbar({
                             }),
                   ' ', '-', ' ', {
                     xtype: 'panel',
-                    html: '/',
+                    html: '',
                     border: false,
                     id: 'filestatus'
                   }
@@ -558,7 +551,8 @@ webmp3.playingbar = new Ext.Toolbar({
     Ext.QuickTips.init();
 
     // initialize current settings
-    //webmp3.slider.setValue('<!--php: volume -->', 1);
+    webmp3.slider.setValue('<!--php: volume -->', 1);
+    webmp3.sliderInit = 0;
 });
 -->
 </script>

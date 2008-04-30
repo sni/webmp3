@@ -21,9 +21,8 @@ $config["streamUrlPre"] = "http_proxy://localhost:8001/";    # requiered for pro
 $config["aumixBin"]   = "/usr/bin/aumix";       # executable to change volume
 #$config["aumixBin"]   = "/usr/bin/true";       # executable to change volume
 
-$config["searchPath"] = "/Users/sven/Music/";             # path with your mp3/ogg files
-#$config["searchPath"] = "/opt/projects/webmp3/musik/";   # path with your mp3/ogg files
-$config["validPaths"] = array($config["searchPath"]);     # array with paths, can useful if you use symlinks in the searchPath
+#$config["searchPath"] = "/Users/sven/Music/";             # path with your mp3/ogg files
+$config["searchPath"] = "/opt/projects/webmp3/musik/";   # path with your mp3/ogg files
 
 $config["playlist"]   = "playlist.dat";         # a file with your playlist and other temporary data
 $config["hitlist"]    = "hitlist.dat";          # a file with your played songs
