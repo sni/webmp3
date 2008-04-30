@@ -361,26 +361,27 @@ webmp3.playingbar = new Ext.Toolbar({
                   }, '-', {
                     text: 'Clear',
                     tooltip: 'Clear',
+                    id: 'clearBtn'
                   }, '-', {
                     text: 'Sort',
                     tooltip: 'Sort',
+                    id: 'sortBtn'
                   }, '-',{
                     text: 'Shuffle',
                     tooltip: 'Shuffle',
+                    id: 'shuffleBtn'
                   }, '-',{
                     text: 'Playlist',
-                    tooltip: 'Playlist Actions',
+                    tooltip: 'Playlist Actions'
                   }, '-',{
                     text: 'Hitlist',
-                    tooltip: 'Hitlist',
+                    tooltip: 'Hitlist'
                   }, '-',{
                     text: 'add Stream',
-                    tooltip: 'add Stream',
+                    tooltip: 'add Stream'
                   }
               ]
     });
-
-
 /****************************************
  * Filesystem Searchfield
  ***************************************/
@@ -579,6 +580,35 @@ webmp3.playingbar = new Ext.Toolbar({
     });
 
 /****************************************
+ * Playlist Button EventHandler
+ ***************************************/
+    Ext.get('clearBtn').on("click", function(button, event) {
+        var msg = Ext.get('statustext');
+        webmp3.PlaylistDataStore.load({
+            url: 'webmp3.php',
+            params: 'action=getPlaylist&clear=1',
+            text: 'cleared playlist'
+        });
+    });
+    Ext.get('shuffleBtn').on("click", function(button, event) {
+        var msg = Ext.get('statustext');
+        webmp3.PlaylistDataStore.load({
+            url: 'webmp3.php',
+            params: 'action=getPlaylist&shuffle=1',
+            text: 'cleared playlist'
+        });
+    });
+    Ext.get('sortBtn').on("click", function(button, event) {
+        var msg = Ext.get('statustext');
+        webmp3.PlaylistDataStore.load({
+            url: 'webmp3.php',
+            params: 'action=getPlaylist&sort=1',
+            text: 'cleared playlist'
+        });
+    });
+
+
+/****************************************
  * Initialization
  ***************************************/
     // initialize tool tips
@@ -587,19 +617,6 @@ webmp3.playingbar = new Ext.Toolbar({
     // initialize current settings
     webmp3.slider.setValue('<!--php: volume -->', 1);
     webmp3.sliderInit = 0;
-    //Ext.get('repeatBtn').toggle();
-    //Ext.get('repeatBtn').show();
-    //Ext.get('repeatBtn').toggle(true);
-    //Ext.get('repeatBtn').enable();
-    //Ext.get('repeatBtn').show();
-/*
-    Ext.get('repeatBtn').toggle(<!--php: repeat -->);
-    /*
-    Ext.get('playBtn').toggle(<!--php: play -->);
-    Ext.get('pauseBtn').toggle(<!--php: pause -->);
-    Ext.get('quietBtn').toggle(<!--php: quiet -->);
-    Ext.get('muteBtn').toggle(<!--php: mute -->);
-    */
 });
 -->
 </script>

@@ -26,8 +26,6 @@ include("Action.php");
 # action_default()
 # action_changeDir()
 # action_changePlaylist()
-# action_volUp()
-# action_volDown()
 # action_setVolume()
 # action_mute()
 # action_quiet()
@@ -35,9 +33,6 @@ include("Action.php");
 # action_stop()
 # action_next()
 # action_prev()
-# action_clear()
-# action_sort()
-# action_repeat()
 # action_pic()
 # action_savePl()
 # action_loadPl()
@@ -50,14 +45,9 @@ include("Action.php");
 # action_updateTagCache()
 #
 # action_getFilesystem()
-# action_setRepeat()
-# action_setPlay()
-# action_setPause()
-# action_setMute()
-# action_setUnmute()
-# action_setQuiet()
+# action_getPlaylist()
+# action_setToggle()
 # action_getPath()
-#
 #
 #################################################################
 
@@ -171,36 +161,6 @@ function action_changePlaylist()
     } else {
         redirect("webmp3.php?aktPath=".$_POST["aktPath"]);
     }
-}
-
-#################################################################
-
-function action_volUp() {
-    global $config;
-    exec($config["aumixBin"]." -v ".escapeshellarg("+".$_GET["vol"]));
-
-    $data = getData();
-    $data["mute"]  = 0;
-    $data["quiet"] = 0;
-    $data["volume"] = getVolume();
-    storeData($data);
-
-    redirect("webmp3.php?aktPath=".$_GET["aktPath"]);
-}
-
-#################################################################
-
-function action_volDown() {
-    global $config;
-    exec($config["aumixBin"]." -v ".escapeshellarg("-".$_GET["vol"]));
-
-    $data = getData();
-    $data["mute"]  = 0;
-    $data["quiet"] = 0;
-    $data["volume"] = getVolume();
-    storeData($data);
-
-    redirect("webmp3.php?aktPath=".$_GET["aktPath"]);
 }
 
 #################################################################
@@ -385,72 +345,6 @@ function action_prev()
     }
 
     sleep(2);
-    if(isset($_REQUEST["search"]) AND !empty($_REQUEST["search"])) {
-        redirect("webmp3.php?aktPath=".$_GET["aktPath"]."&search=".$_REQUEST["search"]);
-    } else {
-        redirect("webmp3.php?aktPath=".$_GET["aktPath"]);
-    }
-}
-
-#################################################################
-
-function action_clear()
-{
-    doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." pressed clear");
-
-    $data = getData();
-
-    $data["playlist"]   = array();
-    $data["totalTime"]  = "0";
-    $data["cachedPic"]  = "";
-    $data["playingPic"] = "";
-    $data["curTrack"]   = "";
-    storeData($data);
-
-    if(isset($_REQUEST["search"]) AND !empty($_REQUEST["search"])) {
-        redirect("webmp3.php?aktPath=".$_GET["aktPath"]."&search=".$_REQUEST["search"]);
-    } else {
-        redirect("webmp3.php?aktPath=".$_GET["aktPath"]);
-    }
-}
-
-#################################################################
-
-function action_sort()
-{
-    $data = getData();
-
-    $tmp = sortMultiArray($data["playlist"], "filename");
-    $newData = array();
-    foreach($tmp as $blah)
-    {
-        $newData[$blah["token"]] = $blah;
-    }
-    $data["playlist"] = $newData;
-    storeData($data);
-
-    if(isset($_REQUEST["search"]) AND !empty($_REQUEST["search"])) {
-        redirect("webmp3.php?aktPath=".$_GET["aktPath"]."&search=".$_REQUEST["search"]);
-    } else {
-        redirect("webmp3.php?aktPath=".$_GET["aktPath"]);
-    }
-}
-
-#################################################################
-
-function action_shuffle()
-{
-    $data = getData();
-
-    shuffle($data["playlist"]);
-    $newData = array();
-    foreach($data["playlist"] as $blah)
-    {
-        $newData[$blah["token"]] = $blah;
-    }
-    $data["playlist"] = $newData;
-    storeData($data);
-
     if(isset($_REQUEST["search"]) AND !empty($_REQUEST["search"])) {
         redirect("webmp3.php?aktPath=".$_GET["aktPath"]."&search=".$_REQUEST["search"]);
     } else {
@@ -873,6 +767,39 @@ function action_getPlaylist()
 
     global $config;
     $data = getData();
+
+    if(isset($_REQUEST["clear"])) {
+        doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." pressed clear");
+        $data["playlist"]   = array();
+        $data["totalTime"]  = "0";
+        $data["cachedPic"]  = "";
+        $data["playingPic"] = "";
+        $data["curTrack"]   = "";
+        storeData($data);
+    }
+    if(isset($_REQUEST["shuffle"])) {
+        doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." pressed shuffle");
+        shuffle($data["playlist"]);
+        $newData = array();
+        foreach($data["playlist"] as $blah)
+        {
+            $newData[$blah["token"]] = $blah;
+        }
+        $data["playlist"] = $newData;
+        storeData($data);
+    }
+
+    if(isset($_REQUEST["sort"])) {
+        doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." pressed sort");
+        $tmp = sortMultiArray($data["playlist"], "filename");
+        $newData = array();
+        foreach($tmp as $blah)
+        {
+            $newData[$blah["token"]] = $blah;
+        }
+        $data["playlist"] = $newData;
+        storeData($data);
+    }
 
     $playlist = array();
     foreach($data['playlist'] as $key => $entry) {
