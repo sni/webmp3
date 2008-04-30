@@ -21,6 +21,7 @@ error_reporting(2047);
 # getCaller()
 # getTag()
 # formatDateTime()
+# getPath()
 #
 #################################################################
 
@@ -579,6 +580,45 @@ function formatDateTime($time = 0)
 {
     if($time == 0) { $time = time(); }
     return(date("m.d.Y H:i:s", $time));
+}
+
+#########################################################################################
+# returns relative path from search directory
+function getPath($path = "", $append = "") {
+    global $config;
+
+    $origRequest = realpath("/".$path."/".$append);
+    doPrint("1: ".$origRequest);
+
+    $aktPath = $config["searchPath"]."/".$path."/".$append;
+    doPrint("2: ".$aktPath);
+    $aktPath = realpath($aktPath);
+    doPrint("3: ".$aktPath);
+    if(is_file($aktPath)) {
+        $aktPath = dirname($aktPath);
+        doPrint("4: ".$aktPath);
+    }
+    if(!is_dir($aktPath)) {
+        $aktPath = "";
+        doPrint("5: ".$aktPath);
+    }
+    doPrint("6: ".$aktPath);
+
+    $ok = 0;
+    foreach($config["validPaths"] as $checkPath) {
+        if(strpos($aktPath, $checkPath) === 0) {
+            $ok = 1;
+        } 
+    }
+    if($ok == 1) {
+        if(strpos($origRequest, "/") !== 0) {
+            $origRequest = "/".$origRequest;
+        }
+        return $origRequest;
+    } else {
+        doPrint("7: /");
+        return('/');
+    }
 }
 
 #########################################################################################

@@ -10,7 +10,7 @@
   <meta name="description" content="">
   <meta name="keywords" content="">
   <link rel="stylesheet" href="webmp3.css">
-  <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
+  <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico">
   <title>WebMP3</title>
     <link rel="stylesheet" type="text/css" href="extjs/ext-all.css">
     <script type="text/javascript" src="extjs/ext-base.js"></script>
@@ -25,6 +25,8 @@
 <!--
 
 Ext.onReady(function(){
+
+    webmp3.aktPath = "";
 
 /****************************************
  * Event Handler
@@ -481,12 +483,19 @@ webmp3.playingbar = new Ext.Toolbar({
                 var fieldName = grid.getColumnModel().getDataIndex(columnIndex); // Get field name
                 //var data = record.get(fieldName);
                 var data = record.get('file');
-                //alert("dblclick: "+data);
                 webmp3.FilesystemDataStore.load({
                     url: 'webmp3.php',
-                    params: 'action=getFilesystem&aktPath=' + record.get('file'),
+                    params: 'action=getFilesystem&aktPath=' + webmp3.aktPath + '&append=' + record.get('file'),
                     text: 'loading files for '+record.get('file')
                 });
+                var filestatus = Ext.get('filestatus');
+                filestatus.load({
+                    url: 'webmp3.php',
+                    params: 'action=getPath&aktPath=' + webmp3.aktPath + '&append=' + record.get('file'),
+                    text: 'loading files for '+record.get('file')
+                });
+                //webmp3.aktPath = document.getElementById('filestatus').innerHTML;
+                //alert(webmp3.aktPath);
             }
         },
         title: 'Filesystem',
@@ -497,7 +506,7 @@ webmp3.playingbar = new Ext.Toolbar({
                     text: 'Add',
                     tooltip: 'Add selected files to the playlist',
                     icon:      'images/add.png',
-                    iconCls:'add',                      // reference to our css
+                    iconCls: 'add',                      // reference to our css
         //            handler: displayFormWindow
                   }, '-', {
                     text: 'Search',
@@ -508,7 +517,13 @@ webmp3.playingbar = new Ext.Toolbar({
                                         store: webmp3.FilesystemDataStore,
                                                         params: {start: 0, limit: 15},
                                         width: 120
-                            })
+                            }),
+                  ' ', '-', ' ', {
+                    xtype: 'panel',
+                    html: '/',
+                    border: false,
+                    id: 'filestatus'
+                  }
               ]
 
     });

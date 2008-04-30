@@ -56,6 +56,7 @@ include("Action.php");
 # action_setMute()
 # action_setUnmute()
 # action_setQuiet()
+# action_getPath()
 #
 #
 #################################################################
@@ -803,34 +804,30 @@ function action_search()
 
 function action_getFilesystem()
 {
-    doPrint("got json filesystem get request");
-    doPrint($_REQUEST);
     global $config;
-    $aktPath = "";
-    doPrint("1".$aktPath);
-    if(isset($_REQUEST["aktPath"])) {
-        $aktPath = $_REQUEST["aktPath"];
-    }
-    doPrint("2".$aktPath);
-    $aktPath = realpath($config["searchPath"]."/".$aktPath);
-    doPrint("2.1".$aktPath);
-    if(is_file($aktPath)) {
-        $aktPath = dirname($aktPath);
-        doPrint("3".$aktPath);
-    }
-    if(!is_dir($aktPath)) {
+
+    if(!isset($_REQUEST['aktPath'])) {
         $aktPath = "";
-        doPrint("4".$aktPath);
+    } else {
+        $aktPath = $_REQUEST['aktPath'];
     }
-    doPrint("5".$aktPath);
+    if(!isset($_REQUEST['append'])) {
+        $append = "";
+    } else {
+        $append = $_REQUEST['append'];
+    }
+
+    $aktPath = getPath($aktPath, $append);
+    doPrint("got json filesystem get request for: ".$config["searchPath"].$aktPath);
+
     $filesystem = array();
     # Filesystem    
     $files = array();
     $dirs  = array();
-    if ($handle = opendir($aktPath)) {
+    if ($handle = opendir($config["searchPath"].$aktPath)) {
         while (false !== ($file = readdir($handle))) {
             if ($file != "." && $file != "..") {
-                if(is_dir($aktPath."/".$file)) {
+                if(is_dir($config["searchPath"].$aktPath."/".$file)) {
                     $dirs[] = $file;
                 } else {
                     $ext = substr($file, -4);
@@ -952,5 +949,31 @@ function action_setQuiet()
     }
     print $_REQUEST['param'];
 }
+
+#################################################################
+
+function action_getPath()
+{
+    doPrint("got json getPath request");
+    doPrint($_REQUEST);
+    global $config;
+
+    if(!isset($_REQUEST['aktPath'])) {
+        $aktPath = "";
+    } else {
+        $aktPath = $_REQUEST['aktPath'];
+    }
+    if(!isset($_REQUEST['append'])) {
+        $append = "";
+    } else {
+        $append = $_REQUEST['append'];
+    }
+
+    $aktPath = getPath($aktPath, $append);
+
+    print $aktPath;
+}
+
+#################################################################
 
 ?>
