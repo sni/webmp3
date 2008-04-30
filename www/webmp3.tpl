@@ -15,7 +15,6 @@
     <link rel="stylesheet" type="text/css" href="extjs/ext-all.css">
     <script type="text/javascript" src="extjs/ext-base.js"></script>
     <script type="text/javascript" src="extjs/ext-all.js"></script>
-    <script type="text/javascript" src="extjs/slider.js"></script>
     <link rel="stylesheet" type="text/css" href="extjs/slider.css">
 </head>
 <body>
@@ -25,6 +24,9 @@
 <!--
 
 Ext.onReady(function(){
+  Ext.namespace("webmp3");
+  webmp3.sliderInit = 1;
+  webmp3.lastChange = new Date();
 
 /****************************************
  * Event Handler
@@ -41,7 +43,10 @@ Ext.onReady(function(){
         } else if(item.text == "Unmute") {
             item.setText("Mute");
         }
-        if(item.text == "Repeat") {
+        if(item.text == "Play") {
+            item.setText("Stop");
+        } else if(item.text == "Stop") {
+            item.setText("Play");
         }
     }
 
@@ -57,16 +62,33 @@ Ext.onReady(function(){
     });
 
     webmp3.slider.on("change", function(slider, value) {
-        webmp3.now=new Date();
-        diff_time = webmp3.now.getTime() - webmp3.lastChange.getTime();
-        if(diff_time > 300) {
-            var msg = Ext.get('statustext');
-            msg.load({
-                url: 'webmp3.php',
-                params: 'action=setVolume&vol=' + slider.getValue(),
-                text: 'setting volume...' + slider.getValue()
-            });
-            webmp3.lastChange = new Date();
+        if(webmp3.sliderInit == 0) {
+            webmp3.now=new Date();
+            diff_time = webmp3.now.getTime() - webmp3.lastChange.getTime();
+            if(diff_time > 300) {
+                var msg = Ext.get('statustext');
+                msg.load({
+                    url: 'webmp3.php',
+                    params: 'action=setVolume&vol=' + slider.getValue(),
+                    text: 'setting volume...' + slider.getValue()
+                });
+                webmp3.lastChange = new Date();
+            }
+        }
+    });
+    webmp3.slider.on("dragend", function(slider, value) {
+        if(webmp3.sliderInit == 0) {
+            webmp3.now=new Date();
+            diff_time = webmp3.now.getTime() - webmp3.lastChange.getTime();
+            if(diff_time > 300) {
+                var msg = Ext.get('statustext');
+                msg.load({
+                    url: 'webmp3.php',
+                    params: 'action=setVolume&vol=' + slider.getValue(),
+                    text: 'setting volume...' + slider.getValue()
+                });
+                webmp3.lastChange = new Date();
+            }
         }
     });
 
@@ -87,8 +109,10 @@ Ext.onReady(function(){
                     tooltip: 'Play',
                     enableToggle: true,
                     toggleHandler: onButtonToggle,
-                    cls:"x-btn-text-icon",
-                    icon: 'images/control_play_blue.png',
+                    cls:"x-btn-text-icon play-btn",
+                    //icon: 'images/control_play_blue.png',
+                    id: 'playBtn',
+                    pressed: <!--php: play -->
                     }, '-', {
                     text: 'Pause',
                     tooltip: 'Pause',
@@ -96,6 +120,8 @@ Ext.onReady(function(){
                     toggleHandler: onButtonToggle,
                     cls:"x-btn-text-icon",
                     icon: 'images/control_pause_blue.png',
+                    id: 'pauseBtn',
+                    pressed: <!--php: pause -->
                     }, '-',{
                     text: 'Next',
                     tooltip: 'Next',
@@ -110,6 +136,8 @@ Ext.onReady(function(){
                     toggleHandler: onButtonToggle,
                     cls:"x-btn-text-icon",
                     icon: 'images/sound_mute.png',
+                    id: 'muteBtn',
+                    pressed: <!--php: mute -->
                     }, '-',{
                     text: 'Quiet',
                     enableToggle: true,
@@ -117,6 +145,8 @@ Ext.onReady(function(){
                     tooltip: 'Quiet',
                     cls:"x-btn-text-icon",
                     icon: 'images/sound_low.png',
+                    id: 'quietBtn',
+                    pressed: <!--php: quiet -->,
                     }
                 ]
     });
@@ -132,25 +162,25 @@ webmp3.titlebar = new Ext.Toolbar({
                     text: 'Artist:'
                 }, ' ', {
                     xtype: 'tbtext',
-                    text: 'blub band'
+                    text: '<!--php: artist -->'
                 }, '-', {
                     xtype: 'tbtext',
                     text: 'Album:'
                 }, ' ', {
                     xtype: 'tbtext',
-                    text: 'Sampler'
+                    text: '<!--php: album -->'
                 }, '-', {
                     xtype: 'tbtext',
                     text: 'Track:'
                 }, ' ', {
                     xtype: 'tbtext',
-                    text: '01'
+                    text: '<!--php: track -->'
                 }, '-', {
                     xtype: 'tbtext',
                     text: 'Title:'
                 }, ' ', {
                     xtype: 'tbtext',
-                    text: 'blub bla blah blah'
+                    text: '<!--php: title -->'
                 }
            ]
 });
@@ -324,8 +354,10 @@ webmp3.playingbar = new Ext.Toolbar({
                     tooltip: 'Repeat',
                     cls: 'x-btn-text-icon repeat-btn',
                     enableToggle: true,
+                    pressed: <!--php: repeat -->,
                     toggleHandler: onButtonToggle,
                     //icon: 'images/control_norepeat_blue.png',
+                    id: 'repeatBtn'
                   }, '-', {
                     text: 'Clear',
                     tooltip: 'Clear',
@@ -489,6 +521,8 @@ webmp3.playingbar = new Ext.Toolbar({
                     params: 'action=getFilesystem&aktPath=' + webmp3.aktPath + '&append=' + record.get('file'),
                     text: 'loading files for '+record.get('file')
                 });
+                //Ext.get('repeatBtn').toggle();
+                //Ext.get('repeatBtn').show();
             }
         },
         title: 'Filesystem',
@@ -553,6 +587,19 @@ webmp3.playingbar = new Ext.Toolbar({
     // initialize current settings
     webmp3.slider.setValue('<!--php: volume -->', 1);
     webmp3.sliderInit = 0;
+    //Ext.get('repeatBtn').toggle();
+    //Ext.get('repeatBtn').show();
+    //Ext.get('repeatBtn').toggle(true);
+    //Ext.get('repeatBtn').enable();
+    //Ext.get('repeatBtn').show();
+/*
+    Ext.get('repeatBtn').toggle(<!--php: repeat -->);
+    /*
+    Ext.get('playBtn').toggle(<!--php: play -->);
+    Ext.get('pauseBtn').toggle(<!--php: pause -->);
+    Ext.get('quietBtn').toggle(<!--php: quiet -->);
+    Ext.get('muteBtn').toggle(<!--php: mute -->);
+    */
 });
 -->
 </script>

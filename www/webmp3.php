@@ -72,11 +72,34 @@ function action_default()
     if(!isset($data["start"]))  { $data["start"]  = ""; }
     if(!isset($data["title"]))  { $data["title"]  = ""; }
     if(!isset($data["volume"])) { $data["volume"] = getVolume(); }
+    if(!isset($data["quiet"]))  { $data["quiet"]  = 0; }
+    if(!isset($data["play"]))   { $data["play"]   = 0; }
+    if(!isset($data["pause"]))  { $data["pause"]  = 0; }
+
+    if(!isset($data["artist"])) { $data["artist"] = " "; }
+    if(!isset($data["album"]))  { $data["album"]  = " "; }
+    if(!isset($data["track"]))  { $data["track"]  = " "; }
+    if(!isset($data["title"]))  { $data["title"]  = " "; }
+
+    if(empty($data["artist"]))  { $data["artist"] = " "; }
+    if(empty($data["album"]))   { $data["album"]  = " "; }
+    if(empty($data["track"]))   { $data["track"]  = " "; }
+    if(empty($data["title"]))   { $data["title"]  = " "; }
+
 
     $t = new template();
     $t -> main("webmp3.tpl");
     $t -> code(array(
         "volume"    => getVolume(),
+        "repeat"    => $data["repeat"],
+        "quiet"     => $data["quiet"],
+        "mute"      => $data["mute"],
+        "play"      => $data["play"],
+        "pause"     => $data["pause"],
+        "artist"    => $data["artist"],
+        "album"     => $data["album"],
+        "track"     => $data["track"],
+        "title"     => $data["title"],
     ));
     $temp = $t -> return_template();
     print $temp;
@@ -426,28 +449,6 @@ function action_shuffle()
         $newData[$blah["token"]] = $blah;
     }
     $data["playlist"] = $newData;
-    storeData($data);
-
-    if(isset($_REQUEST["search"]) AND !empty($_REQUEST["search"])) {
-        redirect("webmp3.php?aktPath=".$_GET["aktPath"]."&search=".$_REQUEST["search"]);
-    } else {
-        redirect("webmp3.php?aktPath=".$_GET["aktPath"]);
-    }
-}
-
-#################################################################
-
-function action_repeat()
-{
-    $data = getData();
-
-    if(!isset($data["repeat"])) { $data["repeat"] = 0; }
-
-    if($data["repeat"] == 1) {
-        $data["repeat"] = 0;
-    } else {
-        $data["repeat"] = 1;
-    }
     storeData($data);
 
     if(isset($_REQUEST["search"]) AND !empty($_REQUEST["search"])) {
@@ -896,11 +897,26 @@ function action_getPlaylist()
 
 function action_setToggle()
 {
+    doPrint("got json toggle request");
     doPrint($_REQUEST);
-    if(!defined($_REQUEST['param'])) {
+    if(!isset($_REQUEST['param'])) {
+        print "missing parameter: param!";
         exit;
     }
-    print $_REQUEST['param'];
+    if(!isset($_REQUEST['button'])) {
+        print "missing parameter: button!";
+        exit;
+    }
+
+    $data = getData();
+
+    switch($_REQUEST['button']) {
+        case "Repeat": $data["repeat"] = $_REQUEST['param'];
+                       print "Set Repeat to: ".$_REQUEST['param'];
+                       break;
+    }
+
+    storeData($data);
 }
 
 #################################################################
