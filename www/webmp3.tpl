@@ -24,9 +24,34 @@
 <!--
 
 Ext.onReady(function(){
-  Ext.namespace("webmp3");
-  webmp3.sliderInit = 1;
-  webmp3.lastChange = new Date();
+    Ext.namespace("webmp3");
+    webmp3.sliderInit = 1;
+    webmp3.lastChange = new Date();
+    webmp3.token = "<!--php: token -->";
+
+/****************************************
+ * Functions
+ ***************************************/
+function highlightCurrentSong() {
+    token = webmp3.token;
+    var index = webmp3.PlaylistDataStore.find("token", token);
+    if(index != "-1") {
+        //    return(1);
+        //alert(index);
+        view = webmp3.playlistGrid.getView();
+        //if(!view) {
+        //    return(1);
+        //}
+        //view.getView().getRow(index).id = "currentSong";
+        //Ext.get('currentSong').highlight("ffff9c", { duration: 999999 });
+        //view.getView().getRow(index).id = "currentSong_old";
+        alert("test");
+    }
+}
+
+function updateFilePic(append) {
+    document.getElementById('filePic').src = 'webmp3.php?action=pic&pic='+Ext.util.Format.stripTags(webmp3.aktPath)+"/"+append;
+}
 
 /****************************************
  * Event Handler
@@ -105,12 +130,11 @@ Ext.onReady(function(){
                     cls:"x-btn-text-icon",
                     icon: 'images/control_rewind_blue.png',
                     }, '-', {
-                    text: 'Play',
+                    text: '<!--php: playText -->',
                     tooltip: 'Play',
                     enableToggle: true,
                     toggleHandler: onButtonToggle,
                     cls:"x-btn-text-icon play-btn",
-                    //icon: 'images/control_play_blue.png',
                     id: 'playBtn',
                     pressed: <!--php: play -->
                     }, '-', {
@@ -130,7 +154,7 @@ Ext.onReady(function(){
                     }, '-',
                     webmp3.slider
                     ,'-',{
-                    text: 'Mute',
+                    text: '<!--php: muteText -->',
                     tooltip: 'Mute',
                     enableToggle: true,
                     toggleHandler: onButtonToggle,
@@ -242,14 +266,15 @@ webmp3.playingbar = new Ext.Toolbar({
         items: [{
             height: 120,
             width: 120,
-            html: '<img src="cache.jpg">',
-            rowspan: 4
+            html: '<img src="webmp3.php?action=pic&pic='+webmp3.aktPath+'">',
+            rowspan: 4,
+            id: 'playPic'
         },{
             items: [webmp3.navtoolbar]
         },{
             height: 120,
             width: 120,
-            html: '<img src="cache.jpg">',
+            html: '<img id="filePic" src="webmp3.php?action=pic&pic='+webmp3.aktPath+'">',
             rowspan: 4
         },{
             items: [webmp3.statusbar]
@@ -267,6 +292,7 @@ webmp3.playingbar = new Ext.Toolbar({
     webmp3.PlaylistDataStore = new Ext.data.Store({
         id: 'PlaylistDataStore',
         autoLoad: true,
+        storeId: 'blub',
         proxy: new Ext.data.HttpProxy({
                 url: 'webmp3.php',
                 method: 'POST'
@@ -281,7 +307,8 @@ webmp3.playingbar = new Ext.Toolbar({
             {name: 'album',   mapping: 'album',    type: 'string'},
             {name: 'nr',      mapping: 'tracknum', type: 'int'},
             {name: 'title',   mapping: 'title',    type: 'string'},
-            {name: 'length',  mapping: 'length',   type: 'string'}
+            {name: 'length',  mapping: 'length',   type: 'string'},
+            {name: 'token',   mapping: 'token',    type: 'string'}
         ])
     });
 
@@ -325,21 +352,23 @@ webmp3.playingbar = new Ext.Toolbar({
 /****************************************
  * Playlist Grid
  ***************************************/
+    webmp3.playlistColModel = new Ext.grid.ColumnModel([        {header: 'Length', sortable: true, dataIndex: 'length', width: 10, align: 'right' },
+        {header: 'Artist', sortable: true, dataIndex: 'artist'},
+        {header: 'Album',  sortable: true, dataIndex: 'album'},
+        {header: 'Nr',     sortable: true, dataIndex: 'nr', width: 10 },
+        {header: 'Title',  sortable: true, dataIndex: 'title' },
+        {header: 'Token',  sortable: false, hidden: true, hideable: false, dataIndex: 'token' }     ]);
+
     webmp3.playlistGrid = new Ext.grid.GridPanel({
-            collapsible: false,
-                enableDragDrop: true,
-                autoExpandColumn: 'title',
-                sm: webmp3.psm,
+        collapsible: false,
+        enableDragDrop: true,
+        autoExpandColumn: 'Title',
+        stripeRows: true,
+        sm: webmp3.psm,
         region:'center',
         margins: '5 0 0 0',
         store: webmp3.PlaylistDataStore,
-        columns: [
-            {header: 'Length', sortable: true, dataIndex: 'length', width: 30 },
-            {header: 'Artist', sortable: true, dataIndex: 'artist'},
-            {header: 'Album',  sortable: true, dataIndex: 'album'},
-            {header: 'Nr',     sortable: true, dataIndex: 'nr', width: 30 },
-            {header: 'Title',  sortable: true, dataIndex: 'title'},
-        ],
+        cm: webmp3.playlistColModel,
         viewConfig: {
             forceFit: true
         },
@@ -356,7 +385,6 @@ webmp3.playingbar = new Ext.Toolbar({
                     enableToggle: true,
                     pressed: <!--php: repeat -->,
                     toggleHandler: onButtonToggle,
-                    //icon: 'images/control_norepeat_blue.png',
                     id: 'repeatBtn'
                   }, '-', {
                     text: 'Clear',
@@ -380,7 +408,20 @@ webmp3.playingbar = new Ext.Toolbar({
                     text: 'add Stream',
                     tooltip: 'add Stream'
                   }
-              ]
+            ],
+        listeners: {
+            rowdblclick : function ( grid, rowIndex, event ) {
+                                var token = webmp3.PlaylistDataStore.getAt(rowIndex).get('token');
+                                var msg = Ext.get('statustext');
+                                msg.load({
+                                    url: 'webmp3.php',
+                                    params: 'action=setToggle&button=Play&param=true&token=' + token,
+                                    text: 'playing tack nr. ' + rowIndex
+                                });
+                                Ext.get('playBtn').setText("Stop");
+
+            }
+        }
     });
 /****************************************
  * Filesystem Searchfield
@@ -488,7 +529,7 @@ webmp3.playingbar = new Ext.Toolbar({
         ])
     });
 
-    var fileGrid = new Ext.grid.GridPanel({
+    webmp3.fileGrid = new Ext.grid.GridPanel({
         collapsible: true,
         region:'east',
         margins: '5 0 0 0',
@@ -511,7 +552,8 @@ webmp3.playingbar = new Ext.Toolbar({
                 //var data = record.get(fieldName);
                 var data = record.get('file');
                 var filestatus = Ext.get('filestatus');
-                webmp3.aktPath = document.getElementById('filestatus').innerHTML;
+                webmp3.aktPath = Ext.util.Format.stripTags(document.getElementById('filestatus').innerHTML);
+                updateFilePic(record.get('file'));
                 filestatus.load({
                     url: 'webmp3.php',
                     params: 'action=getPath&aktPath=' + webmp3.aktPath + '&append=' + record.get('file'),
@@ -535,11 +577,10 @@ webmp3.playingbar = new Ext.Toolbar({
                     tooltip: 'Add selected files to the playlist',
                     icon:      'images/add.png',
                     iconCls: 'add',                      // reference to our css
-        //            handler: displayFormWindow
+                    id: 'addBtn'
                   }, '-', {
                     text: 'Search',
                     tooltip: 'Advanced Search',
-        //            handler: startAdvancedSearch,
                     iconCls:'search'
                   }, '-', new webmp3.SearchField({
                                         store: webmp3.FilesystemDataStore,
@@ -575,7 +616,7 @@ webmp3.playingbar = new Ext.Toolbar({
         items: [ 
         webmp3.navigation
         ,webmp3.playlistGrid 
-        ,fileGrid
+        ,webmp3.fileGrid
         ]
     });
 
@@ -583,7 +624,6 @@ webmp3.playingbar = new Ext.Toolbar({
  * Playlist Button EventHandler
  ***************************************/
     Ext.get('clearBtn').on("click", function(button, event) {
-        var msg = Ext.get('statustext');
         webmp3.PlaylistDataStore.load({
             url: 'webmp3.php',
             params: 'action=getPlaylist&clear=1',
@@ -591,7 +631,6 @@ webmp3.playingbar = new Ext.Toolbar({
         });
     });
     Ext.get('shuffleBtn').on("click", function(button, event) {
-        var msg = Ext.get('statustext');
         webmp3.PlaylistDataStore.load({
             url: 'webmp3.php',
             params: 'action=getPlaylist&shuffle=1',
@@ -599,7 +638,6 @@ webmp3.playingbar = new Ext.Toolbar({
         });
     });
     Ext.get('sortBtn').on("click", function(button, event) {
-        var msg = Ext.get('statustext');
         webmp3.PlaylistDataStore.load({
             url: 'webmp3.php',
             params: 'action=getPlaylist&sort=1',
@@ -607,6 +645,21 @@ webmp3.playingbar = new Ext.Toolbar({
         });
     });
 
+/****************************************
+ * Filesystem Button EventHandler
+ ***************************************/
+    Ext.get('addBtn').on("click", function(button, event) {
+        var selects = webmp3.fsm.getSelections();
+        var files = "";
+        for(i=0;i<selects.length;i++)        {
+            files = files + "&add[]=" + selects[i].get('display');
+        }
+        webmp3.PlaylistDataStore.load({
+            url: 'webmp3.php',
+            params: 'action=getPlaylist&aktPath=' + Ext.util.Format.stripTags(document.getElementById('filestatus').innerHTML) + files,
+            text: 'added files to playlist'
+        });
+    });
 
 /****************************************
  * Initialization
@@ -617,6 +670,7 @@ webmp3.playingbar = new Ext.Toolbar({
     // initialize current settings
     webmp3.slider.setValue('<!--php: volume -->', 1);
     webmp3.sliderInit = 0;
+    updateFilePic("/");
 });
 -->
 </script>

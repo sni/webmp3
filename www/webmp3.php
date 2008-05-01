@@ -24,13 +24,9 @@ include("Action.php");
 #################################################################
 #
 # action_default()
-# action_changeDir()
-# action_changePlaylist()
 # action_setVolume()
 # action_mute()
 # action_quiet()
-# action_play()
-# action_stop()
 # action_next()
 # action_prev()
 # action_pic()
@@ -48,6 +44,7 @@ include("Action.php");
 # action_getPlaylist()
 # action_setToggle()
 # action_getPath()
+# action_addPlaylist()
 #
 #################################################################
 
@@ -76,6 +73,14 @@ function action_default()
     if(empty($data["track"]))   { $data["track"]  = " "; }
     if(empty($data["title"]))   { $data["title"]  = " "; }
 
+    $playText = "Play";
+    if($data["play"]) {
+        $playText = "Stop";
+    }
+    $muteText = "Mute";
+    if($data["mute"]) {
+        $muteText = "Unmute";
+    }
 
     $t = new template();
     $t -> main("webmp3.tpl");
@@ -83,84 +88,19 @@ function action_default()
         "volume"    => getVolume(),
         "repeat"    => $data["repeat"],
         "quiet"     => $data["quiet"],
+        "muteText"  => $muteText,
         "mute"      => $data["mute"],
+        "playText"  => $playText,
         "play"      => $data["play"],
         "pause"     => $data["pause"],
         "artist"    => $data["artist"],
         "album"     => $data["album"],
         "track"     => $data["track"],
         "title"     => $data["title"],
+        "token"     => $data["token"],
     ));
     $temp = $t -> return_template();
     print $temp;
-}
-
-#################################################################
-
-function action_changeDir()
-{
-    global $config;
-    $data = getData();
-
-    #$_POST["to"] = stripslashes(urldecode($_POST["to"]));
-    $_POST["to"] = stripslashes($_POST["to"]);
-
-    if(is_file($config["searchPath"].$_POST["aktPath"]."/".$_POST["to"])) {
-        doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." added file ".$_POST["aktPath"]."/".$_POST["to"]);
-        $data["playlist"] = playlistAdd($data["playlist"], $config["searchPath"].$_POST["aktPath"]."/".$_POST["to"]);
-        $data = recalcTotalPlaytime($data);
-        storeData($data);
-    } else {
-        $_POST["aktPath"] = $_POST["aktPath"]."/".$_POST["to"];
-    }
-
-    redirect("webmp3.php?aktPath=".urlencode($_POST["aktPath"])."/");
-}
-
-#################################################################
-
-function action_changePlaylist()
-{
-    global $config;
-    $data = getData();
-
-    if(!isset($data["playlist"]) OR !is_array($data["playlist"])) { $data["playlist"] = array(); }
-    $aktPath = $_POST["aktPath"];
-
-    if(isset($_POST["add"]) AND $_POST["add"] == "<<")
-    {
-        if(isset($_POST["search"]) AND !empty($_POST["search"])) {
-            $aktPath = "";
-        }
-        foreach($_POST["files"] as $file) {
-            $tmp = $config["searchPath"].$aktPath."/".$file;
-
-            doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." added directory ".$tmp);
-            $data["playlist"] = playlistAdd($data["playlist"], $tmp);
-        }
-        $data = recalcTotalPlaytime($data);
-        storeData($data);
-    }
-    elseif(isset($_POST["del"]) AND $_POST["del"] == ">>")
-    {
-        if(!isset($_POST["playlist"]) OR !is_array($_POST["playlist"])) { $_POST["playlist"] = array(); }
-        foreach($_POST["playlist"] as $key) {
-            unset($data["playlist"][$key]);
-        }
-        $data = recalcTotalPlaytime($data);
-        storeData($data);
-    }
-    else
-    {
-        print "<pre>"; print_r($_POST); print "</pre>";
-        print "unknown action";
-    }
-
-    if(isset($_REQUEST["search"]) AND !empty($_REQUEST["search"])) {
-        redirect("webmp3.php?aktPath=".$_POST["aktPath"]."&search=".$_REQUEST["search"]);
-    } else {
-        redirect("webmp3.php?aktPath=".$_POST["aktPath"]);
-    }
 }
 
 #################################################################
@@ -175,11 +115,6 @@ function action_setVolume()
     exec($config["aumixBin"]." -v ".escapeshellarg($_REQUEST["vol"]));
 
     doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." setting volume to ".$_REQUEST["vol"]);
-    #$data = getData();
-    #$data["mute"]  = 0;
-    #$data["quiet"] = 0;
-    #$data["volume"] = getVolume();
-    #storeData($data);
 }
 
 #################################################################
@@ -241,57 +176,6 @@ function action_quiet() {
 
 #################################################################
 
-function action_play()
-{
-    global $config;
-    $data = getData();
-    if(isset($_GET["track"])) {
-        $data["curTrack"] = $_GET["track"];
-        storeData($data);
-        sleep(1);
-    }
-
-    system($config["cliPHPbinary"].' play.php >> '.$config["logfile"].' 2>&1 &');
-
-    sleep(1);
-    if(isset($_REQUEST["search"]) AND !empty($_REQUEST["search"])) {
-        redirect("webmp3.php?aktPath=".$_GET["aktPath"]."&search=".$_REQUEST["search"]);
-    } else {
-        redirect("webmp3.php?aktPath=".$_GET["aktPath"]);
-    }
-}
-
-#################################################################
-
-function action_stop()
-{
-    doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." pressed stop");
-
-    killChild();
-
-    usleep(500);
-
-    $data = getData();
-    if(isset($data["ppid"])) {
-        posix_kill($data["ppid"], 2);
-    }
-    if(isset($data["cpid"])) {
-        posix_kill($data["cpid"], 2);
-    }
-
-    unset($data["ppid"]);
-    unset($data["cpid"]);
-    storeData($data);
-
-    if(isset($_REQUEST["search"]) AND !empty($_REQUEST["search"])) {
-        redirect("webmp3.php?aktPath=".$_GET["aktPath"]."&search=".$_REQUEST["search"]);
-    } else {
-        redirect("webmp3.php?aktPath=".$_GET["aktPath"]);
-    }
-}
-
-#################################################################
-
 function action_next()
 {
     global $config;
@@ -305,9 +189,6 @@ function action_next()
     if($track) {
         if(isset($data["ppid"])) {
             posix_kill($data["ppid"], 15);
-        }
-        if(isset($data["cpid"])) {
-            posix_kill($data["cpid"], 15);
         }
 
         $data["curTrack"] = $track;
@@ -335,8 +216,8 @@ function action_prev()
     $track = getPrevTrack($data["playlist"], $data["curTrack"]);
 
     if($track) {
-        if(isset($data["cpid"])) {
-            posix_kill($data["cpid"], 15);
+        if(isset($data["ppid"])) {
+            posix_kill($data["ppid"], 15);
         }
 
         $data["curTrack"] = $track;
@@ -366,13 +247,12 @@ function action_pic() {
         return(1);
     }
 
-    $url = $config["searchPath"].$_GET["pic"];
-    #$url = urldecode($url);
-    $url = stripslashes($url);
-    $url = stripslashes($url);
+    $url = $config["searchPath"].getPath($_GET["pic"]);
+    doPrint("got pic request for: ".$url);
+
+    # search a
 
     if(file_exists($url)) {
-
         if(isset($_GET["full"]) AND $_GET["full"] == "yes") {
             header("Content-type: ".mime_content_type($url));
             readfile($url);
@@ -716,6 +596,11 @@ function action_getFilesystem()
     $aktPath = getPath($aktPath, $append);
     doPrint("got json filesystem get request for: ".$aktPath);
 
+    if(!file_exists($config["searchPath"].$aktPath)) {
+        doPrint("file does not exist: ".$config["searchPath"].$aktPath);
+        return(0);
+    }
+
     $filesystem = array();
     # Filesystem    
     $files = array();
@@ -739,16 +624,14 @@ function action_getFilesystem()
     natcasesort($files);
 
     if($aktPath != "") {
-        array_unshift($filesystem, array("display" => "..",  "file" => "..",  "type" => "D"));
+        array_unshift($filesystem, array("display" => "..",  "file" => "..",  "type" => "D", "icon" => "images/spacer.png"));
     }
 
     foreach($dirs as $dir) {
-        #$filesystem[] = array("display" => crossUrlDecode($dir),  "file" => htmlentities($dir),  "type" => "D");
-        $filesystem[] = array("display" => crossUrlDecode($dir),  "file" => $dir,  "type" => "D");
+        $filesystem[] = array("display" => crossUrlDecode($dir),  "file" => $dir,  "type" => "D", "icon" => "images/folder.png");
     }
     foreach($files as $file) {
-        #$filesystem[] = array("display" => crossUrlDecode($file), "file" => htmlentities($file), "type" => "F");
-        $filesystem[] = array("display" => crossUrlDecode($file), "file" => $file, "type" => "F");
+        $filesystem[] = array("display" => crossUrlDecode($file), "file" => $file, "type" => "F", "icon" => "images/music.png");
     }
 
     if(count($filesystem) > 0) {
@@ -767,6 +650,21 @@ function action_getPlaylist()
 
     global $config;
     $data = getData();
+
+    if(isset($_REQUEST["add"]) AND is_array($_REQUEST["add"])) {
+        doPrint($_REQUEST);
+        if(!isset($_REQUEST["aktPath"])) { $_REQUEST["aktPath"] = ""; }
+        $aktPath = strip_tags($_REQUEST["aktPath"]);
+        foreach($_REQUEST["add"] as $file) {
+            if(file_exists($config["searchPath"].$aktPath."/".$file)) {
+                doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." added file ".$aktPath."/".$file);
+                $data["playlist"] = playlistAdd($data["playlist"], $config["searchPath"].$aktPath."/".$file);
+            }
+        }
+        $data = recalcTotalPlaytime($data);
+        storeData($data);
+    }
+
 
     if(isset($_REQUEST["clear"])) {
         doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." pressed clear");
@@ -809,6 +707,7 @@ function action_getPlaylist()
             "album"     => $entry['album'],
             "title"     => $entry['title'],
             "length"    => $entry['length'],
+            "token"     => $entry['token'],
         );
     }
 
@@ -824,23 +723,72 @@ function action_getPlaylist()
 
 function action_setToggle()
 {
+    global $config;
+
     doPrint("got json toggle request");
     doPrint($_REQUEST);
     if(!isset($_REQUEST['param'])) {
         print "missing parameter: param!";
-        exit;
+        return(1);
     }
     if(!isset($_REQUEST['button'])) {
         print "missing parameter: button!";
-        exit;
+        return(1);
     }
 
     $data = getData();
 
-    switch($_REQUEST['button']) {
-        case "Repeat": $data["repeat"] = $_REQUEST['param'];
-                       print "Set Repeat to: ".$_REQUEST['param'];
-                       break;
+    # Repeat
+    if($_REQUEST['button'] == "Repeat") {
+        $data["repeat"] = $_REQUEST['param'];
+        print "Set Repeat to: ".$_REQUEST['param'];
+    }
+
+    # Play
+    if($_REQUEST['button'] == "Play") {
+        if(isset($_REQUEST["token"])) {
+            $data["curTrack"] = $_REQUEST["token"];
+            storeData($data);
+        }
+        system($config["cliPHPbinary"].' play.php >> '.$config["logfile"].' 2>&1 &');
+    }
+
+    # Stop
+    if($_REQUEST['button'] == "Stop") {
+        doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." pressed stop");
+        killChild();
+        usleep(500);
+        if(isset($data["ppid"])) {
+            posix_kill($data["ppid"], 2);
+        }
+        $data["play"] = 0;    
+        unset($data["ppid"]);
+        storeData($data);
+    }
+
+    # Pause
+    if($_REQUEST['button'] == "Pause") {
+        doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." pressed pause");
+        $signal = 17;
+        $data["pause"] = 1;
+        if($_REQUEST['param'] == "true") {
+            $data["pause"] = 0;
+            $signal = 19;
+        }
+        # get child pids
+        if(isset($data["ppid"])) {
+            exec("ps -o pid,ppid -ax | grep ".$data["ppid"] , $pids);
+            foreach($pids as $pid) {
+                foreach(preg_split("/\s+/", $pid) as $pid) {
+                    if(empty($pid)) { continue; }
+                    if($pid == 1)   { continue; }
+                    doPrint("kill -$signal $pid");
+                    print $pid."<br>";
+                    posix_kill($pid, $signal);
+                }
+            }
+        }
+        storeData($data);
     }
 
     storeData($data);
@@ -851,7 +799,6 @@ function action_setToggle()
 function action_getPath()
 {
     doPrint("got json getPath request");
-    #doPrint($_REQUEST);
     global $config;
 
     if(!isset($_REQUEST['aktPath'])) {

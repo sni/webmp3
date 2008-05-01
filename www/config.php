@@ -7,7 +7,7 @@ $config["cliPHPbinary"] = "/Applications/MAMP/bin/php5/bin/php";  # where is the
 
 #$config["ext"][".mp3"]["binary"] = "/usr/bin/mpg321";
 #$config["ext"][".mp3"]["option"] = array("-q");
-$config["ext"][".mp3"]["binary"] = "/usr/bin/mplayer";
+$config["ext"][".mp3"]["binary"] = "/sw/bin/mpg123";
 $config["ext"][".mp3"]["option"] = array("-quiet", "-really-quiet");
 $config["ext"][".ogg"]["binary"] = "/usr/bin/ogg123";
 $config["ext"][".ogg"]["option"] = array("-q");
@@ -21,8 +21,8 @@ $config["streamUrlPre"] = "http_proxy://localhost:8001/";    # requiered for pro
 $config["aumixBin"]   = "/usr/bin/aumix";       # executable to change volume
 #$config["aumixBin"]   = "/usr/bin/true";       # executable to change volume
 
-#$config["searchPath"] = "/Users/sven/Music/";             # path with your mp3/ogg files
-$config["searchPath"] = "/opt/projects/webmp3/musik/";   # path with your mp3/ogg files
+$config["searchPath"] = "/Users/sven/Music/";             # path with your mp3/ogg files
+#$config["searchPath"] = "/opt/projects/webmp3/musik/";   # path with your mp3/ogg files
 
 $config["playlist"]   = "playlist.dat";         # a file with your playlist and other temporary data
 $config["hitlist"]    = "hitlist.dat";          # a file with your played songs
@@ -33,7 +33,7 @@ $config["quietVol"]   = "25";                   # volume to set if someone press
 $config["tagCache"]   = "tagCache.dat";
 
 # Notification when playing a song, %T Displayed Text
-$config["notifyCommand"] = "echo '%T' | /bin/nc -q 0 -u 192.168.1.31 23052";
+#$config["notifyCommand"] = "echo '%T' | /bin/nc -q 0 -u 192.168.1.31 23052";
 
 # ip adresses which are allow to use this tool
 $config["accControl"] = 0;                      # if 1, then ip based access will be used

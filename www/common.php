@@ -607,6 +607,10 @@ function getPath($path = "", $append = "") {
     $aktPath = preg_replace("/\/+/", "/", $aktPath);
     #doPrint("2: ".$aktPath);
 
+    if(is_file($aktPath)) {
+        $aktPath = dirname($aktPath);
+    }
+
     #$aktPath = realpath($aktPath);
     # do the realpath thing...
     $origRequest = myRealpath($origRequest);
