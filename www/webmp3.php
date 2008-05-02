@@ -773,6 +773,8 @@ function action_setToggle()
             storeData($data);
         }
         system($config["cliPHPbinary"].' play.php >> '.$config["logfile"].' 2>&1 &');
+
+        action_getPlaylist();
     }
 
     # Stop
