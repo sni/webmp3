@@ -388,14 +388,12 @@ function getPictureForPath($path)
         }
     }
 
-    if(!empty($return)) {
-        global $config;
-        $return = str_replace($config["searchPath"] ,"",$return);
-        $return = urlencode($return);
-        return($return);
+    if(empty($return)) {
+        $return = "images/white.png";
     }
 
-    return("");
+    $return = preg_replace("/\/+/", "/", $return);
+    return($return);
 }
 
 #########################################################################################
@@ -404,14 +402,32 @@ function killChild() {
     $data = getData();
 
     if(isset($data["ppid"])) {
-        posix_kill($data["ppid"], 15);
+        $pids = getChildPids($data["ppid"]);
+        posix_kill($data["ppid"], 2);
+        foreach($pids as $pid) {
+             posix_kill($pid, 2);
+        }
+        posix_kill($data["ppid"], 19);
+        foreach($pids as $pid) {
+             posix_kill($pid, 19);
+        }
+        posix_kill($data["ppid"], 9);
+        foreach($pids as $pid) {
+             posix_kill($pid, 9);
+        }
     }
-    if(isset($data["cpid"])) {
-        posix_kill($data["cpid"], 15);
-    }
-    if(isset($data["aktBin"])) {
-        system("killall ".basename($data["aktBin"]));
-    }
+
+    unset($data["ppid"]);
+    unset($data["start"]);
+    unset($data["length"]);
+    unset($data["title"]);
+    unset($data["track"]);
+    unset($data["artist"]);
+    unset($data["album"]);
+    unset($data["playingPic"]);
+    $data["play"]     = 0;
+    $data["pause"]    = 0;
+    storeData($data);
 
     if(file_exists("cache.jpg")) {
         unlink("cache.jpg");
@@ -594,7 +610,7 @@ function getPath($path = "", $append = "") {
     # strip of trailing /
     $config["searchPath"] = preg_replace("/\/$/", "", $config["searchPath"]);
 
-    doPrint("getPath('".$path."', '".$append."')");
+    #doPrint("getPath('".$path."', '".$append."')");
     if($path == "") { $path = "/"; }
 
     $origRequest = "/".$path."/".$append;
@@ -602,14 +618,14 @@ function getPath($path = "", $append = "") {
     $origRequest = preg_replace("/\/+/", "/", $origRequest);
     #doPrint("1: ".$origRequest);
 
-    $aktPath = $config["searchPath"]."/".$path."/".$append;
+    if(is_file($config["searchPath"]."/".$path)) {
+        $aktPath = dirname($config["searchPath"]."/".$path);
+    } else {
+        $aktPath = $config["searchPath"]."/".$path."/".$append;
+    }
 
     $aktPath = preg_replace("/\/+/", "/", $aktPath);
     #doPrint("2: ".$aktPath);
-
-    if(is_file($aktPath)) {
-        $aktPath = dirname($aktPath);
-    }
 
     #$aktPath = realpath($aktPath);
     # do the realpath thing...
@@ -651,6 +667,55 @@ function myRealpath($path) {
     }
     return($path);
     $path = str_replace("/.", "", $path);
+}
+
+#########################################################################################
+
+function getChildPids($pid)
+{
+    $pid = trim($pid);
+    doPrint("getChildPids(".$pid.")");
+    if(empty($pid) or !is_numeric($pid)) {
+        return(array());
+    }
+    $pids = array();
+    $return = array();
+    exec("ps -o pid,ppid -ax | grep ".$pid, $pids);
+    foreach($pids as $pidStr) {
+        $pidStr = trim($pidStr);
+        list($cpid,$egal) = preg_split("/\s+/", $pidStr, 2);
+        $cpid = trim($cpid);
+        if($cpid == $pid) { continue; }
+        if(empty($cpid))  { continue; }
+        $return = array_merge(array($cpid), getChildPids($cpid));
+    }
+    return($return);
+}
+
+#########################################################################################
+
+function fillInDefaults($data) {
+    if(!isset($data["mute"]))   { $data["mute"]   = 0; }
+    if(!isset($data["repeat"])) { $data["repeat"] = 0; }
+    if(!isset($data["length"])) { $data["length"] = ""; }
+    if(!isset($data["start"]))  { $data["start"]  = ""; }
+    if(!isset($data["title"]))  { $data["title"]  = ""; }
+    if(!isset($data["volume"])) { $data["volume"] = getVolume(); }
+    if(!isset($data["quiet"]))  { $data["quiet"]  = 0; }
+    if(!isset($data["play"]))   { $data["play"]   = 0; }
+    if(!isset($data["pause"]))  { $data["pause"]  = 0; }
+
+    if(!isset($data["artist"])) { $data["artist"] = " "; }
+    if(!isset($data["album"]))  { $data["album"]  = " "; }
+    if(!isset($data["track"]))  { $data["track"]  = " "; }
+    if(!isset($data["title"]))  { $data["title"]  = " "; }
+
+    if(empty($data["artist"]))  { $data["artist"] = " "; }
+    if(empty($data["album"]))   { $data["album"]  = " "; }
+    if(empty($data["track"]))   { $data["track"]  = " "; }
+    if(empty($data["title"]))   { $data["title"]  = " "; }
+
+    return($data);
 }
 
 #########################################################################################

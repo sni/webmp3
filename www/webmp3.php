@@ -53,25 +53,7 @@ function action_default()
     global $config;
     $data = getData();
 
-    if(!isset($data["mute"]))   { $data["mute"]   = 0; }
-    if(!isset($data["repeat"])) { $data["repeat"] = 0; }
-    if(!isset($data["length"])) { $data["length"] = ""; }
-    if(!isset($data["start"]))  { $data["start"]  = ""; }
-    if(!isset($data["title"]))  { $data["title"]  = ""; }
-    if(!isset($data["volume"])) { $data["volume"] = getVolume(); }
-    if(!isset($data["quiet"]))  { $data["quiet"]  = 0; }
-    if(!isset($data["play"]))   { $data["play"]   = 0; }
-    if(!isset($data["pause"]))  { $data["pause"]  = 0; }
-
-    if(!isset($data["artist"])) { $data["artist"] = " "; }
-    if(!isset($data["album"]))  { $data["album"]  = " "; }
-    if(!isset($data["track"]))  { $data["track"]  = " "; }
-    if(!isset($data["title"]))  { $data["title"]  = " "; }
-
-    if(empty($data["artist"]))  { $data["artist"] = " "; }
-    if(empty($data["album"]))   { $data["album"]  = " "; }
-    if(empty($data["track"]))   { $data["track"]  = " "; }
-    if(empty($data["title"]))   { $data["title"]  = " "; }
+    $data = fillInDefaults($data);
 
     $playText = "Play";
     if($data["play"]) {
@@ -243,14 +225,22 @@ function action_pic() {
     $dst_w = $config["picWidth"];
     $dst_h = $config["picHeight"];
 
+    if(isset($_REQUEST['token'])) {
+        $dir = dirname($data['playlist'][$_REQUEST['token']]['filename']);
+        $dir = str_replace($config["searchPath"], "", $dir);
+        $_GET["pic"] = $dir;
+    }
+
     if(!isset($_GET["pic"]) OR empty($_GET["pic"])) {
         return(1);
     }
 
     $url = $config["searchPath"].getPath($_GET["pic"]);
+    $url = preg_replace("/\/+/", "/", $url);
     doPrint("got pic request for: ".$url);
 
-    # search a
+    # search a folder icon
+    $url = getPictureForPath($url);
 
     if(file_exists($url)) {
         if(isset($_GET["full"]) AND $_GET["full"] == "yes") {
@@ -261,6 +251,7 @@ function action_pic() {
 
         if(isset($data["cachedPic"]) AND $url == $data["cachedPic"] AND is_file("cache.jpg")) {
             # is there a cached one?
+            doPrint("got pic from cache");
             header("Content-type: image/jpeg");
             readfile("cache.jpg");
             exit();
@@ -283,7 +274,10 @@ function action_pic() {
         header("Content-type: image/jpeg");
         imagejpeg($dst);
 
-        if(isset($data["playingPic"]) AND urldecode($data["playingPic"]) == str_replace($config["searchPath"],"", $url)) {
+        #doPrint("-".$data["playingPic"]."-");
+        #doPrint("-".$url."-");
+        if(isset($data["playingPic"]) AND $data["playingPic"] == $url) {
+            doPrint("saved pic to cache");
             imagejpeg($dst, "cache.jpg");
             $data["cachedPic"] = $url;
             storeData($data);
@@ -647,12 +641,12 @@ function action_getFilesystem()
 function action_getPlaylist()
 {
     doPrint("got json playlist request");
+    #doPrint($_REQUEST);
 
     global $config;
     $data = getData();
 
     if(isset($_REQUEST["add"]) AND is_array($_REQUEST["add"])) {
-        doPrint($_REQUEST);
         if(!isset($_REQUEST["aktPath"])) { $_REQUEST["aktPath"] = ""; }
         $aktPath = strip_tags($_REQUEST["aktPath"]);
         foreach($_REQUEST["add"] as $file) {
@@ -665,6 +659,16 @@ function action_getPlaylist()
         storeData($data);
     }
 
+    if(isset($_REQUEST["remove"]) AND is_array($_REQUEST["remove"])) {
+        foreach($_REQUEST["remove"] as $token) {
+            if(isset($data["playlist"][$token])) {
+                doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." removed file ".$data["playlist"][$token]['display']);
+                unset($data["playlist"][$token]);
+            }
+        }
+        $data = recalcTotalPlaytime($data);
+        storeData($data);
+    }
 
     if(isset($_REQUEST["clear"])) {
         doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." pressed clear");
@@ -708,6 +712,7 @@ function action_getPlaylist()
             "title"     => $entry['title'],
             "length"    => $entry['length'],
             "token"     => $entry['token'],
+            "file"      => $entry['filename'],
         );
     }
 
@@ -759,11 +764,9 @@ function action_setToggle()
         killChild();
         usleep(500);
         if(isset($data["ppid"])) {
-            posix_kill($data["ppid"], 2);
+            posix_kill($data["ppid"], 9);
         }
-        $data["play"] = 0;    
-        unset($data["ppid"]);
-        storeData($data);
+        return(1);
     }
 
     # Pause
@@ -771,24 +774,31 @@ function action_setToggle()
         doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." pressed pause");
         $signal = 17;
         $data["pause"] = 1;
-        if($_REQUEST['param'] == "true") {
+        if($_REQUEST['param'] == "false") {
             $data["pause"] = 0;
             $signal = 19;
         }
         # get child pids
         if(isset($data["ppid"])) {
-            exec("ps -o pid,ppid -ax | grep ".$data["ppid"] , $pids);
+            $pids = getChildPids($data["ppid"]);
+            # doPrint("pids:");
+            # doPrint($pids);
             foreach($pids as $pid) {
-                foreach(preg_split("/\s+/", $pid) as $pid) {
-                    if(empty($pid)) { continue; }
-                    if($pid == 1)   { continue; }
-                    doPrint("kill -$signal $pid");
-                    print $pid."<br>";
-                    posix_kill($pid, $signal);
-                }
+                posix_kill($pid, $signal);
             }
         }
-        storeData($data);
+    }
+
+    # Mute
+    if($_REQUEST['button'] == "Mute") {
+        doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." pressed mute");
+        sleep(2);
+        print "mute set to true";
+    }
+    if($_REQUEST['button'] == "Unmute") {
+        doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." pressed unmute");
+        sleep(2);
+        print "mute set to false";
     }
 
     storeData($data);
@@ -815,6 +825,36 @@ function action_getPath()
     $aktPath = getPath($aktPath, $append);
 
     print $aktPath;
+}
+
+#################################################################
+
+function action_getCurStatus()
+{
+    sleep(1);
+    doPrint("got json status request");
+    $data = getData();
+    $data = fillInDefaults($data);
+
+    $status[] = array(
+            'artist'  => $data['artist'],
+            'album'   => $data['album'],
+            'nr'      => $data['track'],
+            'title'   => $data['title'],
+            'length'  => $data['length'],
+            'token'   => $data['token'],
+            'volume'  => $data['volume'],
+            'status'  => "<div style=\"background: #D0DEF0 url(images/default/toolbar/bg.gif) repeat-x scroll left top\">initialized...</div>",
+
+    );
+
+    if(isset($_REQUEST['debug'])) {
+        print "<pre>";
+        print_r($status);
+    }
+
+    $jsonstatus = json_encode($status);
+    echo '({"total":"'.count($status).'","results":'.$jsonstatus.'})';
 }
 
 #################################################################
