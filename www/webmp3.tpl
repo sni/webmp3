@@ -120,6 +120,25 @@ Ext.onReady(function(){
         // set current token
         webmp3.token = record.get('token');
 
+        // set Buttons
+        //Ext.get("repeatBtn").cloneConfig();
+        //newBtn = new Ext.Toolbar.Button({
+        //            text: 'Repeat',
+        //            tooltip: 'Repeat',
+        //            cls: 'x-btn-text-icon repeat-btn',
+        //            enableToggle: true,
+        //            pressed: 1,
+        //            toggleHandler: onButtonToggle,
+        //            applyTo: 'repeatBtn',
+        //            autoShow: true
+        //});
+        //newBtn.render();
+        //Ext.get("repeatBtn").replaceWith(newBtn);
+        //newBtn.replace(Ext.get('repeatBtn'));
+        //newBtn.show();
+        //Ext.get("repeatBtn").replaceWith(newBtn);
+        //Ext.get("repeatBtn").show();
+
         // set status text
         document.getElementById('statusbar').innerHTML = record.get('status');
 
@@ -452,9 +471,10 @@ webmp3.playingbar = new Ext.Toolbar({
         ]),
         listeners: {
             load: function(store, records, options) {
+                      webmp3.highlightCurrentSong();
                       webmp3.refreshStatusStore(); 
                   },
-            loadexception: function(o, arg, e){                alert('** - FilesystemDataStore fired (loadexception) '+e.status+' ' +e.statusText+': ' + e.responseText);            }
+            loadexception: function(o, arg, e){                alert('** - PlaylistDataStore fired (loadexception) '+e.status+' ' +e.statusText+': ' + e.responseText);            }
         }
     });
 
@@ -565,6 +585,7 @@ webmp3.playingbar = new Ext.Toolbar({
         listeners: {
             rowdblclick : function ( grid, rowIndex, event ) {
                                 var token = webmp3.PlaylistDataStore.getAt(rowIndex).get('token');
+                                webmp3.highlightCurrentSong();
                                 webmp3.PlaylistDataStore.load({
                                         url: 'webmp3.php',
                                         params: 'action=setToggle&button=Play&param=true&token=' + token,
@@ -825,6 +846,7 @@ webmp3.playingbar = new Ext.Toolbar({
             token = record.get('token');
             webmp3.token = token;
             webmp3.highlightCurrentSong();
+
             webmp3.PlaylistDataStore.load({
                 url: 'webmp3.php',
                 params: 'action=setToggle&button=Play&param=true&token=' + token,
@@ -904,7 +926,7 @@ webmp3.playingbar = new Ext.Toolbar({
             load: function(store, records, options) {
                     refreshAll();
             },
-            loadexception: function(o, arg, e){                alert('** - FilesystemDataStore fired (loadexception) '+e.status+' ' +e.statusText+': ' + e.responseText);            }
+            loadexception: function(o, arg, e){                alert('** - StatusDataStore fired (loadexception) '+e.status+' ' +e.statusText+': ' + e.responseText);            }
 
         } 
     });

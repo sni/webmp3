@@ -785,6 +785,7 @@ function action_setToggle()
         if(isset($data["ppid"])) {
             posix_kill($data["ppid"], 9);
         }
+        action_getPlaylist();
         return(1);
     }
 

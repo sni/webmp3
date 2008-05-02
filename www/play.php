@@ -55,7 +55,7 @@ function action_default()
         $tmpDisp = str_replace(';', '', $tmpDisp);
         $tmp = str_replace("%T", $tmpDisp, $tmp);
         doPrint("notify: ".$tmp);
-        system($tmp) or doPrint("Err: ".$php_errormsg);
+        system($tmp);
     }
 
     $data["ppid"] = getmypid();
@@ -97,6 +97,7 @@ function action_default()
     unset($data["track"]);
     unset($data["artist"]);
     unset($data["album"]);
+
     $data["play"]     = 0;
     $track = getNextTrack($data["playlist"], $track["token"]);
     if($track) {
