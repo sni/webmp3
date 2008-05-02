@@ -42,6 +42,7 @@ function action_default()
     $data["album"]    = $track["album"];
     $data["track"]    = $track["tracknum"];
     $data["token"]    = $track["token"];
+    $data["filename"] = $track["filename"];
     $data["play"]     = 1;
 
     $data["playingPic"] = getPictureForPath(dirname($track["filename"]));

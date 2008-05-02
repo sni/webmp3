@@ -719,5 +719,40 @@ function fillInDefaults($data) {
 }
 
 #########################################################################################
+function getRemaining($data) 
+{
+    if(isset($data["start"])) {
+        $start = $data["start"];
+    }
+    if(isset($data["pause"]) and isset($start) and isset($data["pauseStart"])) {
+        $start = $start + (time() - $data["pauseStart"]);
+    }
 
+    $remaining = "remaining";
+    $stream    = "false";
+    if(isset($data["playingStream"]) AND $data["playingStream"] == 1 AND isset($data["cpid"])) {
+        $stream = "true";
+    }
+    if(isset($data["curTrack"])
+       AND !empty($data["cpid"])
+       AND isset($data["playlist"][$data["curTrack"]]["stream"])
+       AND $data["playlist"][$data["curTrack"]]["stream"] == 1) {
+
+        $remaining = "playing";
+    }
+    $started = 0;
+    if(isset($start) AND !empty($start)) {
+        $started = $start;
+    }
+
+    $remMin = "";
+    $remSec = "";
+    if(!empty($data["length"])) {
+        $data["length"] = $data["length"] - (time() - $start);
+        $remMin = floor($data["length"] / 60);
+        $remSec = floor($data["length"] % 60);
+    }
+
+    return(array($remMin, $remSec, $remaining, $stream, $started));
+}
 ?>

@@ -64,22 +64,30 @@ function action_default()
         $muteText = "Unmute";
     }
 
+    list($remMin, $remSec, $remaining, $stream, $started) = getRemaining($data);
+
     $t = new template();
     $t -> main("webmp3.tpl");
     $t -> code(array(
-        "volume"    => getVolume(),
-        "repeat"    => $data["repeat"],
-        "quiet"     => $data["quiet"],
-        "muteText"  => $muteText,
-        "mute"      => $data["mute"],
-        "playText"  => $playText,
-        "play"      => $data["play"],
-        "pause"     => $data["pause"],
-        "artist"    => $data["artist"],
-        "album"     => $data["album"],
-        "track"     => $data["track"],
-        "title"     => $data["title"],
-        "token"     => $data["token"],
+        "volume"        => getVolume(),
+        "repeat"        => $data["repeat"],
+        "quiet"         => $data["quiet"],
+        "muteText"      => $muteText,
+        "mute"          => $data["mute"],
+        "playText"      => $playText,
+        "play"          => $data["play"],
+        "pause"         => $data["pause"],
+        "artist"        => $data["artist"],
+        "album"         => $data["album"],
+        "track"         => $data["track"],
+        "title"         => $data["title"],
+        "token"         => $data["token"],
+
+        "remMin"        => $remMin,
+        "remSec"        => $remSec,
+        "remaining"     => $remaining,
+        "stream"        => $stream,
+        "started"       => $started,
     ));
     $temp = $t -> return_template();
     print $temp;
@@ -226,9 +234,18 @@ function action_pic() {
     $dst_h = $config["picHeight"];
 
     if(isset($_REQUEST['token'])) {
-        $dir = dirname($data['playlist'][$_REQUEST['token']]['filename']);
-        $dir = str_replace($config["searchPath"], "", $dir);
-        $_GET["pic"] = $dir;
+        if($data["curTrack"] == $_REQUEST['token']) {
+            $dir = dirname($data["filename"]);
+            $dir = str_replace($config["searchPath"], "", $dir);
+            $_GET["pic"] = $dir;
+
+        } elseif(isset($data['playlist'][$_REQUEST['token']])) {
+            $dir = dirname($data['playlist'][$_REQUEST['token']]['filename']);
+            $dir = str_replace($config["searchPath"], "", $dir);
+            $_GET["pic"] = $dir;
+        } else {
+            $_GET["pic"] = "-1";
+        }
     }
 
     if(!isset($_GET["pic"]) OR empty($_GET["pic"])) {
@@ -786,6 +803,12 @@ function action_setToggle()
             foreach($pids as $pid) {
                 posix_kill($pid, $signal);
             }
+            if($data["pause"]) {
+                $data["pauseStart"] = time();
+            } else {
+                $data["start"] = $data["start"] + (time() - $data["pauseStart"]);
+                unset($data["pauseStart"]);
+            }
         }
     }
 
@@ -836,6 +859,18 @@ function action_getCurStatus()
     $data = getData();
     $data = fillInDefaults($data);
 
+    $text = "idle";
+    if(isset($data['ppid'])) {
+        if($data['pause']) {
+            $text = "paused (pid: ".$data['ppid'].")";
+        } else {
+            $text = "playing (pid: ".$data['ppid'].")";
+        }
+    }
+
+    list($remMin, $remSec, $remaining, $stream, $started) = getRemaining($data);
+    $pre = "-";
+
     $status[] = array(
             'artist'  => $data['artist'],
             'album'   => $data['album'],
@@ -844,13 +879,22 @@ function action_getCurStatus()
             'length'  => $data['length'],
             'token'   => $data['token'],
             'volume'  => $data['volume'],
-            'status'  => "<div style=\"background: #D0DEF0 url(images/default/toolbar/bg.gif) repeat-x scroll left top\">initialized...</div>",
-
+            'status'  => $text,
+            'remMin'  => $remMin,
+            'remSec'  => $remSec,
+            'pre'     => $pre,
+            'play'    => $data['play'],
+            'pause'   => $data['pause'],
+            'repeat'  => $data['repeat'],
+            'mute'    => $data['mute'],
+            'quiet'   => $data['quiet'],
     );
 
     if(isset($_REQUEST['debug'])) {
-        print "<pre>";
+        print "<pre>time: ".time()."\n\nstatus:";
         print_r($status);
+        print "\ndata:\n";
+        print_r($data);
     }
 
     $jsonstatus = json_encode($status);
