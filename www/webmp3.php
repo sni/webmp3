@@ -472,6 +472,7 @@ function action_search()
 function action_getFilesystem()
 {
     global $config;
+    //doPrint($_REQUEST);
 
     if(!isset($_REQUEST['aktPath'])) {
         $aktPath = "";
@@ -492,37 +493,49 @@ function action_getFilesystem()
         return(0);
     }
 
-    if(is_file($config["searchPath"].$aktPath."/".$append)) {
-        $data = getData();
-        doPrint("added file ".$aktPath."/".$append);
-        $data["playlist"] = playlistAdd($data["playlist"], $config["searchPath"].$aktPath."/".$append);
-        $data = recalcTotalPlaytime($data);
-        storeData($data);
-    }
-
     $filesystem = array();
-    # Filesystem
     $files = array();
     $dirs  = array();
-    if ($handle = opendir($config["searchPath"].$aktPath)) {
-        while (false !== ($file = readdir($handle))) {
-            if ($file != "." && $file != "..") {
-                if(is_dir($config["searchPath"].$aktPath."/".$file)) {
-                    $dirs[] = $file;
-                } else {
-                    $ext = substr($file, -4);
-                    if(in_array($ext, array_keys($config["ext"]))) {
-                        $files[] = $file;
+
+    if(!isset($_REQUEST['query']) or empty($_REQUEST['query'])) {
+        # get Files from Filesystem
+        if ($handle = opendir($config["searchPath"].$aktPath)) {
+            while (false !== ($file = readdir($handle))) {
+                if ($file != "." && $file != "..") {
+                    if(is_dir($config["searchPath"].$aktPath."/".$file)) {
+                        $dirs[] = $file;
+                    } else {
+                        $ext = substr($file, -4);
+                        if(in_array($ext, array_keys($config["ext"]))) {
+                            $files[] = $file;
+                        }
                     }
                 }
             }
+            closedir($handle);
         }
-        closedir($handle);
+    } else {
+        # get Files from Search
+        $search = $_REQUEST['query'];
+        doPrint("searched for: ".$search);
+        $contents = "";
+        $handle = popen("grep -i ".escapeshellarg($search)." ".$config["tagCache"], "r");
+        while (!feof($handle)) {
+            $contents .= fread($handle, 8192);
+        }
+        $filesArr = explode("\n", $contents);
+        foreach($filesArr as $tmpFile) {
+            $tmpFile   = trim($tmpFile);
+            $fileArray = explode(";-;", $tmpFile);
+            if(!empty($fileArray[0])) {
+                $filesystem[] = array("file" => $fileArray[0], "type" => "F", "icon" => "images/music.png");
+            }
+        }
     }
     natcasesort($dirs);
     natcasesort($files);
 
-    if($aktPath != "") {
+    if($aktPath != "" AND $aktPath != "/") {
         array_unshift($filesystem, array("file" => "..",  "type" => "D", "icon" => "images/spacer.png"));
     }
 

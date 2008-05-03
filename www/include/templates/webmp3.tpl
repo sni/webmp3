@@ -655,6 +655,7 @@ webmp3.playingbar = new Ext.Toolbar({
         },
 
         onTrigger2Click : function(){
+            webmp3.aktPath = "";
             var v = this.getRawValue();
             if(v.length < 1){
                 this.onTrigger1Click();
@@ -707,6 +708,9 @@ webmp3.playingbar = new Ext.Toolbar({
 /****************************************
  * Filesystem
  ***************************************/
+    webmp3.iconRenderer = function(src) {
+      return("<img src='"+src+"'>");
+    }
     webmp3.FilesystemDataStore = new Ext.data.Store({
         id: 'FilesystemDataStore',
         autoLoad: true,
@@ -721,7 +725,8 @@ webmp3.playingbar = new Ext.Toolbar({
             id: 'id'
         },[
             {name: 'file',    mapping: 'file',    type: 'string'},
-            {name: 'type',    mapping: 'type',    type: 'string'}
+            {name: 'type',    mapping: 'type',    type: 'string'},
+            {name: 'icon',    mapping: 'icon',    type: 'string'}
         ]),
         listeners: {
             loadexception: function(o, arg, e){
@@ -739,7 +744,8 @@ webmp3.playingbar = new Ext.Toolbar({
         sm: webmp3.fsm,
         store: webmp3.FilesystemDataStore,
         columns: [
-            {header: 'Files & Directories', dataIndex: 'file', width: '90%'},
+            {header: ' ', dataIndex: 'icon', renderer: webmp3.iconRenderer, width: 5 },
+            {header: 'Files & Directories', dataIndex: 'file', width: 125  },
             {header: 'Type', sortable: false, hidden: true, hideable: false,  dataIndex: 'type'}
         ],
         viewConfig: {
