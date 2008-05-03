@@ -52,23 +52,23 @@ Ext.onReady(function(){
         if(webmp3.pause == true) {
             window.setTimeout(webmp3.updateTime, 999);
             return(0);
-        }        
+        }
 
         if(webmp3.stream == true) {
                 // playing stream
                 now=new Date();
                 var started=<!--php: started -->;
                 diff = Math.round(now.getTime()/1000 - started);
-        
+
                 remMin.innerHTML = Math.floor(diff/60);
-        
+
                 sec=diff%60;
                 pre_s=((sec<10)?"0":"");
                 remSec.innerHTML = pre_s+sec;
         } else {
             // playing file
             preMin.innerHTML = "-";
-    
+
             if(remSec.innerHTML == 1 && remMin.innerHTML == "0") {
                 window.setTimeout(webmp3.refreshStatusStore,1000);
                 remSec.innerHTML = "";
@@ -80,18 +80,18 @@ Ext.onReady(function(){
                 window.setTimeout(webmp3.updateTime, 999);
                 return(0);
             }
-    
+
             remSec.innerHTML = remSec.innerHTML -1;
-    
+
             if(remSec.innerHTML < 0) {
                 remSec.innerHTML = 59;
                 remMin.innerHTML = remMin.innerHTML - 1;
             }
-    
+
             pre_s=((remSec.innerHTML<10)?"0":"");
             remSec.innerHTML = pre_s+remSec.innerHTML;
             remMin.innerHTML = remMin.innerHTML;
-    
+
             if(remMin.innerHTML < 0) {
                 window.setTimeout(webmp3.refreshStatusStore,3000);
             }
@@ -113,11 +113,11 @@ Ext.onReady(function(){
             webmp3.lastHighlightedToken = token;
         }
     }
-    
+
     function updateFilePic(append) {
         document.getElementById('filePic').src = 'webmp3.php?action=pic&pic='+Ext.util.Format.stripTags(webmp3.aktPath)+"/"+append;
     }
-    
+
     function updatePlayPic() {
         document.getElementById('playPic').src = 'webmp3.php?action=pic&token='+webmp3.token;
     }
@@ -334,14 +334,14 @@ webmp3.titlebar = new Ext.Toolbar({
                     text: 'Artist:'
                 }, ' ', {
                     xtype: 'label',
-                    text: '<!--php: artist -->',
+                    html: '<!--php: artist -->',
                     id: 'artistText'
                 }, '-', {
                     xtype: 'tbtext',
                     text: 'Album:'
                 }, ' ', {
                     xtype: 'label',
-                    text: '<!--php: album -->',
+                    html: '<!--php: album -->',
                     id: 'albumText'
                 }, '-', {
                     xtype: 'tbtext',
@@ -355,7 +355,7 @@ webmp3.titlebar = new Ext.Toolbar({
                     text: 'Title:'
                 }, ' ', {
                     xtype: 'label',
-                    text: '<!--php: title -->',
+                    html: '<!--php: title -->',
                     id: 'titleText'
                 }, '-' ,{
                     xtype: 'tbtext',
@@ -488,9 +488,11 @@ webmp3.playingbar = new Ext.Toolbar({
         listeners: {
             load: function(store, records, options) {
                       webmp3.highlightCurrentSong();
-                      webmp3.refreshStatusStore(); 
+                      webmp3.refreshStatusStore();
                   },
-            loadexception: function(o, arg, e){                alert('** - PlaylistDataStore fired (loadexception) '+e.status+' ' +e.statusText+': ' + e.responseText);            }
+            loadexception: function(o, arg, e){
+                alert('** - PlaylistDataStore fired (loadexception) '+e.status+' ' +e.statusText+': ' + e.responseText);
+            }
         }
     });
 
@@ -511,7 +513,7 @@ webmp3.playingbar = new Ext.Toolbar({
           }
         },
         onMouseDown : function(e, t){
-            if (e.button === 0 ){ 
+            if (e.button === 0 ){
                 e.stopEvent();
                 var row = e.getTarget('.x-grid3-row');
                 if(row){
@@ -534,12 +536,14 @@ webmp3.playingbar = new Ext.Toolbar({
 /****************************************
  * Playlist Grid
  ***************************************/
-    webmp3.playlistColModel = new Ext.grid.ColumnModel([        {header: 'Length', sortable: true, dataIndex: 'length', align: 'right', width: 30 },
+    webmp3.playlistColModel = new Ext.grid.ColumnModel([
+        {header: 'Length', sortable: true, dataIndex: 'length', align: 'right', width: 30 },
         {header: 'Artist', sortable: true, dataIndex: 'artist'},
         {header: 'Album',  sortable: true, dataIndex: 'album'},
         {header: 'Nr',     sortable: true, dataIndex: 'nr', width: 15 },
         {header: 'Title',  sortable: true, dataIndex: 'title' },
-        {header: 'Token',  sortable: false, hidden: true, hideable: false, dataIndex: 'token' }     ]);
+        {header: 'Token',  sortable: false, hidden: true, hideable: false, dataIndex: 'token' }
+     ]);
 
     webmp3.playlistGrid = new Ext.grid.GridPanel({
         collapsible: false,
@@ -713,12 +717,13 @@ webmp3.playingbar = new Ext.Toolbar({
             id: 'id'
         },[
             {name: 'file',    mapping: 'file',    type: 'string'},
-            {name: 'display', mapping: 'display', type: 'string'},
             {name: 'type',    mapping: 'type',    type: 'string'}
         ]),
         listeners: {
-            loadexception: function(o, arg, e){                alert('** - FilesystemDataStore fired (loadexception) '+e.status+' ' +e.statusText+': ' + e.responseText);            }
-        } 
+            loadexception: function(o, arg, e){
+                alert('** - FilesystemDataStore fired (loadexception) '+e.status+' ' +e.statusText+': ' + e.responseText);
+            }
+        }
     });
 
     webmp3.fileGrid = new Ext.grid.GridPanel({
@@ -730,9 +735,8 @@ webmp3.playingbar = new Ext.Toolbar({
         sm: webmp3.fsm,
         store: webmp3.FilesystemDataStore,
         columns: [
-            {header: 'Files & Directories', sortable: false, dataIndex: 'display'},
-            {header: 'File',    sortable: false, hidden: true, hideable: false, dataIndex: 'file', width: '90%'},
-            {header: 'Type',    sortable: false, hidden: true, hideable: false,  dataIndex: 'type'}
+            {header: 'Files & Directories', dataIndex: 'file', width: '90%'},
+            {header: 'Type', sortable: false, hidden: true, hideable: false,  dataIndex: 'type'}
         ],
         viewConfig: {
             forceFit: true
@@ -751,11 +755,19 @@ webmp3.playingbar = new Ext.Toolbar({
                     params: 'action=getPath&aktPath=' + webmp3.aktPath + '&append=' + record.get('file'),
                     text: 'loading files for '+record.get('file')
                 });
-                webmp3.FilesystemDataStore.load({
-                    url: 'webmp3.php',
-                    params: 'action=getFilesystem&aktPath=' + webmp3.aktPath + '&append=' + record.get('file'),
-                    text: 'loading files for '+record.get('file')
-                });
+                if(record.get('type') == "D") {
+                    webmp3.FilesystemDataStore.load({
+                        url: 'webmp3.php',
+                        params: 'action=getFilesystem&aktPath=' + webmp3.aktPath + '&append=' + record.get('file'),
+                        text: 'loading files for '+record.get('file')
+                    });
+                } else {
+                    webmp3.PlaylistDataStore.load({
+                        url: 'webmp3.php',
+                        params: 'action=getPlaylist&aktPath=' + webmp3.aktPath + "&add[]="+record.get('file'),
+                        text: 'added files to playlist'
+                    });
+                }
                 //Ext.get('repeatBtn').toggle();
                 //Ext.get('repeatBtn').show();
             }
@@ -805,9 +817,9 @@ webmp3.playingbar = new Ext.Toolbar({
         defaults: {
             bodyStyle: 'padding:3px'
         },
-        items: [ 
+        items: [
         webmp3.navigation
-        ,webmp3.playlistGrid 
+        ,webmp3.playlistGrid
         ,webmp3.fileGrid
         ]
     });
@@ -839,7 +851,8 @@ webmp3.playingbar = new Ext.Toolbar({
     Ext.get('removeBtn').on("click", function(button, event) {
         var selects = webmp3.psm.getSelections();
         var tokens = "";
-        for(i=0;i<selects.length;i++)        {
+        for(i=0;i<selects.length;i++)
+        {
             tokens = tokens + "&remove[]=" + selects[i].get('token');
         }
         webmp3.PlaylistDataStore.load({
@@ -895,8 +908,9 @@ webmp3.playingbar = new Ext.Toolbar({
     Ext.get('addBtn').on("click", function(button, event) {
         var selects = webmp3.fsm.getSelections();
         var files = "";
-        for(i=0;i<selects.length;i++)        {
-            files = files + "&add[]=" + selects[i].get('display');
+        for(i=0;i<selects.length;i++)
+        {
+            files = files + "&add[]=" + selects[i].get('file');
         }
         webmp3.PlaylistDataStore.load({
             url: 'webmp3.php',
@@ -942,9 +956,11 @@ webmp3.playingbar = new Ext.Toolbar({
             load: function(store, records, options) {
                     refreshAll();
             },
-            loadexception: function(o, arg, e){                alert('** - StatusDataStore fired (loadexception) '+e.status+' ' +e.statusText+': ' + e.responseText);            }
+            loadexception: function(o, arg, e){
+                alert('** - StatusDataStore fired (loadexception) '+e.status+' ' +e.statusText+': ' + e.responseText);
+            }
 
-        } 
+        }
     });
 
 /****************************************

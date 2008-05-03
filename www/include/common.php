@@ -99,30 +99,20 @@ function playlistAdd($playlist, $toAdd)
     $toAdd = stripslashes($toAdd);
 
     if(is_file($toAdd)) {
-        $display = basename($toAdd);
 
         list($artist,$album,$title,$tracknum,$playtime_string) = getTag($toAdd);
 
         $display = basename($toAdd);
-        if(!empty($title) AND !empty($artist)) {
-            $display = $artist." - ".$album." - ".$tracknum." - ".$title;
+        if(empty($title)) {
+            $title = $display;
         }
 
         $playtime_seconds = 0;
         list($min,$sec) = explode(":", $playtime_string);
         $playtime_seconds = $min * 60 + $sec;
 
-        $display = str_replace("ü", "ue", $display);
-        $display = str_replace("Ü", "Ue", $display);
-        $display = str_replace("ö", "oe", $display);
-        $display = str_replace("Ö", "Oe", $display);
-        $display = str_replace("ä", "ae", $display);
-        $display = str_replace("Ä", "Ae", $display);
-        $display = str_replace("ß", "ss", $display);
-
         $token = md5(uniqid(rand(), true));
         $newFile = array(
-            "display"   => crossUrlDecode($display),
             "filename"  => $toAdd,
             "token"     => $token,
             "status"    => "&nbsp;",
@@ -334,7 +324,7 @@ function getNextTrack($playlist, $token, $repeat = 0)
     }
 
     $data = getData();
-    if($repeat OR (isset($data["repeat"]) AND $data["repeat"] == 1)) {
+    if($repeat OR $data["repeat"] != "false") {
         $track = array_shift($playlist);
         return($track["token"]);
     } else {
@@ -459,7 +449,7 @@ function recalcTotalPlaytime($data)
 
 #########################################################################################
 
-function addFileToHitlist($file) 
+function addFileToHitlist($file)
 {
     global $config;
 
@@ -520,10 +510,10 @@ function getFilesForDirectory($dir) {
                     $ext = substr($file, -4);
                     if(in_array($ext, array_keys($config["ext"]))) {
                         $files[] = str_replace($config["searchPath"], "", $dir."/".$file);
-                    }   
-                }   
-            }   
-        }   
+                    }
+                }
+            }
+        }
         closedir($handle);
     }
     return($files);
@@ -557,7 +547,7 @@ function getTag($file) {
     elseif(isset($fileinfo["tags"]["vorbiscomment"]["album"][0]) AND !empty($fileinfo["tags"]["vorbiscomment"]["album"][0])) {
         $album = $fileinfo["tags"]["vorbiscomment"]["album"][0];
     }
-    
+
     $title = "";
     if(isset($fileinfo["tags"]["id3v2"]["title"][0]) AND !empty($fileinfo["tags"]["id3v2"]["title"][0])) {
         $title = $fileinfo["tags"]["id3v2"]["title"][0];
@@ -568,7 +558,7 @@ function getTag($file) {
     elseif(isset($fileinfo["tags"]["vorbiscomment"]["title"][0]) AND !empty($fileinfo["tags"]["vorbiscomment"]["title"][0])) {
         $title = $fileinfo["tags"]["vorbiscomment"]["title"][0];
     }
-    
+
     $tracknum = "";
     if(isset($fileinfo["tags"]["id3v2"]["tracknum"][0]) AND !empty($fileinfo["tags"]["id3v2"]["tracknum"][0])) {
         $tracknum = $fileinfo["tags"]["id3v2"]["tracknum"][0];
@@ -588,7 +578,7 @@ function getTag($file) {
     elseif(isset($fileinfo["tags"]["vorbiscomment"]["track"][0]) AND !empty($fileinfo["tags"]["vorbiscomment"]["track"][0])) {
         $tracknum = $fileinfo["tags"]["vorbiscomment"]["track"][0];
     }
-    
+
     if(!isset($fileinfo["playtime_string"]))  { $fileinfo["playtime_string"] = "0:0"; }
 
     return(array($artist,$album,$title,$tracknum,$fileinfo["playtime_string"]));
@@ -622,8 +612,9 @@ function getPath($path = "", $append = "") {
     $origRequest = preg_replace("/\/+/", "/", $origRequest);
     #doPrint("1: ".$origRequest);
 
-    if(is_file($config["searchPath"]."/".$path)) {
+    if(is_file($config["searchPath"]."/".$path."/".$append)) {
         $aktPath = dirname($config["searchPath"]."/".$path);
+        $origRequest = "/".$path;
     } else {
         $aktPath = $config["searchPath"]."/".$path."/".$append;
     }
@@ -656,6 +647,7 @@ function getPath($path = "", $append = "") {
     if(strpos($origRequest, "/") !== 0) {
         $origRequest = "/".$origRequest;
     }
+    $origRequest = preg_replace("/\/+/", "/", $origRequest);
     #doPrint("7: ".$origRequest);
     return $origRequest;
 }
@@ -726,7 +718,7 @@ function fillInDefaults($data) {
 }
 
 #########################################################################################
-function getRemaining($data) 
+function getRemaining($data)
 {
     if(isset($data["start"])) {
         $start = $data["start"];

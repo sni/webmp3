@@ -8,7 +8,7 @@ error_reporting(2047);
 ### INCLUDES ###
 include("config.php");
 if($config["accControl"] == 1 AND isset($_SERVER["REMOTE_ADDR"]) AND !in_array($_SERVER["REMOTE_ADDR"], $config["allowedIPs"])) {
-    die($_SERVER["REMOTE_ADDR"]." ist nicht zugelassen"); 
+    die($_SERVER["REMOTE_ADDR"]." ist nicht zugelassen");
 }
 
 if(isset($_SERVER["REMOTE_ADDR"])) {
@@ -70,7 +70,7 @@ function action_default()
     $t = new template();
     $t -> main("include/templates/webmp3.tpl");
     $t -> code(array(
-        "pageTitle"     => $pageTitle,
+        "pageTitle"     => htmlspecialchars($pageTitle, ENT_QUOTES, "UTF-8"),
         "volume"        => getVolume(),
         "repeat"        => $data["repeat"],
         "quiet"         => $data["quiet"],
@@ -79,10 +79,10 @@ function action_default()
         "playText"      => $playText,
         "play"          => $data["play"],
         "pause"         => $data["pause"],
-        "artist"        => $data["artist"],
-        "album"         => $data["album"],
+        "artist"        => htmlspecialchars($data["artist"], ENT_QUOTES, "UTF-8"),
+        "album"         => htmlspecialchars($data["album"], ENT_QUOTES, "UTF-8"),
         "track"         => $data["track"],
-        "title"         => $data["title"],
+        "title"         => htmlspecialchars($data["title"], ENT_QUOTES, "UTF-8"),
         "token"         => $data["token"],
 
         "remMin"        => $remMin,
@@ -466,15 +466,14 @@ function action_addFile()
 
     if(strpos($_GET["file"], "http://") === 0) {
         $data = getData();
-        $display = $_GET["file"];
+        $title = $_GET["file"];
         $token = md5(uniqid(rand(), true));
         $newFile = array(
-            "display"   => crossUrlDecode($display),
-            "filename"  => $display,
+            "filename"  => $title,
             "token"     => $token,
             "status"    => "&nbsp;",
             "album"     => "",
-            "title"     => "",
+            "title"     => $title,
             "artist"    => "",
             "tracknum"  => "",
             "lengths"   => "1",
@@ -524,20 +523,19 @@ function action_doAddStream($name = "", $playlist = "")
     $data = getData();
 
     if($name != "") {
-        $display = $name;
+        $title = $name;
         $data["playlist"] = $playlist;
     } else {
-        $display = $_POST["name"];
+        $title = $_POST["name"];
     }
 
     $token = md5(uniqid(rand(), true));
     $newFile = array(
-        "display"   => crossUrlDecode($display),
-        "filename"  => $display,
+        "filename"  => $title,
         "token"     => $token,
         "status"    => "&nbsp;",
         "album"     => "",
-        "title"     => "",
+        "title"     => $title,
         "artist"    => "",
         "tracknum"  => "",
         "lengths"   => "1",
@@ -614,8 +612,16 @@ function action_getFilesystem()
         return(0);
     }
 
+    if(is_file($config["searchPath"].$aktPath."/".$append)) {
+        $data = getData();
+        doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." added file ".$aktPath."/".$append);
+        $data["playlist"] = playlistAdd($data["playlist"], $config["searchPath"].$aktPath."/".$append);
+        $data = recalcTotalPlaytime($data);
+        storeData($data);
+    }
+
     $filesystem = array();
-    # Filesystem    
+    # Filesystem
     $files = array();
     $dirs  = array();
     if ($handle = opendir($config["searchPath"].$aktPath)) {
@@ -637,14 +643,14 @@ function action_getFilesystem()
     natcasesort($files);
 
     if($aktPath != "") {
-        array_unshift($filesystem, array("display" => "..",  "file" => "..",  "type" => "D", "icon" => "images/spacer.png"));
+        array_unshift($filesystem, array("file" => "..",  "type" => "D", "icon" => "images/spacer.png"));
     }
 
     foreach($dirs as $dir) {
-        $filesystem[] = array("display" => crossUrlDecode($dir),  "file" => $dir,  "type" => "D", "icon" => "images/folder.png");
+        $filesystem[] = array("file" => $dir,  "type" => "D", "icon" => "images/folder.png");
     }
     foreach($files as $file) {
-        $filesystem[] = array("display" => crossUrlDecode($file), "file" => $file, "type" => "F", "icon" => "images/music.png");
+        $filesystem[] = array("file" => $file, "type" => "F", "icon" => "images/music.png");
     }
 
     if(count($filesystem) > 0) {
@@ -660,7 +666,7 @@ function action_getFilesystem()
 function action_getPlaylist()
 {
     doPrint("got json playlist request");
-    #doPrint($_REQUEST);
+    doPrint($_REQUEST);
 
     global $config;
     $data = getData();
@@ -681,7 +687,7 @@ function action_getPlaylist()
     if(isset($_REQUEST["remove"]) AND is_array($_REQUEST["remove"])) {
         foreach($_REQUEST["remove"] as $token) {
             if(isset($data["playlist"][$token])) {
-                doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." removed file ".$data["playlist"][$token]['display']);
+                doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." removed file ".$data["playlist"][$token]['title']);
                 unset($data["playlist"][$token]);
             }
         }
@@ -836,7 +842,6 @@ function action_setToggle()
 
 function action_getPath()
 {
-    doPrint("got json getPath request");
     global $config;
 
     if(!isset($_REQUEST['aktPath'])) {
@@ -844,6 +849,7 @@ function action_getPath()
     } else {
         $aktPath = $_REQUEST['aktPath'];
     }
+    $orig = $aktPath;
     if(!isset($_REQUEST['append'])) {
         $append = "";
     } else {
@@ -851,6 +857,8 @@ function action_getPath()
     }
 
     $aktPath = getPath($aktPath, $append);
+
+    doPrint("got json getPath request: getPath('".$orig."', '".$append."') => ".$aktPath);
 
     print $aktPath;
 }

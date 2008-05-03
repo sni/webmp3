@@ -79,10 +79,11 @@ function action_default()
         }
         $data["playingStream"] = 0;
     }
-    $options[] = "'".$track["filename"]."'";
+    $options[] = $track["filename"];
 
     $data["aktBin"] = $playBin;
     storeData($data);
+    $options = array_map("escapeshellarg", $options);
     doPrint("executing: ".$playBin." ".join(" ", $options));
     system($playBin." ".join(" ", $options).' >> '.$config["logfile"].' 2>&1');
 
