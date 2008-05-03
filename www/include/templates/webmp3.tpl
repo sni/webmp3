@@ -115,10 +115,16 @@ Ext.onReady(function(){
     }
 
     function updateFilePic(append) {
+        if(document.getElementById('filePic').src == 'webmp3.php?action=pic&pic='+Ext.util.Format.stripTags(webmp3.aktPath)+"/"+append) {
+          return(1);
+        }
         document.getElementById('filePic').src = 'webmp3.php?action=pic&pic='+Ext.util.Format.stripTags(webmp3.aktPath)+"/"+append;
     }
 
     function updatePlayPic() {
+        if(document.getElementById('playPic').src == 'webmp3.php?action=pic&token='+webmp3.token) {
+          return(1);
+        }
         document.getElementById('playPic').src = 'webmp3.php?action=pic&token='+webmp3.token;
     }
 
@@ -431,11 +437,9 @@ webmp3.playingbar = new Ext.Toolbar({
         region:'north',
         margins: '0 0 0 0',
         defaults: {
-            // applied to each contained panel
             bodyStyle:'padding:0px'
         },
         layoutConfig: {
-            // The total column count must be specified here
             columns: 3
         },
         items: [{

@@ -666,7 +666,7 @@ function action_getFilesystem()
 function action_getPlaylist()
 {
     doPrint("got json playlist request");
-    doPrint($_REQUEST);
+    //doPrint($_REQUEST);
 
     global $config;
     $data = getData();
@@ -771,7 +771,6 @@ function action_setToggle()
         $param = 0;
     }
 
-
     $data = getData();
 
     # Repeat
@@ -782,7 +781,8 @@ function action_setToggle()
 
     # Play
     if($_REQUEST['button'] == "Play") {
-        $data["play"] = 1;
+        $data["play"]  = 1;
+        $data["pause"] = 0;
         if(isset($_REQUEST["token"])) {
             $data["curTrack"] = $_REQUEST["token"];
             storeData($data);
