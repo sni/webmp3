@@ -102,9 +102,10 @@ function playlistAdd($playlist, $toAdd)
 
         list($artist,$album,$title,$tracknum,$playtime_string) = getTag($toAdd);
 
-        $display = basename($toAdd);
+        $display = $artist." - ".$album." - ".$tracknum." - ".$title;
         if(empty($title)) {
-            $title = $display;
+            $title   = basename($toAdd);
+            $display = $title;
         }
 
         $playtime_seconds = 0;
@@ -113,6 +114,7 @@ function playlistAdd($playlist, $toAdd)
 
         $token = md5(uniqid(rand(), true));
         $newFile = array(
+            "display"   => $display,
             "filename"  => $toAdd,
             "token"     => $token,
             "status"    => "&nbsp;",
