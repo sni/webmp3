@@ -136,6 +136,7 @@ Ext.onReady(function(){
 
         // set Buttons
         webmp3.noTogggleEvents = 1;
+        webmp3.pause = record.get('pause');
         Ext.ComponentMgr.get('pauseBtn').toggle(record.get('pause'));
         Ext.ComponentMgr.get('repeatBtn').toggle(record.get('repeat'));
         Ext.ComponentMgr.get('playBtn').toggle(record.get('play'));

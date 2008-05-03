@@ -96,7 +96,7 @@ function playlistAdd($playlist, $toAdd)
 {
     global $config;
 
-    $toAdd = stripslashes($toAdd);
+    $toAdd = preg_replace("/\/+/", "/", $toAdd);
 
     if(is_file($toAdd)) {
 
@@ -169,7 +169,11 @@ function doPrint($data)
     $script = basename($_SERVER["PHP_SELF"]);
     $pid    = getmypid();
     $date   = date("H:i:s");
-    $info   = $date." ".$script."[".$pid."]: ";
+    $ip     = "";
+    if(isset($_SERVER["REMOTE_ADDR"])) {
+         $ip = $_SERVER["REMOTE_ADDR"];
+    }
+    $info   = $date." ".$script."[".$pid."][".$ip."]: ";
 
     if(is_string($data)) {
         $text = $info.$data;

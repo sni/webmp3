@@ -24,10 +24,6 @@ include("include/Action.php");
 #
 # action_default()
 # action_setVolume()
-# action_mute()
-# action_quiet()
-# action_next()
-# action_prev()
 # action_pic()
 # action_savePl()
 # action_loadPl()
@@ -106,123 +102,7 @@ function action_setVolume()
     }
     exec($config["aumixBin"]." -v ".escapeshellarg($_REQUEST["vol"]));
 
-    doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." setting volume to ".$_REQUEST["vol"]);
-}
-
-#################################################################
-
-function action_mute() {
-    global $config;
-
-    doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." pressed mute");
-
-    $data = getData();
-
-    if(!isset($data["mute"]) OR $data["mute"] == 0) {
-        exec($config["aumixBin"]." -v 0");
-        $data["mute"]  = 1;
-        $data["quiet"] = 0;
-    } else {
-        exec($config["aumixBin"]." -v ".$data["volume"]);
-        $data["mute"]  = 0;
-        $data["quiet"] = 0;
-    }
-
-    storeData($data);
-
-    if(isset($_REQUEST["search"]) AND !empty($_REQUEST["search"])) {
-        redirect("webmp3.php?aktPath=".$_GET["aktPath"]."&search=".$_REQUEST["search"]);
-    } else {
-        redirect("webmp3.php?aktPath=".$_GET["aktPath"]);
-    }
-}
-
-#################################################################
-
-function action_quiet() {
-    global $config;
-
-    doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." pressed quiet");
-
-    $data = getData();
-
-    if(!isset($data["quiet"]) OR $data["quiet"] == 0) {
-        $data["volume"] = getVolume();
-        $data["quiet"] = 1;
-        $data["mute"]  = 0;
-        exec($config["aumixBin"]." -v ".$config["quietVol"]);
-    } else {
-        $data["quiet"] = 0;
-        $data["mute"]  = 0;
-        exec($config["aumixBin"]." -v ".$data["volume"]);
-    }
-
-    storeData($data);
-
-    if(isset($_REQUEST["search"]) AND !empty($_REQUEST["search"])) {
-        redirect("webmp3.php?aktPath=".$_GET["aktPath"]."&search=".$_REQUEST["search"]);
-    } else {
-        redirect("webmp3.php?aktPath=".$_GET["aktPath"]);
-    }
-}
-
-#################################################################
-
-function action_next()
-{
-    global $config;
-    doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." pressed next");
-
-    $data = getData();
-
-    if(!isset($data["curTrack"])) { $data["curTrack"] = ""; }
-
-    $track = getNextTrack($data["playlist"], $data["curTrack"], 1);
-    if($track) {
-        if(isset($data["ppid"])) {
-            posix_kill($data["ppid"], 15);
-        }
-
-        $data["curTrack"] = $track;
-        storeData($data);
-        system($config["cliPHPbinary"].' play.php >> '.$config["logfile"].' 2>&1 &');
-    }
-
-    sleep(2);
-    if(isset($_REQUEST["search"]) AND !empty($_REQUEST["search"])) {
-        redirect("webmp3.php?aktPath=".$_GET["aktPath"]."&search=".$_REQUEST["search"]);
-    } else {
-        redirect("webmp3.php?aktPath=".$_GET["aktPath"]);
-    }
-}
-
-#################################################################
-
-function action_prev()
-{
-    global $config;
-    doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." pressed prev");
-
-    $data = getData();
-
-    $track = getPrevTrack($data["playlist"], $data["curTrack"]);
-
-    if($track) {
-        if(isset($data["ppid"])) {
-            posix_kill($data["ppid"], 15);
-        }
-
-        $data["curTrack"] = $track;
-        storeData($data);
-        system($config["cliPHPbinary"].' play.php >> '.$config["logfile"].' 2>&1 &');
-    }
-
-    sleep(2);
-    if(isset($_REQUEST["search"]) AND !empty($_REQUEST["search"])) {
-        redirect("webmp3.php?aktPath=".$_GET["aktPath"]."&search=".$_REQUEST["search"]);
-    } else {
-        redirect("webmp3.php?aktPath=".$_GET["aktPath"]);
-    }
+    doPrint("setting volume to ".$_REQUEST["vol"]);
 }
 
 #################################################################
@@ -341,7 +221,7 @@ function action_doSave()
     fputs($fp, $file);
     fclose($fp);
 
-    doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." save playlist: ".$_POST["name"]);
+    doPrint("save playlist: ".$_POST["name"]);
 
     print "<center>saved<br><a href='#' onClick='window.close()'>close</a>";
 }
@@ -614,7 +494,7 @@ function action_getFilesystem()
 
     if(is_file($config["searchPath"].$aktPath."/".$append)) {
         $data = getData();
-        doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." added file ".$aktPath."/".$append);
+        doPrint("added file ".$aktPath."/".$append);
         $data["playlist"] = playlistAdd($data["playlist"], $config["searchPath"].$aktPath."/".$append);
         $data = recalcTotalPlaytime($data);
         storeData($data);
@@ -676,7 +556,7 @@ function action_getPlaylist()
         $aktPath = strip_tags($_REQUEST["aktPath"]);
         foreach($_REQUEST["add"] as $file) {
             if(file_exists($config["searchPath"].$aktPath."/".$file)) {
-                doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." added file ".$aktPath."/".$file);
+                doPrint("added file ".$aktPath."/".$file);
                 $data["playlist"] = playlistAdd($data["playlist"], $config["searchPath"].$aktPath."/".$file);
             }
         }
@@ -687,7 +567,7 @@ function action_getPlaylist()
     if(isset($_REQUEST["remove"]) AND is_array($_REQUEST["remove"])) {
         foreach($_REQUEST["remove"] as $token) {
             if(isset($data["playlist"][$token])) {
-                doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." removed file ".$data["playlist"][$token]['title']);
+                doPrint("removed file ".$data["playlist"][$token]['title']);
                 unset($data["playlist"][$token]);
             }
         }
@@ -696,7 +576,7 @@ function action_getPlaylist()
     }
 
     if(isset($_REQUEST["clear"])) {
-        doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." pressed clear");
+        doPrint("pressed clear");
         $data["playlist"]   = array();
         $data["totalTime"]  = "0";
         $data["cachedPic"]  = "";
@@ -705,7 +585,7 @@ function action_getPlaylist()
         storeData($data);
     }
     if(isset($_REQUEST["shuffle"])) {
-        doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." pressed shuffle");
+        doPrint("pressed shuffle");
         shuffle($data["playlist"]);
         $newData = array();
         foreach($data["playlist"] as $blah)
@@ -717,7 +597,7 @@ function action_getPlaylist()
     }
 
     if(isset($_REQUEST["sort"])) {
-        doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." pressed sort");
+        doPrint("pressed sort");
         $tmp = sortMultiArray($data["playlist"], "filename");
         $newData = array();
         foreach($tmp as $blah)
@@ -794,7 +674,7 @@ function action_setToggle()
 
     # Stop
     if($_REQUEST['button'] == "Stop") {
-        doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." pressed stop");
+        doPrint("pressed stop");
         killChild();
         usleep(500);
         if(isset($data["ppid"])) {
@@ -806,7 +686,7 @@ function action_setToggle()
 
     # Pause
     if($_REQUEST['button'] == "Pause") {
-        doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." pressed pause");
+        doPrint("pressed pause");
         $signal = 17;
         $data["pause"] = 1;
         if($param == "false") {
@@ -833,19 +713,34 @@ function action_setToggle()
     # Mute
     if($_REQUEST['button'] == "Mute") {
         $data["mute"] = $param;
-        doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." pressed mute");
+        doPrint("pressed mute");
+        $data["origVolume"] = $data['volume'];
+        $_REQUEST["vol"] = 0;
+        action_setVolume();
         print "mute set to true";
     }
     if($_REQUEST['button'] == "Unmute") {
         $data["mute"] = $param;
-        doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." pressed unmute");
+        doPrint("pressed unmute");
+        unset($data["origVolume"]);
+        $_REQUEST["vol"] = $data['volume'];
+        action_setVolume();
         print "mute set to false";
     }
 
     # Quiet
     if($_REQUEST['button'] == "Quiet") {
         $data["quiet"] = $param;
-        doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." pressed quiet");
+        doPrint("pressed quiet");
+        if($param) {
+            $data["origVolume"] = $data['volume'];
+            $_REQUEST["vol"] = $config["quietVol"];
+            action_setVolume();
+        } else {
+            $data["origVolume"] = $data['volume'];
+            $_REQUEST["vol"] = 0;
+            action_setVolume();
+        }
         print "quiet set to ".$param;
     }
 
@@ -889,9 +784,9 @@ function action_getCurStatus()
     $text = "idle";
     if(isset($data['ppid'])) {
         if($data['pause']) {
-            $text = "paused (pid: ".$data['ppid'].")";
+            $text = "paused (pid: ".$data['ppid']."): ".$data['filename'];
         } else {
-            $text = "playing (pid: ".$data['ppid'].")";
+            $text = "playing (pid: ".$data['ppid']."): ".$data['filename'];
         }
     }
 
