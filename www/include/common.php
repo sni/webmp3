@@ -464,7 +464,11 @@ function addFileToHitlist($file)
     global $config;
 
     # read data
-    $tmp  = file($config["hitlist"]) or die("cannot open hitlist");
+    if(!file_exists($config["hitlist"])) {
+      $tmp = array();
+    } else {
+      $tmp  = file($config["hitlist"]) or die("cannot open hitlist");
+    }
     $mostPlayed = array();
     foreach($tmp as $row) {
         $row = trim($row);
