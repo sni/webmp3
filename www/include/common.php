@@ -50,12 +50,12 @@ function getData($called = 0, $errMsg = "") {
     if($called > 1) { sleep(1); doPrint($called." try to get data"); }
     if($called == 10) { die($errMsg); }
 
-    $tmp  = file($config["playlist"]);
-    if(!isset($tmp[0])) { return(getData($called, "error in getData(), playlist corrupt?")); }
-    $data = unserialize($tmp[0]);
-
-    if(!is_array($data)) {
-        $data = array("playlist" => array());
+    if(file_exists($config["playlist"])) {
+        $tmp  = file($config["playlist"]);
+        if(!isset($tmp[0])) { return(getData($called, "error in getData(), playlist corrupt?")); }
+        $data = unserialize($tmp[0]);
+    } else {
+        $data = fillInDefaults(array());
     }
 
     return($data);
@@ -429,8 +429,8 @@ function killChild() {
     $data["pause"]    = 0;
     storeData($data);
 
-    if(file_exists("cache.jpg")) {
-        unlink("cache.jpg");
+    if(file_exists("./var/var/cache.jpg")) {
+        unlink("./var/cache.jpg");
     }
 }
 
@@ -714,6 +714,9 @@ function fillInDefaults($data) {
     if(empty($data["album"]))   { $data["album"]  = " "; }
     if(empty($data["track"]))   { $data["track"]  = " "; }
     if(empty($data["title"]))   { $data["title"]  = " "; }
+    if(empty($data["token"]))   { $data["token"]  = " "; }
+
+    if(!isset($data["playlist"]) or !is_array($data["playlist"]))   { $data["playlist"] = array(); }
 
     return($data);
 }

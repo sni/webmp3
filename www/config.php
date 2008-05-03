@@ -18,22 +18,22 @@ $config["streamBin"]  = "/usr/bin/mplayer";                  # binary for playin
 $config["playStrOpt"] = array("-quiet", "-really-quiet");    # additional options
 $config["streamUrlPre"] = "http_proxy://localhost:8001/";    # requiered for proxy support
 
-$config["aumixBin"]   = "/usr/bin/aumix";       # executable to change volume
-#$config["aumixBin"]   = "/usr/bin/true";       # executable to change volume
+#$config["aumixBin"]   = "/usr/bin/aumix";       # executable to change volume
+$config["aumixBin"]   = "/usr/bin/true";       # executable to change volume
 
 $config["searchPath"] = "/Users/sven/Music/";             # path with your mp3/ogg files
 #$config["searchPath"] = "/opt/projects/webmp3/musik/";   # path with your mp3/ogg files
 
-$config["playlist"]   = "playlist.dat";         # a file with your playlist and other temporary data
-$config["hitlist"]    = "hitlist.dat";          # a file with your played songs
-$config["picWidth"]   = 120;                    # width of preview picture
-$config["picHeight"]  = 120;                    # height of the preview picture
-$config["plDir"]      ="./playlists/";          # folder for your saved playlists
-$config["quietVol"]   = "25";                   # volume to set if someone presses the quiet button
-$config["tagCache"]   = "tagCache.dat";
+$config["playlist"]    = "./var/playlist.dat";         # a file with your playlist and other temporary data
+$config["hitlist"]     = "./var/hitlist.dat";          # a file with your played songs
+$config["picWidth"]    = 120;                    # width of preview picture
+$config["picHeight"]   = 120;                    # height of the preview picture
+$config["plDir"]       ="./var/playlists/";          # folder for your saved playlists
+$config["quietVol"]    = "25";                   # volume to set if someone presses the quiet button
+$config["tagCache"]    = "./var/tagCache.dat";
 
 # Notification when playing a song, %T Displayed Text
-#$config["notifyCommand"] = "echo '%T' | /bin/nc -q 0 -u 192.168.1.31 23052";
+$config["notifyCommand"] = "echo '%T' | /usr/bin/nc localhost 23052";
 
 # ip adresses which are allow to use this tool
 $config["accControl"] = 0;                      # if 1, then ip based access will be used

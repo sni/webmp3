@@ -9,13 +9,13 @@
   <meta name="copyright" content="Sven Nierlein">
   <meta name="description" content="">
   <meta name="keywords" content="">
-  <link rel="stylesheet" href="webmp3.css">
+  <link rel="stylesheet" href="images/webmp3.css">
   <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico">
   <title><!--php: pageTitle --></title>
-    <link rel="stylesheet" type="text/css" href="extjs/ext-all.css">
-    <script type="text/javascript" src="extjs/ext-base.js"></script>
-    <script type="text/javascript" src="extjs/ext-all.js"></script>
-    <link rel="stylesheet" type="text/css" href="extjs/slider.css">
+    <link rel="stylesheet" type="text/css" href="include/extjs/ext-all.css">
+    <script type="text/javascript" src="include/extjs/ext-base.js"></script>
+    <script type="text/javascript" src="include/extjs/ext-all.js"></script>
+    <link rel="stylesheet" type="text/css" href="include/extjs/slider.css">
 </head>
 <body>
 <div id="viewport"></div>
@@ -45,8 +45,8 @@ Ext.onReady(function(){
 
         now=new Date();
         diff_time = now.getTime() - webmp3.lastStatusUpdate.getTime();
-        if(diff_time > 300) {
-
+        if(diff_time > 300000) {
+            webmp3.refreshStatusStore();
         }
 
         if(webmp3.pause == true) {

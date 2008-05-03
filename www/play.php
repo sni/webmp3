@@ -6,8 +6,7 @@ declare(ticks = 1);
 ### INCLUDES ###
 include("config.php");
 $config["searchPath"] = realpath($config["searchPath"]);
-include("common.php");
-include("Template.php");
+include("include/common.php");
 
 #################################################################
 #

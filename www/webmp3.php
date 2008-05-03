@@ -7,7 +7,6 @@ error_reporting(2047);
 
 ### INCLUDES ###
 include("config.php");
-#$config["searchPath"] = realpath($config["searchPath"]);
 if($config["accControl"] == 1 AND isset($_SERVER["REMOTE_ADDR"]) AND !in_array($_SERVER["REMOTE_ADDR"], $config["allowedIPs"])) {
     die($_SERVER["REMOTE_ADDR"]." ist nicht zugelassen"); 
 }
@@ -16,10 +15,10 @@ if(isset($_SERVER["REMOTE_ADDR"])) {
     ob_start("ob_gzhandler");
 }
 
-include("common.php");
-include("Template.php");
-include("getid3/getid3.php");
-include("Action.php");
+include("include/common.php");
+include("include/Template.php");
+include("include/getid3/getid3.php");
+include("include/Action.php");
 
 #################################################################
 #
@@ -69,7 +68,7 @@ function action_default()
     list($remMin, $remSec, $remaining, $stream, $started) = getRemaining($data);
 
     $t = new template();
-    $t -> main("webmp3.tpl");
+    $t -> main("include/templates/webmp3.tpl");
     $t -> code(array(
         "pageTitle"     => $pageTitle,
         "volume"        => getVolume(),
@@ -236,7 +235,7 @@ function action_pic() {
     $dst_w = $config["picWidth"];
     $dst_h = $config["picHeight"];
 
-    if(isset($_REQUEST['token'])) {
+    if(isset($_REQUEST['token']) AND isset($data["curTrack"])) {
         if($data["curTrack"] == $_REQUEST['token']) {
             $dir = dirname($data["filename"]);
             $dir = str_replace($config["searchPath"], "", $dir);
@@ -252,7 +251,7 @@ function action_pic() {
     }
 
     if(!isset($_GET["pic"]) OR empty($_GET["pic"])) {
-        return(1);
+        $_GET["pic"] = "-1";
     }
 
     $url = $config["searchPath"].getPath($_GET["pic"]);
@@ -269,11 +268,11 @@ function action_pic() {
             exit();
         }
 
-        if(isset($data["cachedPic"]) AND $url == $data["cachedPic"] AND is_file("cache.jpg")) {
+        if(isset($data["cachedPic"]) AND $url == $data["cachedPic"] AND is_file("./var/cache.jpg")) {
             # is there a cached one?
             doPrint("got pic from cache");
             header("Content-type: image/jpeg");
-            readfile("cache.jpg");
+            readfile("./var/cache.jpg");
             exit();
         }
 
@@ -298,7 +297,7 @@ function action_pic() {
         #doPrint("-".$url."-");
         if(isset($data["playingPic"]) AND $data["playingPic"] == $url) {
             doPrint("saved pic to cache");
-            imagejpeg($dst, "cache.jpg");
+            imagejpeg($dst, "./var/cache.jpg");
             $data["cachedPic"] = $url;
             storeData($data);
         }

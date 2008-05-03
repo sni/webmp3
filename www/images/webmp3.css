@@ -22,19 +22,19 @@ body
 }
 
 .x-btn.repeat-btn .x-btn-text {
-   background-image: url('images/control_norepeat_blue.png') ! important;
+   background-image: url('../images/control_norepeat_blue.png') ! important;
 }
 
 .x-btn-pressed.repeat-btn .x-btn-text {
-   background-image: url('images/control_repeat_blue.png') ! important;
+   background-image: url('../images/control_repeat_blue.png') ! important;
 }
 
 .x-btn.play-btn .x-btn-text {
-   background-image: url('images/control_play_blue.png') ! important;
+   background-image: url('../images/control_play_blue.png') ! important;
 }
 
 .x-btn-pressed.play-btn .x-btn-text {
-   background-image: url('images/control_stop_blue.png') ! important;
+   background-image: url('../images/control_stop_blue.png') ! important;
 }
 
 -->
