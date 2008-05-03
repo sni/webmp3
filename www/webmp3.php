@@ -756,7 +756,7 @@ function action_setToggle()
     global $config;
 
     doPrint("got json toggle request");
-    doPrint($_REQUEST);
+    # doPrint($_REQUEST);
     if(!isset($_REQUEST['param'])) {
         print "missing parameter: param!";
         return(1);
@@ -766,16 +766,23 @@ function action_setToggle()
         return(1);
     }
 
+    $param = 1;
+    if($_REQUEST['param'] == "false") {
+        $param = 0;
+    }
+
+
     $data = getData();
 
     # Repeat
     if($_REQUEST['button'] == "Repeat") {
-        $data["repeat"] = $_REQUEST['param'];
-        print "Set Repeat to: ".$_REQUEST['param'];
+        $data["repeat"] = $param;
+        print "Set Repeat to: ".$param;
     }
 
     # Play
     if($_REQUEST['button'] == "Play") {
+        $data["play"] = 1;
         if(isset($_REQUEST["token"])) {
             $data["curTrack"] = $_REQUEST["token"];
             storeData($data);
@@ -802,7 +809,7 @@ function action_setToggle()
         doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." pressed pause");
         $signal = 17;
         $data["pause"] = 1;
-        if($_REQUEST['param'] == "false") {
+        if($param == "false") {
             $data["pause"] = 0;
             $signal = 19;
         }
@@ -825,14 +832,21 @@ function action_setToggle()
 
     # Mute
     if($_REQUEST['button'] == "Mute") {
+        $data["mute"] = $param;
         doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." pressed mute");
-        sleep(2);
         print "mute set to true";
     }
     if($_REQUEST['button'] == "Unmute") {
+        $data["mute"] = $param;
         doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." pressed unmute");
-        sleep(2);
         print "mute set to false";
+    }
+
+    # Quiet
+    if($_REQUEST['button'] == "Quiet") {
+        $data["quiet"] = $param;
+        doPrint("Client: ".$_SERVER["REMOTE_ADDR"]." pressed quiet");
+        print "quiet set to ".$param;
     }
 
     storeData($data);

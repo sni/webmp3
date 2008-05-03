@@ -12,9 +12,9 @@
   <link rel="stylesheet" href="images/webmp3.css">
   <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico">
   <title><!--php: pageTitle --></title>
-    <link rel="stylesheet" type="text/css" href="include/extjs/ext-all.css">
     <script type="text/javascript" src="include/extjs/ext-base.js"></script>
     <script type="text/javascript" src="include/extjs/ext-all.js"></script>
+    <link rel="stylesheet" type="text/css" href="include/extjs/ext-all.css">
     <link rel="stylesheet" type="text/css" href="include/extjs/slider.css">
 </head>
 <body>
@@ -129,23 +129,18 @@ Ext.onReady(function(){
         webmp3.token = record.get('token');
 
         // set Buttons
-        //Ext.get("repeatBtn").cloneConfig();
-        //newBtn = new Ext.Toolbar.Button({
-        //            text: 'Repeat',
-        //            tooltip: 'Repeat',
-        //            cls: 'x-btn-text-icon repeat-btn',
-        //            enableToggle: true,
-        //            pressed: 1,
-        //            toggleHandler: onButtonToggle,
-        //            applyTo: 'repeatBtn',
-        //            autoShow: true
-        //});
-        //newBtn.render();
-        //Ext.get("repeatBtn").replaceWith(newBtn);
-        //newBtn.replace(Ext.get('repeatBtn'));
-        //newBtn.show();
-        //Ext.get("repeatBtn").replaceWith(newBtn);
-        //Ext.get("repeatBtn").show();
+        webmp3.noTogggleEvents = 1;
+        Ext.ComponentMgr.get('pauseBtn').toggle(record.get('pause'));
+        Ext.ComponentMgr.get('repeatBtn').toggle(record.get('repeat'));
+        Ext.ComponentMgr.get('playBtn').toggle(record.get('play'));
+        if(record.get('play') == 1) {
+          Ext.ComponentMgr.get('playBtn').setText('Stop');
+        } else {
+          Ext.ComponentMgr.get('playBtn').setText('Play');
+        }
+        Ext.ComponentMgr.get('muteBtn').toggle(record.get('mute'));
+        Ext.ComponentMgr.get('quietBtn').toggle(record.get('quiet'));
+        webmp3.noTogggleEvents = 0;
 
         // set status text
         document.getElementById('statusbar').innerHTML = record.get('status');
@@ -189,6 +184,9 @@ Ext.onReady(function(){
  * Event Handler
  ***************************************/
     function onButtonToggle(item, pressed){
+        if(webmp3.noTogggleEvents == 1) {
+          return(1);
+        }
         if(item.text == "Pause") {
             webmp3.pause = pressed;
         }
@@ -550,8 +548,7 @@ webmp3.playingbar = new Ext.Toolbar({
         enableDragDrop: true,
         autoExpandColumn: 4,
         viewConfig: {
-            forceFit: true,
-            autoFill: true
+            forceFit: true
         },
         stripeRows: true,
         sm: webmp3.psm,
@@ -606,13 +603,15 @@ webmp3.playingbar = new Ext.Toolbar({
             rowdblclick : function ( grid, rowIndex, event ) {
                                 var token = webmp3.PlaylistDataStore.getAt(rowIndex).get('token');
                                 webmp3.highlightCurrentSong();
+                                webmp3.noTogggleEvents = 1;
+                                Ext.ComponentMgr.get('playBtn').toggle(1);
+                                Ext.ComponentMgr.get('playBtn').setText('Stop');
+                                webmp3.noTogggleEvents = 0;
                                 webmp3.PlaylistDataStore.load({
                                         url: 'webmp3.php',
                                         params: 'action=setToggle&button=Play&param=true&token=' + token,
                                         text: 'playing tack nr. ' + rowIndex
                                 });
-                                Ext.get('playBtn').setText("Stop");
-
             }
         }
     });
@@ -768,8 +767,6 @@ webmp3.playingbar = new Ext.Toolbar({
                         text: 'added files to playlist'
                     });
                 }
-                //Ext.get('repeatBtn').toggle();
-                //Ext.get('repeatBtn').show();
             }
         },
         title: 'Filesystem',
@@ -780,7 +777,7 @@ webmp3.playingbar = new Ext.Toolbar({
                     text: 'Add',
                     tooltip: 'Add selected files to the playlist',
                     icon:      'images/add.png',
-                    iconCls: 'add',                      // reference to our css
+                    iconCls: 'add',
                     id: 'addBtn'
                   }, '-', {
                     text: 'Search',
