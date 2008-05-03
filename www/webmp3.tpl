@@ -11,7 +11,7 @@
   <meta name="keywords" content="">
   <link rel="stylesheet" href="webmp3.css">
   <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico">
-  <title>WebMP3</title>
+  <title><!--php: pageTitle --></title>
     <link rel="stylesheet" type="text/css" href="extjs/ext-all.css">
     <script type="text/javascript" src="extjs/ext-base.js"></script>
     <script type="text/javascript" src="extjs/ext-all.js"></script>
@@ -26,9 +26,11 @@
 Ext.onReady(function(){
     Ext.namespace("webmp3");
     webmp3.sliderInit           = 1;
-    webmp3.lastChange           = new Date();
+    webmp3.lastSliderUpdate     = new Date();
+    webmp3.lastStatusUpdate     = new Date();
     webmp3.token                = "<!--php: token -->";
     webmp3.pause                = <!--php: pause -->;
+    webmp3.stream               = <!--php: stream -->;
     webmp3.lastHighlightedToken = "";
 
 /****************************************
@@ -41,12 +43,18 @@ Ext.onReady(function(){
         var remSec=document.getElementById('remSec');
         var preMin=document.getElementById('pre');
 
+        now=new Date();
+        diff_time = now.getTime() - webmp3.lastStatusUpdate.getTime();
+        if(diff_time > 300) {
+
+        }
+
         if(webmp3.pause == true) {
             window.setTimeout(webmp3.updateTime, 999);
             return(0);
         }        
 
-        if(<!--php: stream -->) {
+        if(webmp3.stream == true) {
                 // playing stream
                 now=new Date();
                 var started=<!--php: started -->;
@@ -158,10 +166,18 @@ Ext.onReady(function(){
         webmp3.slider.setValue(record.get('volume'), 1);
         webmp3.sliderInit = 0;
 
+        // set title
+        if(record.get('play')) {
+            document.title = record.get('nr') + ' - ' + record.get('title');
+        } else {
+            document.title = 'WebMP3';
+        }
+
         webmp3.highlightCurrentSong();
         updatePlayPic();
     }
     webmp3.refreshStatusStore = function() {
+        webmp3.lastStatusUpdate = new Date();
         webmp3.StatusDataStore.load({
             url: 'webmp3.php',
             params: 'action=getCurStatus',
@@ -219,7 +235,7 @@ Ext.onReady(function(){
     webmp3.slider.on("change", function(slider, value) {
         if(webmp3.sliderInit == 0) {
             webmp3.now=new Date();
-            diff_time = webmp3.now.getTime() - webmp3.lastChange.getTime();
+            diff_time = webmp3.now.getTime() - webmp3.lastSliderUpdate.getTime();
             if(diff_time > 300) {
                 var msg = Ext.get('statustext');
                 msg.load({
@@ -227,14 +243,14 @@ Ext.onReady(function(){
                     params: 'action=setVolume&vol=' + slider.getValue(),
                     text: 'setting volume...' + slider.getValue()
                 });
-                webmp3.lastChange = new Date();
+                webmp3.lastSliderUpdate = new Date();
             }
         }
     });
     webmp3.slider.on("dragend", function(slider, value) {
         if(webmp3.sliderInit == 0) {
             webmp3.now=new Date();
-            diff_time = webmp3.now.getTime() - webmp3.lastChange.getTime();
+            diff_time = webmp3.now.getTime() - webmp3.lastSliderUpdate.getTime();
             if(diff_time > 300) {
                 var msg = Ext.get('statustext');
                 msg.load({
@@ -242,7 +258,7 @@ Ext.onReady(function(){
                     params: 'action=setVolume&vol=' + slider.getValue(),
                     text: 'setting volume...' + slider.getValue()
                 });
-                webmp3.lastChange = new Date();
+                webmp3.lastSliderUpdate = new Date();
             }
         }
     });

@@ -55,8 +55,10 @@ function action_default()
 
     $data = fillInDefaults($data);
 
-    $playText = "Play";
+    $playText  = "Play";
+    $pageTitle = "WebMP3";
     if($data["play"]) {
+        $pageTitle = $data['track']. " - ".$data['title'];
         $playText = "Stop";
     }
     $muteText = "Mute";
@@ -69,6 +71,7 @@ function action_default()
     $t = new template();
     $t -> main("webmp3.tpl");
     $t -> code(array(
+        "pageTitle"     => $pageTitle,
         "volume"        => getVolume(),
         "repeat"        => $data["repeat"],
         "quiet"         => $data["quiet"],
