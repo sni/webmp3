@@ -744,8 +744,8 @@ webmp3.playingbar = new Ext.Toolbar({
         sm: webmp3.fsm,
         store: webmp3.FilesystemDataStore,
         columns: [
-            {header: ' ', dataIndex: 'icon', renderer: webmp3.iconRenderer, width: 5 },
-            {header: 'Files & Directories', dataIndex: 'file', width: 125  },
+            {header: ' ', dataIndex: 'icon', renderer: webmp3.iconRenderer, width: 5, menuDisabled: true  },
+            {header: 'Files & Directories', dataIndex: 'file', width: 125, menuDisabled: true },
             {header: 'Type', sortable: false, hidden: true, hideable: false,  dataIndex: 'type'}
         ],
         viewConfig: {
