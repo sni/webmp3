@@ -475,6 +475,7 @@ webmp3.playingbar = new Ext.Toolbar({
                 url: 'webmp3.php',
                 method: 'POST'
         }),
+        ddGroup : 'playlistDD',
         baseParams:{action: "getPlaylist"},
         reader: new Ext.data.JsonReader({
             root: 'results',
@@ -548,7 +549,81 @@ webmp3.playingbar = new Ext.Toolbar({
         {header: 'Token',  sortable: false, hidden: true, hideable: false, dataIndex: 'token' }
      ]);
 
-    webmp3.playlistGrid = new Ext.grid.GridPanel({
+    webmp3.DropGridPanel = Ext.extend(Ext.grid.GridPanel, {
+//        notifyOver: function(source, e, data) {
+//            document.title='dragOver: ' + e;
+//          if('dd1-ct' === targetId || 'dd2-ct' === targetId) {
+//            var target = Ext.get(targetId);
+//            webmp3.lastDropTarget = target;
+//          target.addClass('dd-over');
+//          }
+//              return(true);
+//            },
+//        notifyOut: function(source, e, data) {
+//            document.title='dragOut: ' + e;
+//          if('dd1-ct' === targetId || 'dd2-ct' === targetId) {
+//            webmp3.lastDropTarget = null;
+//          target.addClass('dd-over');
+//          }
+//              return(true);
+//            },
+        droppedItem: function(dd, e, data) {
+            // store them to take a look via firebug
+            webmp3.data = data;
+            webmp3.dd   = dd;
+            webmp3.e    = e;
+            var selects = data.selections;
+            var files   = "";
+            if(data.grid.title == "Playlist") {
+              // drag&drop in our playlist
+              if(selects.length == 0 && data.rowIndex) {
+                files   = "&move[]=" + webmp3.PlaylistDataStore.getAt(data.rowIndex).get('token');
+              }
+              for(i=0;i<selects.length;i++)
+              {
+                if(selects[i].get('token') != "") {
+                  files = files + "&move[]=" + selects[i].get('token');
+                }
+              }
+//              alert(files);
+            }
+            if(data.grid.title == "Filesystem") {
+              // drag&drop from the filesystem
+              if(selects.length == 0 && data.rowIndex) {
+                files   = "&add[]=" + webmp3.FilesystemDataStore.getAt(data.rowIndex).get('file');
+              }
+              for(i=0;i<selects.length;i++)
+              {
+                if(selects[i].get('file') != "") {
+                  files = files + "&add[]=" + selects[i].get('file');
+                }
+              }
+              if(files != "") {
+                webmp3.PlaylistDataStore.load({
+                    url: 'webmp3.php',
+                    params: 'action=getPlaylist&aktPath=' + Ext.util.Format.stripTags(document.getElementById('filestatus').innerHTML) + files,
+                    text: 'added files to playlist'
+                });
+              }
+              webmp3.fsm.clearSelections();
+            }
+        },
+        onRender: function() {
+            webmp3.DropGridPanel.superclass.onRender.apply(this, arguments);
+            try {
+                webmp3.dropZone = new Ext.dd.DropTarget(this.id, {
+                    ddGroup : 'playlistDD',
+                    notifyDrop : this.droppedItem
+//                    notifyOver : this.notifyOver,
+//                    notifyOut  : this.notifyOut
+                });
+            } catch (e) {
+              alert('** - onRender fired exception '+e.status+' ' +e.statusText+': ' + e.responseText);
+            }
+        }
+    });
+
+    webmp3.playlistGrid = new webmp3.DropGridPanel({
         collapsible: false,
         enableDragDrop: true,
         autoExpandColumn: 4,
@@ -565,6 +640,8 @@ webmp3.playingbar = new Ext.Toolbar({
         width: 500,
         height:400,
         draggable: true,
+        enableDrop: true,
+        ddGroup : 'playlistDD',
         id: 'playlistGrid',
         tbar: [
                   {
@@ -719,6 +796,7 @@ webmp3.playingbar = new Ext.Toolbar({
                 method: 'POST'
         }),
         baseParams:{action: "getFilesystem"},
+        ddGroup : 'playlistDD',
         reader: new Ext.data.JsonReader({
             root: 'results',
             totalProperty: 'total',
@@ -740,6 +818,7 @@ webmp3.playingbar = new Ext.Toolbar({
         region:'east',
         margins: '5 0 0 0',
         enableDragDrop: true,
+        ddGroup : 'playlistDD',
         autoExpandColumn: 'file',
         sm: webmp3.fsm,
         store: webmp3.FilesystemDataStore,
@@ -909,6 +988,25 @@ webmp3.playingbar = new Ext.Toolbar({
             });
         }
     });
+
+//    Ext.get('playlistGrid').on("dragOver", function(e, targetId) {
+//      alert("dropin");
+//                        document.title('dragOver: ' + targetId);
+//        //                if('dd1-ct' === targetId || 'dd2-ct' === targetId) {
+//                            var target = Ext.get(targetId);
+//                            webmp3.lastDropTarget = target;
+//        //                    target.addClass('dd-over');
+//        //                }
+//                    });
+//    webmp3.dropZone.on("onDragOut", function(e, targetId) {
+//                        //console.log('dragOut: ' + targetId);
+//                        document.title('dragOut: ' + targetId);
+//        //                if('dd1-ct' === targetId || 'dd2-ct' === targetId) {
+//                            var target = Ext.get(targetId);
+//                            webmp3.lastDropTarget = null;
+//        //                    target.removeClass('dd-over');
+//        //                }
+//            });
 
 /****************************************
  * Filesystem Button EventHandler
