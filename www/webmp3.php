@@ -568,6 +568,7 @@ function action_getPlaylist()
         if(!isset($_REQUEST["aktPath"])) { $_REQUEST["aktPath"] = ""; }
         $aktPath = strip_tags($_REQUEST["aktPath"]);
         foreach($_REQUEST["add"] as $file) {
+            $file = stripslashes($file);
             if(file_exists($config["searchPath"].$aktPath."/".$file)) {
                 doPrint("added file ".$aktPath."/".$file);
                 $data["playlist"] = playlistAdd($data["playlist"], $config["searchPath"].$aktPath."/".$file);
@@ -789,7 +790,7 @@ function action_getPath()
 
 function action_getCurStatus()
 {
-    sleep(1);
+    //sleep(1);
     doPrint("got json status request");
     $data = getData();
     $data = fillInDefaults($data);
@@ -807,10 +808,10 @@ function action_getCurStatus()
     $pre = "-";
 
     $status[] = array(
-            'artist'  => $data['artist'],
+            'artist'  => htmlentities($data['artist'], ENT_QUOTES, "UTF-8"),
             'album'   => $data['album'],
             'nr'      => $data['track'],
-            'title'   => $data['title'],
+            'title'   => htmlentities($data['title'], ENT_QUOTES, "UTF-8"),
             'length'  => $data['length'],
             'token'   => $data['token'],
             'volume'  => $data['volume'],

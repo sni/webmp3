@@ -32,10 +32,18 @@ Ext.onReady(function(){
     webmp3.pause                = <!--php: pause -->;
     webmp3.stream               = <!--php: stream -->;
     webmp3.lastHighlightedToken = "";
-
+    webmp3.lastSearch           = "";
 /****************************************
  * Functions
  ***************************************/
+
+    // replace all html entities to pass them via url
+    webmp3.urlencode = function(s)
+    {
+      s = Ext.util.Format.htmlEncode(s);
+      s = s.replace(/ /g, "+");
+      return(s);
+    }
 
     webmp3.updateTime = function()
     {
@@ -576,7 +584,7 @@ webmp3.playingbar = new Ext.Toolbar({
             var files   = "";
             if(data.grid.title == "Playlist") {
               // drag&drop in our playlist
-              if(selects.length == 0 && data.rowIndex) {
+              if(selects.length == 0 && data.rowIndex >= 0) {
                 files   = "&move[]=" + webmp3.PlaylistDataStore.getAt(data.rowIndex).get('token');
               }
               for(i=0;i<selects.length;i++)
@@ -585,23 +593,22 @@ webmp3.playingbar = new Ext.Toolbar({
                   files = files + "&move[]=" + selects[i].get('token');
                 }
               }
-//              alert(files);
             }
             if(data.grid.title == "Filesystem") {
               // drag&drop from the filesystem
-              if(selects.length == 0 && data.rowIndex) {
-                files   = "&add[]=" + webmp3.FilesystemDataStore.getAt(data.rowIndex).get('file');
+              if(selects.length == 0 && data.rowIndex >= 0) {
+                files   = "&add[]=" + webmp3.urlencode(webmp3.FilesystemDataStore.getAt(data.rowIndex).get('file'));
               }
               for(i=0;i<selects.length;i++)
               {
                 if(selects[i].get('file') != "") {
-                  files = files + "&add[]=" + selects[i].get('file');
+                  files = files + "&add[]=" + webmp3.urlencode(selects[i].get('file'));
                 }
               }
               if(files != "") {
                 webmp3.PlaylistDataStore.load({
                     url: 'webmp3.php',
-                    params: 'action=getPlaylist&aktPath=' + Ext.util.Format.stripTags(document.getElementById('filestatus').innerHTML) + files,
+                    params: 'action=getPlaylist&aktPath=' + webmp3.urlencode(Ext.util.Format.stripTags(document.getElementById('filestatus').innerHTML)) + files,
                     text: 'added files to playlist'
                 });
               }
@@ -708,14 +715,21 @@ webmp3.playingbar = new Ext.Toolbar({
                     this.onTrigger2Click();
                 }
             }, this);
+            this.on('keyup', function ( textField, e ) {
+//              alert(textField.getValue().length);
+              if(textField.getValue().length == 0 || (textField.getValue().length >= 2 && webmp3.lastSearch != textField.getValue())) {
+                webmp3.lastSearch = textField.getValue();
+                this.onTrigger2Click();
+              }
+            }, this);
         },
-
         validationEvent:false,
         validateOnBlur:false,
         trigger1Class:'x-form-clear-trigger',
         trigger2Class:'x-form-search-trigger',
         hideTrigger1:true,
         width:180,
+        enableKeyEvents: true,
         hasSearch : false,
         paramName : 'query',
 
@@ -732,6 +746,7 @@ webmp3.playingbar = new Ext.Toolbar({
         },
 
         onTrigger2Click : function(){
+            document.getElementById('filestatus').innerHTML = "";
             webmp3.aktPath = "";
             var v = this.getRawValue();
             if(v.length < 1){
@@ -869,14 +884,11 @@ webmp3.playingbar = new Ext.Toolbar({
                     icon:      'images/add.png',
                     iconCls: 'add',
                     id: 'addBtn'
-                  }, '-', {
-                    text: 'Search',
-                    tooltip: 'Advanced Search',
-                    iconCls:'search'
-                  }, '-', new webmp3.SearchField({
+                  }, '-',
+                  new webmp3.SearchField({
                                         store: webmp3.FilesystemDataStore,
                                                         params: {start: 0, limit: 15},
-                                        width: 120
+                                        width: 80
                             }),
                   ' ', '-', ' ', {
                     xtype: 'panel',
