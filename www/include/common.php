@@ -22,6 +22,11 @@ error_reporting(2047);
 # getTag()
 # formatDateTime()
 # getPath()
+# myRealpath($path)
+# getChildPids($pid)
+# fillInDefaults($data)
+# getRemaining($data)
+# getPidData($pid)
 #
 #################################################################
 
@@ -399,8 +404,10 @@ function killChild() {
 
     if(isset($data["ppid"])) {
         $pids = getChildPids($data["ppid"]);
+        doPrint(getPidData($data["ppid"]));
         posix_kill($data["ppid"], 2);
         foreach($pids as $pid) {
+             doPrint(getPidData($pid));
              posix_kill($pid, 2);
         }
         posix_kill($data["ppid"], 19);
@@ -420,6 +427,7 @@ function killChild() {
     unset($data["track"]);
     unset($data["artist"]);
     unset($data["album"]);
+    unset($data["aktBin"]);
     unset($data["playingPic"]);
     $data["play"]     = 0;
     $data["pause"]    = 0;
@@ -724,6 +732,7 @@ function fillInDefaults($data) {
 }
 
 #########################################################################################
+
 function getRemaining($data)
 {
     if(isset($data["start"])) {
@@ -760,4 +769,20 @@ function getRemaining($data)
 
     return(array($remMin, $remSec, $remaining, $stream, $started));
 }
+
+#########################################################################################
+
+function getPidData($pid) {
+  if(!is_numeric($pid)) {
+    return("");
+  }
+  ob_start();
+  system("ps -lp ".$pid." | tail -1");
+  $return = ob_get_contents();
+  ob_end_clean();
+  return($return);
+}
+
+#########################################################################################
+
 ?>

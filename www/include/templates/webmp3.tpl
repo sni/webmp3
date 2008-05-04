@@ -33,9 +33,20 @@ Ext.onReady(function(){
     webmp3.stream               = <!--php: stream -->;
     webmp3.lastHighlightedToken = "";
     webmp3.lastSearch           = "";
+    webmp3.taskDelay            = new Ext.util.DelayedTask();
+
 /****************************************
  * Functions
  ***************************************/
+
+    // play this token
+    webmp3.playToken = function(token) {
+        webmp3.PlaylistDataStore.load({
+            url: 'webmp3.php',
+            params: 'action=setToggle&button=Play&param=true&token=' + token,
+            text: 'playing tack ' + token
+        });
+    }
 
     // replace all html entities to pass them via url
     webmp3.urlencode = function(s)
@@ -51,6 +62,7 @@ Ext.onReady(function(){
         var remSec=document.getElementById('remSec');
         var preMin=document.getElementById('pre');
 
+        // refresh status every 5 minutes
         now=new Date();
         diff_time = now.getTime() - webmp3.lastStatusUpdate.getTime();
         if(diff_time > 300000) {
@@ -101,7 +113,7 @@ Ext.onReady(function(){
             remMin.innerHTML = remMin.innerHTML;
 
             if(remMin.innerHTML < 0) {
-                window.setTimeout(webmp3.refreshStatusStore,3000);
+                window.setTimeout(webmp3.refreshStatusStore,1000);
             }
         }
         window.setTimeout(webmp3.updateTime, 999);
@@ -220,6 +232,7 @@ Ext.onReady(function(){
                 params: 'action=setToggle&button='+item.text+'&param=' + pressed,
                 text: 'setting '+item.text+' to '+pressed
             });
+            webmp3.refreshStatusStore();
         }
         if(item.text == "Mute") {
             item.setText("Unmute");
@@ -231,7 +244,6 @@ Ext.onReady(function(){
         } else if(item.text == "Stop") {
             item.setText("Play");
         }
-        webmp3.refreshStatusStore();
     }
 
 /****************************************
@@ -716,7 +728,6 @@ webmp3.playingbar = new Ext.Toolbar({
                 }
             }, this);
             this.on('keyup', function ( textField, e ) {
-//              alert(textField.getValue().length);
               if(textField.getValue().length == 0 || (textField.getValue().length >= 2 && webmp3.lastSearch != textField.getValue())) {
                 webmp3.lastSearch = textField.getValue();
                 this.onTrigger2Click();
@@ -964,7 +975,6 @@ webmp3.playingbar = new Ext.Toolbar({
     Ext.get('infoBtn').on("click", function(button, event) {
         webmp3.refreshStatusStore();
     });
-
     Ext.get('nextBtn').on("click", function(button, event) {
         token = webmp3.token;
         var index = webmp3.PlaylistDataStore.find("token", token);
@@ -974,12 +984,7 @@ webmp3.playingbar = new Ext.Toolbar({
             token = record.get('token');
             webmp3.token = token;
             webmp3.highlightCurrentSong();
-
-            webmp3.PlaylistDataStore.load({
-                url: 'webmp3.php',
-                params: 'action=setToggle&button=Play&param=true&token=' + token,
-                text: 'playing tack nr. ' + index
-            });
+            webmp3.taskDelay.delay(1000, webmp3.playToken, "playButton", [ token ]);
         }
     });
     Ext.get('prevBtn').on("click", function(button, event) {
@@ -993,11 +998,7 @@ webmp3.playingbar = new Ext.Toolbar({
         if(token) {
             webmp3.token = token;
             webmp3.highlightCurrentSong();
-            webmp3.PlaylistDataStore.load({
-                url: 'webmp3.php',
-                params: 'action=setToggle&button=Play&param=true&token=' + token,
-                text: 'playing tack nr. ' + index
-            });
+            webmp3.taskDelay.delay(1000, webmp3.playToken, "playButton", [ token ]);
         }
     });
 
@@ -1085,7 +1086,6 @@ webmp3.playingbar = new Ext.Toolbar({
  * Initialization
  ***************************************/
     // start timer
-    //viewTime();
     webmp3.updateTime();
 
     // initialize tool tips
@@ -1094,9 +1094,7 @@ webmp3.playingbar = new Ext.Toolbar({
     // initialize current settings
     webmp3.slider.setValue('<!--php: volume -->', 1);
     webmp3.sliderInit = 0;
-    //updateFilePic("/");
 
-    //window.setTimeout(webmp3.updateTime,999);
     window.setTimeout(webmp3.refreshStatusStore,360000);
 });
 -->

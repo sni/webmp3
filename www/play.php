@@ -97,6 +97,8 @@ function action_default()
     unset($data["track"]);
     unset($data["artist"]);
     unset($data["album"]);
+    unset($data["aktBin"]);
+    unset($data["playingPic"]);
 
     $data["play"]     = 0;
     $track = getNextTrack($data["playlist"], $track["token"]);

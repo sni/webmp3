@@ -671,6 +671,7 @@ function action_setToggle()
     if($_REQUEST['button'] == "Repeat") {
         $data["repeat"] = $param;
         print "Set Repeat to: ".$param;
+        storeData($data);
     }
 
     # Play
@@ -682,7 +683,15 @@ function action_setToggle()
             storeData($data);
         }
         system($config["cliPHPbinary"].' play.php >> '.$config["logfile"].' 2>&1 &');
-
+        # wait until play.php started up
+        for($x = 0; $x <= 30; $x++) {
+          usleep(50000);
+          $data = getData();
+          doPrint("check: ".$x);
+          if(isset($data['aktBin'])) {
+            $x = 100;
+          }
+        }
         action_getPlaylist();
     }
 
@@ -690,12 +699,7 @@ function action_setToggle()
     if($_REQUEST['button'] == "Stop") {
         doPrint("pressed stop");
         killChild();
-        usleep(500);
-        if(isset($data["ppid"])) {
-            posix_kill($data["ppid"], 9);
-        }
         action_getPlaylist();
-        return(1);
     }
 
     # Pause
@@ -710,8 +714,6 @@ function action_setToggle()
         # get child pids
         if(isset($data["ppid"])) {
             $pids = getChildPids($data["ppid"]);
-            # doPrint("pids:");
-            # doPrint($pids);
             foreach($pids as $pid) {
                 posix_kill($pid, $signal);
             }
@@ -722,6 +724,7 @@ function action_setToggle()
                 unset($data["pauseStart"]);
             }
         }
+        storeData($data);
     }
 
     # Mute
@@ -732,6 +735,7 @@ function action_setToggle()
         $_REQUEST["vol"] = 0;
         action_setVolume();
         print "mute set to true";
+        storeData($data);
     }
     if($_REQUEST['button'] == "Unmute") {
         $data["mute"] = $param;
@@ -740,6 +744,7 @@ function action_setToggle()
         $_REQUEST["vol"] = $data['volume'];
         action_setVolume();
         print "mute set to false";
+        storeData($data);
     }
 
     # Quiet
@@ -756,9 +761,8 @@ function action_setToggle()
             action_setVolume();
         }
         print "quiet set to ".$param;
+        storeData($data);
     }
-
-    storeData($data);
 }
 
 #################################################################
