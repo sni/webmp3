@@ -101,9 +101,23 @@ function playlistAdd($playlist, $toAdd)
 {
     global $config;
 
-    $toAdd = preg_replace("/\/+/", "/", $toAdd);
-
-    if(is_file($toAdd)) {
+    if(strpos($toAdd, "http://") === 0) {
+        $token = md5(uniqid(rand(), true));
+        $newFile = array(
+            "display"   => $toAdd,
+            "filename"  => $toAdd,
+            "token"     => $token,
+            "album"     => "",
+            "title"     => $toAdd,
+            "artist"    => "",
+            "tracknum"  => "",
+            "lengths"   => "1",
+            "stream"    => "1",
+            "length"    => "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;",
+        );
+        $playlist[$token] = $newFile;
+    } elseif(is_file($toAdd)) {
+        $toAdd = preg_replace("/\/+/", "/", $toAdd);
 
         list($artist,$album,$title,$tracknum,$playtime_string) = getTag($toAdd);
 
@@ -122,7 +136,6 @@ function playlistAdd($playlist, $toAdd)
             "display"   => $display,
             "filename"  => $toAdd,
             "token"     => $token,
-            "status"    => "&nbsp;",
             "album"     => $album,
             "title"     => $title,
             "artist"    => $artist,
@@ -133,6 +146,7 @@ function playlistAdd($playlist, $toAdd)
 
         $playlist[$token] = $newFile;
     } elseif(is_dir($toAdd)) {
+        $toAdd = preg_replace("/\/+/", "/", $toAdd);
         $files = array();
         $dirs  = array();
 
@@ -160,7 +174,7 @@ function playlistAdd($playlist, $toAdd)
             $playlist = playlistAdd($playlist, $toAdd."/".$file);
         }
     } else {
-        print $toAdd." is weder file noch dir";
+        doPrint("playlistAdd() : ".$toAdd." is whether file nor dir nor stream");
     }
     return($playlist);
 }
@@ -379,8 +393,7 @@ function getPictureForPath($path)
     elseif(file_exists($path."/folder.png")) {
         $return = $path."/folder.png";
     }
-
-    elseif ($handle = opendir($path)) {
+    elseif(is_dir($path) AND $handle = opendir($path)) {
         while (false !== ($file = readdir($handle))) {
             $ext = substr($file, -4);
             if($ext == ".png" OR $ext == ".jpg" OR $ext == ".bmp" OR $ext == ".gif") {
@@ -594,6 +607,11 @@ function getTag($file) {
     }
 
     if(!isset($fileinfo["playtime_string"]))  { $fileinfo["playtime_string"] = "0:0"; }
+
+    # track should be at least 2 chars width
+    if(strlen($tracknum) == 1) {
+        $tracknum = "0".$tracknum;
+    }
 
     return(array($artist,$album,$title,$tracknum,$fileinfo["playtime_string"]));
 }

@@ -232,7 +232,7 @@ Ext.onReady(function(){
                 params: 'action=setToggle&button='+item.text+'&param=' + pressed,
                 text: 'setting '+item.text+' to '+pressed
             });
-            webmp3.refreshStatusStore();
+            webmp3.taskDelay.delay(1000, webmp3.refreshStatusStore, "refresh");
         }
         if(item.text == "Mute") {
             item.setText("Unmute");
@@ -274,17 +274,13 @@ Ext.onReady(function(){
     });
     webmp3.slider.on("dragend", function(slider, value) {
         if(webmp3.sliderInit == 0) {
-            webmp3.now=new Date();
-            diff_time = webmp3.now.getTime() - webmp3.lastSliderUpdate.getTime();
-            if(diff_time > 300) {
-                var msg = Ext.get('statustext');
-                msg.load({
-                    url: 'webmp3.php',
-                    params: 'action=setVolume&vol=' + slider.getValue(),
-                    text: 'setting volume...' + slider.getValue()
-                });
-                webmp3.lastSliderUpdate = new Date();
-            }
+            var msg = Ext.get('statustext');
+            msg.load({
+                url: 'webmp3.php',
+                params: 'action=setVolume&vol=' + slider.getValue(),
+                text: 'setting volume...' + slider.getValue()
+            });
+            webmp3.lastSliderUpdate = new Date();
         }
     });
 
@@ -560,11 +556,15 @@ webmp3.playingbar = new Ext.Toolbar({
 /****************************************
  * Playlist Grid
  ***************************************/
+    webmp3.trackRenderer = function(nr) {
+      pre=((nr.length==1)?"0":"");
+      return(pre+nr);
+    }
     webmp3.playlistColModel = new Ext.grid.ColumnModel([
         {header: 'Length', sortable: true, dataIndex: 'length', align: 'right', width: 30 },
         {header: 'Artist', sortable: true, dataIndex: 'artist'},
         {header: 'Album',  sortable: true, dataIndex: 'album'},
-        {header: 'Nr',     sortable: true, dataIndex: 'nr', width: 15 },
+        {header: 'Nr',     sortable: true, dataIndex: 'nr', width: 15, renderer: webmp3.trackRenderer },
         {header: 'Title',  sortable: true, dataIndex: 'title' },
         {header: 'Token',  sortable: false, hidden: true, hideable: false, dataIndex: 'token' }
      ]);
@@ -691,7 +691,8 @@ webmp3.playingbar = new Ext.Toolbar({
                     tooltip: 'Hitlist'
                   }, '-',{
                     text: 'add Stream',
-                    tooltip: 'add Stream'
+                    tooltip: 'add Stream',
+                    id: 'addStream'
                   }, '-', ' ',{
                     text: 'Remove from Playlist',
                     tooltip: 'Remove selected Items from the Playlist',
@@ -921,7 +922,6 @@ webmp3.playingbar = new Ext.Toolbar({
             activeItem: 0
         },
         title: 'WebMP3',
-        layout:'border',
         renderTo: 'viewport',
         margins: '0 0 0 0',
         defaults: {
@@ -1002,6 +1002,73 @@ webmp3.playingbar = new Ext.Toolbar({
         }
     });
 
+
+/****************************************
+ * adding Streams
+ ***************************************/
+  webmp3.addStream = function() {
+    webmp3.enterMap.disable();
+    var value=Ext.ComponentMgr.get('urlField').getValue();
+    webmp3.PlaylistDataStore.load({
+            url: 'webmp3.php',
+            params: 'action=getPlaylist&add[]=' + value,
+            text: 'added stream to the playlist'
+        });
+    webmp3.streamAddWindow.hide();
+  }
+  webmp3.streamForm = new Ext.form.FormPanel({
+        height: 24,
+        width: 350,
+        items: [
+                {
+            xtype: 'textfield',
+            hideLabel: true,
+            name: 'url',
+            allowBlank: false,
+            id: 'urlField',
+            value: 'http://',
+            width: 350,
+            height: 24,
+            msgTarget: 'side'
+          }
+        ]
+  });
+  webmp3.enterMap = new Ext.KeyMap(document, {
+    key: Ext.EventObject.ENTER,
+    fn: webmp3.addStream,
+    scope: 'urlField'
+  });
+  webmp3.enterMap.disable();
+  webmp3.streamAddWindow = new Ext.Window({
+        title: 'add Stream',
+        height: 'auto',
+        width: 400,
+        resizable: false,
+        bodyStyle:'padding:15px',
+        border: true,
+        closable: true,
+        buttonAlign: 'center',
+        items: [webmp3.streamForm ],
+    buttons: [{
+        text: 'Add',
+        id: 'addStreamAddBtn'
+    },{
+        text: 'Cancel',
+        id: 'addStreamCloseBtn'
+    }]
+    });
+
+    Ext.get('addStream').on("click", function(button, event) {
+      webmp3.streamAddWindow.show();
+      webmp3.enterMap.enable();
+    });
+    Ext.ComponentMgr.get('addStreamAddBtn').on("click", function(button, event) {
+      webmp3.addStream();
+    });
+    Ext.ComponentMgr.get('addStreamCloseBtn').on("click", function(button, event) {
+      webmp3.streamAddWindow.hide();
+      webmp3.enterMap.disable();
+    });
 //    Ext.get('playlistGrid').on("dragOver", function(e, targetId) {
 //      alert("dropin");
 //                        document.title('dragOver: ' + targetId);

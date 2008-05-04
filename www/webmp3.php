@@ -31,8 +31,6 @@ include("include/Action.php");
 # action_doDelete()
 # action_hitlist()
 # action_clearHitlist()
-# action_addStream()
-# action_doAddStream()
 # action_updateTagCache()
 #
 # action_getFilesystem()
@@ -267,7 +265,7 @@ function action_doLoad()
     foreach($files as $file) {
         $file = trim($file);
         if(substr($file, 0, 8) == "STREAM::") {
-            $playlist = action_doAddStream(substr($file, 8), $playlist);
+            $playlist = playlistAdd($playlist, substr($file, 8));
         } else {
             $playlist = playlistAdd($playlist, $config["searchPath"].$file);
         }
@@ -382,54 +380,6 @@ function action_clearHitlist()
     storeData($data);
 
     redirect("webmp3.php?action=hitlist&reload=1");
-}
-
-#################################################################
-
-function action_addStream()
-{
-    $t = new template();
-    $t -> main("addStream.tpl");
-    $t -> code(array(
-    ));
-    $temp = $t -> return_template();
-    print $temp;
-}
-
-#################################################################
-
-function action_doAddStream($name = "", $playlist = "")
-{
-    $data = getData();
-
-    if($name != "") {
-        $title = $name;
-        $data["playlist"] = $playlist;
-    } else {
-        $title = $_POST["name"];
-    }
-
-    $token = md5(uniqid(rand(), true));
-    $newFile = array(
-        "filename"  => $title,
-        "token"     => $token,
-        "status"    => "&nbsp;",
-        "album"     => "",
-        "title"     => $title,
-        "artist"    => "",
-        "tracknum"  => "",
-        "lengths"   => "1",
-        "stream"    => "1",
-        "length"    => "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;",
-    );
-    $data["playlist"][$token] = $newFile;
-
-    if($name != "") {
-        return($data["playlist"]);
-    }
-
-    storeData($data);
-    print "<html><head></head><body onLoad='window.opener.location.reload();window.close()'><center>stream added<br><a href='#' onClick='window.close()'>close</a></body></html>";
 }
 
 #################################################################
@@ -569,9 +519,14 @@ function action_getPlaylist()
         $aktPath = strip_tags($_REQUEST["aktPath"]);
         foreach($_REQUEST["add"] as $file) {
             $file = stripslashes($file);
+            $file = trim($file);
             if(file_exists($config["searchPath"].$aktPath."/".$file)) {
                 doPrint("added file ".$aktPath."/".$file);
                 $data["playlist"] = playlistAdd($data["playlist"], $config["searchPath"].$aktPath."/".$file);
+            }
+            if(strpos($file, "http://") === 0) {
+                doPrint("added stream ".$file);
+                $data["playlist"] = playlistAdd($data["playlist"], $file);
             }
         }
         $data = recalcTotalPlaytime($data);
@@ -649,8 +604,6 @@ function action_setToggle()
 {
     global $config;
 
-    doPrint("got json toggle request");
-    # doPrint($_REQUEST);
     if(!isset($_REQUEST['param'])) {
         print "missing parameter: param!";
         return(1);
@@ -659,6 +612,8 @@ function action_setToggle()
         print "missing parameter: button!";
         return(1);
     }
+    doPrint("got json toggle request ('".$_REQUEST['button']."', '".$_REQUEST['param']."')");
+    # doPrint($_REQUEST);
 
     $param = 1;
     if($_REQUEST['param'] == "false") {
@@ -794,7 +749,6 @@ function action_getPath()
 
 function action_getCurStatus()
 {
-    //sleep(1);
     doPrint("got json status request");
     $data = getData();
     $data = fillInDefaults($data);
@@ -812,10 +766,10 @@ function action_getCurStatus()
     $pre = "-";
 
     $status[] = array(
-            'artist'  => htmlentities($data['artist'], ENT_QUOTES, "UTF-8"),
+            'artist'  => $data['artist'],
             'album'   => $data['album'],
             'nr'      => $data['track'],
-            'title'   => htmlentities($data['title'], ENT_QUOTES, "UTF-8"),
+            'title'   => $data['title'],
             'length'  => $data['length'],
             'token'   => $data['token'],
             'volume'  => $data['volume'],
