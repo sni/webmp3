@@ -63,6 +63,17 @@ function getData($called = 0, $errMsg = "") {
         $data = fillInDefaults(array());
     }
 
+    # check playlist for empty entries
+    $playlist = array();
+    foreach($data['playlist'] as $key => $track) {
+      if(!is_array($track)) {
+      } elseif(!isset($track['filename'])) {
+      } else {
+        $playlist[$key] = $track;
+      }
+    }
+    $data['playlist'] = $playlist;
+
     return($data);
 }
 
