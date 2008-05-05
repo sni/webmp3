@@ -60,6 +60,10 @@ function action_default()
     }
 
     list($remMin, $remSec, $remaining, $stream, $started) = getRemaining($data);
+    $pre = "-";
+    if($stream) {
+      $pre = "";
+    }
 
     $t = new template();
     $t -> main("include/templates/webmp3.tpl");
@@ -79,6 +83,7 @@ function action_default()
         "title"         => htmlspecialchars($data["title"], ENT_QUOTES, "UTF-8"),
         "token"         => $data["token"],
 
+        "pre"           => $pre,
         "remMin"        => $remMin,
         "remSec"        => $remSec,
         "remaining"     => $remaining,
@@ -764,6 +769,9 @@ function action_getCurStatus()
 
     list($remMin, $remSec, $remaining, $stream, $started) = getRemaining($data);
     $pre = "-";
+    if($stream) {
+      $pre = "";
+    }
 
     $status[] = array(
             'artist'  => $data['artist'],
@@ -782,6 +790,7 @@ function action_getCurStatus()
             'repeat'  => $data['repeat'],
             'mute'    => $data['mute'],
             'quiet'   => $data['quiet'],
+            "stream"  => $data['playingStream'],
     );
 
     if(isset($_REQUEST['debug'])) {

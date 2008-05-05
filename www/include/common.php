@@ -113,7 +113,7 @@ function playlistAdd($playlist, $toAdd)
             "tracknum"  => "",
             "lengths"   => "1",
             "stream"    => "1",
-            "length"    => "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;",
+            "length"    => "&infin;",
         );
         $playlist[$token] = $newFile;
     } elseif(is_file($toAdd)) {
@@ -141,7 +141,7 @@ function playlistAdd($playlist, $toAdd)
             "artist"    => $artist,
             "tracknum"  => $tracknum,
             "lengths"   => floor($playtime_seconds),
-            "length"    => str_replace(" ", "&nbsp;", str_pad($playtime_string, 6, " ", STR_PAD_LEFT)),
+            "length"    => $playtime_string,
         );
 
         $playlist[$token] = $newFile;
@@ -783,6 +783,13 @@ function getRemaining($data)
         $data["length"] = $data["length"] - (time() - $start);
         $remMin = floor($data["length"] / 60);
         $remSec = floor($data["length"] % 60);
+    }
+    if($stream == 1) {
+        $remMin = -$remMin;
+        $remSec = -$remSec;
+    }
+    if(strlen($remSec) == 1) {
+        $remSec = "0".$remSec;
     }
 
     return(array($remMin, $remSec, $remaining, $stream, $started));

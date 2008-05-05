@@ -66,6 +66,7 @@ function action_default()
         doPrint("playing stream");
         $options = $config["playStrOpt"];
         $playBin = $config["streamBin"];
+        if(!isset($config["streamUrlPre"])) { $config["streamUrlPre"] = ""; }
         $track["filename"] = $config["streamUrlPre"].$track["filename"];
         $data["playingStream"] = 1;
     } else {

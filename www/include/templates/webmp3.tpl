@@ -75,16 +75,19 @@ Ext.onReady(function(){
         }
 
         if(webmp3.stream == true) {
-                // playing stream
-                now=new Date();
-                var started=<!--php: started -->;
-                diff = Math.round(now.getTime()/1000 - started);
+            // playing stream
+            preMin.innerHTML = "";
 
-                remMin.innerHTML = Math.floor(diff/60);
+            sec = new Number(remSec.innerHTML) + 1;
+            min = new Number(remMin.innerHTML);
 
-                sec=diff%60;
-                pre_s=((sec<10)?"0":"");
-                remSec.innerHTML = pre_s+sec;
+            if(sec > 59) {
+                sec = 0;
+                min = min + 1;
+            }
+            pre_s=((sec<10)?"0":"");
+            remSec.innerHTML = pre_s+sec;
+            remMin.innerHTML = min;
         } else {
             // playing file
             preMin.innerHTML = "-";
@@ -151,6 +154,9 @@ Ext.onReady(function(){
     function refreshAll() {
         record = webmp3.StatusDataStore.getAt(0);
 
+        // set stream status
+        webmp3.stream = record.get('stream');
+
         // set current token
         webmp3.token = record.get('token');
 
@@ -205,6 +211,21 @@ Ext.onReady(function(){
             params: 'action=getCurStatus',
             text: 'loading current status'
         });
+    }
+
+    webmp3.addSelectedToPlaylist = function() {
+        var selects = webmp3.fsm.getSelections();
+        var files = "";
+        for(i=0;i<selects.length;i++)
+        {
+            files = files + "&add[]=" + selects[i].get('file');
+        }
+        webmp3.PlaylistDataStore.load({
+            url: 'webmp3.php',
+            params: 'action=getPlaylist&aktPath=' + Ext.util.Format.stripTags(document.getElementById('filestatus').innerHTML) + files,
+            text: 'added files to playlist'
+        });
+        webmp3.fsm.clearSelections();
     }
 
 /****************************************
@@ -383,7 +404,7 @@ webmp3.titlebar = new Ext.Toolbar({
                     text: 'Remaining:'
                 }, ' ', {
                     xtype: 'label',
-                    html: '',
+                    html: '<!--php: pre -->',
                     id: 'pre'
                 },{
                     xtype: 'label',
@@ -568,7 +589,19 @@ webmp3.playingbar = new Ext.Toolbar({
         {header: 'Title',  sortable: true, dataIndex: 'title' },
         {header: 'Token',  sortable: false, hidden: true, hideable: false, dataIndex: 'token' }
      ]);
-
+    webmp3.removeFromPlaylist = function() {
+        var selects = webmp3.psm.getSelections();
+        var tokens = "";
+        for(i=0;i<selects.length;i++)
+        {
+            tokens = tokens + "&remove[]=" + selects[i].get('token');
+        }
+        webmp3.PlaylistDataStore.load({
+            url: 'webmp3.php',
+            params: 'action=getPlaylist' + tokens,
+            text: 'removed items from playlist'
+        });
+    }
     webmp3.DropGridPanel = Ext.extend(Ext.grid.GridPanel, {
 //        notifyOver: function(source, e, data) {
 //            document.title='dragOver: ' + e;
@@ -662,6 +695,13 @@ webmp3.playingbar = new Ext.Toolbar({
         enableDrop: true,
         ddGroup : 'playlistDD',
         id: 'playlistGrid',
+        keys: [
+                {
+                  key: Ext.EventObject.BACKSPACE,
+                  fn: webmp3.removeFromPlaylist,
+                  scope: this
+                }
+        ],
         tbar: [
                   {
                     text: 'Repeat',
@@ -889,6 +929,13 @@ webmp3.playingbar = new Ext.Toolbar({
         title: 'Filesystem',
         width: 500,
         height:400,
+        keys: [
+                {
+                  key: Ext.EventObject.ENTER,
+                  fn: webmp3.addSelectedToPlaylist,
+                  scope: this
+                }
+        ],
         tbar: [
                   {
                     text: 'Add',
@@ -958,18 +1005,9 @@ webmp3.playingbar = new Ext.Toolbar({
             text: 'cleared playlist'
         });
     });
+
     Ext.get('removeBtn').on("click", function(button, event) {
-        var selects = webmp3.psm.getSelections();
-        var tokens = "";
-        for(i=0;i<selects.length;i++)
-        {
-            tokens = tokens + "&remove[]=" + selects[i].get('token');
-        }
-        webmp3.PlaylistDataStore.load({
-            url: 'webmp3.php',
-            params: 'action=getPlaylist' + tokens,
-            text: 'removed items from playlist'
-        });
+      webmp3.removeFromPlaylist();
     });
 
     Ext.get('infoBtn').on("click", function(button, event) {
@@ -1029,7 +1067,8 @@ webmp3.playingbar = new Ext.Toolbar({
             value: 'http://',
             width: 350,
             height: 24,
-            msgTarget: 'side'
+            msgTarget: 'side',
+            selectOnFocus: true
           }
         ]
   });
@@ -1047,6 +1086,8 @@ webmp3.playingbar = new Ext.Toolbar({
         bodyStyle:'padding:15px',
         border: true,
         closable: true,
+        modal: true,
+        closeAction: 'hide',
         buttonAlign: 'center',
         items: [webmp3.streamForm ],
     buttons: [{
@@ -1061,6 +1102,8 @@ webmp3.playingbar = new Ext.Toolbar({
     Ext.get('addStream').on("click", function(button, event) {
       webmp3.streamAddWindow.show();
       webmp3.enterMap.enable();
+      Ext.ComponentMgr.get('urlField').setValue('http://');
+      Ext.ComponentMgr.get('urlField').focus(1, 100);
     });
     Ext.ComponentMgr.get('addStreamAddBtn').on("click", function(button, event) {
       webmp3.addStream();
@@ -1092,17 +1135,7 @@ webmp3.playingbar = new Ext.Toolbar({
  * Filesystem Button EventHandler
  ***************************************/
     Ext.get('addBtn').on("click", function(button, event) {
-        var selects = webmp3.fsm.getSelections();
-        var files = "";
-        for(i=0;i<selects.length;i++)
-        {
-            files = files + "&add[]=" + selects[i].get('file');
-        }
-        webmp3.PlaylistDataStore.load({
-            url: 'webmp3.php',
-            params: 'action=getPlaylist&aktPath=' + Ext.util.Format.stripTags(document.getElementById('filestatus').innerHTML) + files,
-            text: 'added files to playlist'
-        });
+      webmp3.addSelectedToPlaylist();
     });
 
 /****************************************
@@ -1136,7 +1169,8 @@ webmp3.playingbar = new Ext.Toolbar({
             {name: 'pause',   mapping: 'pause',    type: 'int'},
             {name: 'repeat',  mapping: 'repeat',   type: 'int'},
             {name: 'mute',    mapping: 'mute',     type: 'int'},
-            {name: 'quiet',   mapping: 'quiet',    type: 'int'}
+            {name: 'quiet',   mapping: 'quiet',    type: 'int'},
+            {name: 'stream',  mapping: 'stream',   type: 'int'}
         ]),
         listeners: {
             load: function(store, records, options) {
