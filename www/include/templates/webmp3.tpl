@@ -1203,7 +1203,7 @@ webmp3.playingbar = new Ext.Toolbar({
     webmp3.slider.setValue('<!--php: volume -->', 1);
     webmp3.sliderInit = 0;
 
-    window.setTimeout(webmp3.PlaylistDataStore.load,360000);
+    window.setTimeout(webmp3.refreshPlaylist,360000);
 });
 -->
 </script>
