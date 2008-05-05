@@ -603,23 +603,6 @@ webmp3.playingbar = new Ext.Toolbar({
         });
     }
     webmp3.DropGridPanel = Ext.extend(Ext.grid.GridPanel, {
-//        notifyOver: function(source, e, data) {
-//            document.title='dragOver: ' + e;
-//          if('dd1-ct' === targetId || 'dd2-ct' === targetId) {
-//            var target = Ext.get(targetId);
-//            webmp3.lastDropTarget = target;
-//          target.addClass('dd-over');
-//          }
-//              return(true);
-//            },
-//        notifyOut: function(source, e, data) {
-//            document.title='dragOut: ' + e;
-//          if('dd1-ct' === targetId || 'dd2-ct' === targetId) {
-//            webmp3.lastDropTarget = null;
-//          target.addClass('dd-over');
-//          }
-//              return(true);
-//            },
         droppedItem: function(dd, e, data) {
             // store them to take a look via firebug
             webmp3.data = data;
@@ -629,15 +612,32 @@ webmp3.playingbar = new Ext.Toolbar({
             var files   = "";
             if(data.grid.title == "Playlist") {
               // drag&drop in our playlist
-              if(selects.length == 0 && data.rowIndex >= 0) {
-                files   = "&move[]=" + webmp3.PlaylistDataStore.getAt(data.rowIndex).get('token');
+              var ds = webmp3.PlaylistDataStore;
+              var rows=webmp3.psm.getSelections();
+              var cindex=dd.getDragData(e).rowIndex;
+              if (typeof cindex == "undefined") {
+                // move to the end of the list
+                cindex = ds.getCount() - 1;
               }
-              for(i=0;i<selects.length;i++)
-              {
-                if(selects[i].get('token') != "") {
-                  files = files + "&move[]=" + selects[i].get('token');
-                }
+              for(i = rows.length-1; i >= 0; i--) {
+                  rowData=ds.getById(rows[i].id);
+                  ds.remove(ds.getById(rows[i].id));
+                  ds.insert(cindex,rowData);
+              };
+              // commit new sort order
+              files = "";
+              for(i = 0; i < ds.getCount(); i++) {
+                token = ds.getAt(i).get('token');
+                files = files + "&move[]="+token;
               }
+              if(files != "") {
+                webmp3.PlaylistDataStore.load({
+                    url: 'webmp3.php',
+                    params: 'action=getPlaylist' + files,
+                    text: 'moved files in playlist'
+                });
+              }
+              webmp3.fsm.clearSelections();
             }
             if(data.grid.title == "Filesystem") {
               // drag&drop from the filesystem

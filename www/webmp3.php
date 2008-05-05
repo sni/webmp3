@@ -519,6 +519,23 @@ function action_getPlaylist()
     global $config;
     $data = getData();
 
+    if(isset($_REQUEST["move"]) AND is_array($_REQUEST["move"])) {
+        doPrint("reorderd playlist");
+        $newPlaylist = array();
+        foreach($_REQUEST['move'] as $key)
+        {
+            $track = $data['playlist'][$key];
+            unset($data['playlist'][$key]);
+            $newPlaylist[$key] = $track;
+        }
+        #add not moved ones to the end
+        foreach($data['playlist'] as $key => $track) {
+            $newPlaylist[$key] = $track;
+        }
+        $data["playlist"] = $newPlaylist;
+        storeData($data);
+    }
+
     if(isset($_REQUEST["add"]) AND is_array($_REQUEST["add"])) {
         if(!isset($_REQUEST["aktPath"])) { $_REQUEST["aktPath"] = ""; }
         $aktPath = strip_tags($_REQUEST["aktPath"]);
@@ -640,7 +657,7 @@ function action_setToggle()
         $data["pause"] = 0;
         if(isset($_REQUEST["token"])) {
             $data["curTrack"] = $_REQUEST["token"];
-            storeData($data);
+            killChild($data);
         }
         system($config["cliPHPbinary"].' play.php >> '.$config["logfile"].' 2>&1 &');
         # wait until play.php started up

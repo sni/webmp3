@@ -412,15 +412,17 @@ function getPictureForPath($path)
 
 #########################################################################################
 
-function killChild() {
-    $data = getData();
+function killChild($data = "") {
+
+    if(empty($data)) {
+      $data = getData();
+    }
 
     if(isset($data["ppid"])) {
+        $oridPid = $data["ppid"];
         $pids = getChildPids($data["ppid"]);
-        doPrint(getPidData($data["ppid"]));
         posix_kill($data["ppid"], 2);
         foreach($pids as $pid) {
-             doPrint(getPidData($pid));
              posix_kill($pid, 2);
         }
         posix_kill($data["ppid"], 19);
@@ -429,8 +431,29 @@ function killChild() {
         }
         posix_kill($data["ppid"], 9);
         foreach($pids as $pid) {
+             doPrint("killed -9: ".getPidData($pid));
              posix_kill($pid, 9);
         }
+    }
+
+    $stopFailed = 0;
+    if(isset($origPid) and is_numeric($origPid)) {
+        $out = getPidData($origPid);
+        if(!empty($out)) {
+            $stopFailed = 1;
+            doPrint(getPidData($out));
+        }
+        $pids = getChildPids($origPid);
+        foreach($pids as $pid) {
+            $out = getPidData($origPid);
+            if(!empty($out)) {
+                $stopFailed = 1;
+                doPrint(getPidData($out));
+            }
+        }
+    }
+    if($stopFailed == 1) {
+        doPrint("stop failed!");
     }
 
     unset($data["ppid"]);
@@ -762,7 +785,7 @@ function getRemaining($data)
 
     $remaining = "remaining";
     $stream    = "false";
-    if(isset($data["playingStream"]) AND $data["playingStream"] == 1 AND isset($data["cpid"])) {
+    if(isset($data["playingStream"]) AND $data["playingStream"] == 1 AND isset($data["ppid"])) {
         $stream = "true";
     }
     if(isset($data["curTrack"])
@@ -784,7 +807,7 @@ function getRemaining($data)
         $remMin = floor($data["length"] / 60);
         $remSec = floor($data["length"] % 60);
     }
-    if($stream == 1) {
+    if($stream == "true") {
         $remMin = -$remMin;
         $remSec = -$remSec;
     }
@@ -802,7 +825,7 @@ function getPidData($pid) {
     return("");
   }
   ob_start();
-  system("ps -lp ".$pid." | tail -1");
+  system("ps -p ".$pid." | grep -v 'PID' | tail -1");
   $return = ob_get_contents();
   ob_end_clean();
   return($return);
