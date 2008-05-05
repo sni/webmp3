@@ -1065,6 +1065,13 @@ webmp3.playingbar = new Ext.Toolbar({
         }
     });
 
+/****************************************
+ * initially hide our paging tool bar
+ ***************************************/
+    webmp3.fileGrid.getBottomToolbar().hide();
+    webmp3.fileGrid.syncSize();
+    webmp3.border.doLayout();
+
 
 /****************************************
  * adding Streams
@@ -1138,10 +1145,40 @@ webmp3.playingbar = new Ext.Toolbar({
       webmp3.enterMap.disable();
     });
 
-    // initially hide our paging tool bar
-    webmp3.fileGrid.getBottomToolbar().hide();
-    webmp3.fileGrid.syncSize();
-    webmp3.border.doLayout();
+/****************************************
+ * Picture Window
+ ***************************************/
+    Ext.get('playPic').on("click", function(button, event) {
+      webmp3.pictureWindow = new Ext.Window({
+          title: 'Folder Image',
+          height: '100',
+          width: '100',
+          resizable: false,
+          bodyStyle:'padding:0px',
+          border: true,
+          closable: true,
+          buttonAlign: 'center',
+              items: [{
+                  xtype: 'panel',
+                  height: 'auto',
+                  width: 'auto',
+                  html: '<img id="folderPicHuge" src="webmp3.php?action=pic&full=yes&token='+webmp3.token+'">'
+              }],
+          buttons: [
+                    {
+                      text: 'Close',
+                      id: 'picWindowCloseBtn'
+                    }
+                ]
+      });
+      webmp3.pictureWindow.show();
+      Ext.get('picWindowCloseBtn').on("click", function(button, event) {
+        webmp3.pictureWindow.destroy();
+      });
+    });
+    Ext.get('playPic').on("click", function(button, event) {
+      webmp3.pictureWindow.show();
+    });
 
 /****************************************
  * Filesystem Button EventHandler
