@@ -144,12 +144,12 @@ function playlistAdd($playlist, $toAdd)
 
         $token = md5(uniqid(rand(), true));
         $newFile = array(
-            "display"   => utf8_encode($display),
-            "filename"  => utf8_encode($toAdd),
+            "display"   => $display,
+            "filename"  => $toAdd,
             "token"     => $token,
-            "album"     => utf8_encode($album),
-            "title"     => utf8_encode($title),
-            "artist"    => utf8_encode($artist),
+            "album"     => $album,
+            "title"     => $title,
+            "artist"    => $artist,
             "tracknum"  => $tracknum,
             "lengths"   => floor($playtime_seconds),
             "length"    => $playtime_string,

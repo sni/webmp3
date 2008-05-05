@@ -80,7 +80,7 @@ function action_default()
         }
         $data["playingStream"] = 0;
     }
-    $options[] = utf8_decode($track["filename"]);
+    $options[] = $track["filename"];
 
     $data["aktBin"] = $playBin;
     storeData($data);

@@ -794,7 +794,6 @@ function action_getCurStatus()
     if(isset($data['ppid'])) {
         $file = $data['filename'];
         $file = str_replace($config["searchPath"], "", $file);
-        $file = utf8_decode($file);
         if(strpos($file, "/") !== 0) { $file = "/".$file; }
         if($data['pause']) {
             $text = "paused (pid: ".$data['ppid']."): ".$file;
