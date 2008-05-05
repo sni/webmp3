@@ -657,7 +657,7 @@ function action_setToggle()
         $data["pause"] = 0;
         if(isset($_REQUEST["token"])) {
             $data["curTrack"] = $_REQUEST["token"];
-            killChild($data);
+            $data = killChild($data);
         }
         system($config["cliPHPbinary"].' play.php >> '.$config["logfile"].' 2>&1 &');
         # wait until play.php started up

@@ -472,6 +472,8 @@ function killChild($data = "") {
     if(file_exists("./var/var/cache.jpg")) {
         unlink("./var/cache.jpg");
     }
+
+    return($data);
 }
 
 #########################################################################################
