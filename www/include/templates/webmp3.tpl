@@ -212,6 +212,9 @@ Ext.onReady(function(){
             text: 'loading current status'
         });
     }
+    webmp3.refreshPlaylist = function() {
+        webmp3.PlaylistDataStore.load();
+    }
 
     webmp3.addSelectedToPlaylist = function() {
         var selects = webmp3.fsm.getSelections();
@@ -253,7 +256,7 @@ Ext.onReady(function(){
                 params: 'action=setToggle&button='+item.text+'&param=' + pressed,
                 text: 'setting '+item.text+' to '+pressed
             });
-            webmp3.taskDelay.delay(1000, webmp3.PlaylistDataStore.load, "refresh");
+            webmp3.taskDelay.delay(1000, webmp3.refreshPlaylist, "refresh");
         }
         if(item.text == "Mute") {
             item.setText("Unmute");
