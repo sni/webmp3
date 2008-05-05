@@ -853,7 +853,7 @@ webmp3.playingbar = new Ext.Toolbar({
  * Filesystem
  ***************************************/
     webmp3.iconRenderer = function(src) {
-      return("<img src='"+src+"'>");
+      return("<img width=16 height=16 src='"+src+"'>");
     }
     webmp3.FilesystemDataStore = new Ext.data.Store({
         id: 'FilesystemDataStore',
