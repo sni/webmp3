@@ -93,7 +93,7 @@ Ext.onReady(function(){
             preMin.innerHTML = "-";
 
             if(remSec.innerHTML == 1 && remMin.innerHTML == "0") {
-                window.setTimeout(webmp3.PlaylistDataStore.load,1000);
+                window.setTimeout(webmp3.refreshPlaylist,1000);
                 remSec.innerHTML = "";
                 remMin.innerHTML = "";
                 window.setTimeout(webmp3.updateTime, 999);

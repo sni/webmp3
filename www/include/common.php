@@ -113,14 +113,16 @@ function playlistAdd($playlist, $toAdd)
     global $config;
 
     if(strpos($toAdd, "http://") === 0) {
+        list($artist,$album,$title,$tracknum,$playtime_string) = getTag($toAdd);
         $token = md5(uniqid(rand(), true));
+        $display = $artist." - ".$album." - ".$title;
         $newFile = array(
-            "display"   => $toAdd,
+            "display"   => $display,
             "filename"  => $toAdd,
             "token"     => $token,
-            "album"     => "",
-            "title"     => $toAdd,
-            "artist"    => "",
+            "album"     => $album,
+            "title"     => $title,
+            "artist"    => $artist,
             "tracknum"  => "",
             "lengths"   => "1",
             "stream"    => "1",
@@ -590,9 +592,24 @@ function getTag($file) {
       $getID3 = new getID3;
       $getID3->encoding = 'UTF-8';
     }
+
+   if(strpos($file, "http://") === 0) {
+       if ($fp1 = fopen($file, 'rb')) {
+          $tempname = tempnam('/tmp', 'foo');
+          if ($fp2 = fopen($tempname, 'wb')) {
+            fwrite($fp2, fread($fp, 102400));
+            fclose($fp2);
+          }
+          fclose($fp1);
+        }
+        $file = $tempname;
+    }
+
+    if(!file_exists($file)) {
+        return(array("","","","","0:0"));
+    }
+
     $fileinfo = $getID3->analyze($file);
-    //getid3_lib::CopyTagsToComments($fileinformation);
-    doPrint($fileinfo);
 
     $neededTags = array("artist", "album", "title", "track");
     foreach($neededTags as $tag) {
