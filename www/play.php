@@ -21,7 +21,7 @@ function action_default()
     $data = getData();
 
     if(isset($data["ppid"])) {
-        killChild();
+        $data = killChild($data);
     }
 
     if(isset($data["curTrack"]) AND isset($data["playlist"][$data["curTrack"]])) {
@@ -80,7 +80,7 @@ function action_default()
         }
         $data["playingStream"] = 0;
     }
-    $options[] = $track["filename"];
+    $options[] = utf8_decode($track["filename"]);
 
     $data["aktBin"] = $playBin;
     storeData($data);

@@ -144,12 +144,12 @@ function playlistAdd($playlist, $toAdd)
 
         $token = md5(uniqid(rand(), true));
         $newFile = array(
-            "display"   => $display,
-            "filename"  => $toAdd,
+            "display"   => utf8_encode($display),
+            "filename"  => utf8_encode($toAdd),
             "token"     => $token,
-            "album"     => $album,
-            "title"     => $title,
-            "artist"    => $artist,
+            "album"     => utf8_encode($album),
+            "title"     => utf8_encode($title),
+            "artist"    => utf8_encode($artist),
             "tracknum"  => $tracknum,
             "lengths"   => floor($playtime_seconds),
             "length"    => $playtime_string,
@@ -585,71 +585,32 @@ function getFilesForDirectory($dir) {
 #########################################################################################
 
 function getTag($file) {
-    $getID3 = new getID3;
+    global $getID3;
+    if(!isset($getID3)) {
+      $getID3 = new getID3;
+      $getID3->encoding = 'UTF-8';
+    }
     $fileinfo = $getID3->analyze($file);
-    getid3_lib::CopyTagsToComments($fileinformation);
+    //getid3_lib::CopyTagsToComments($fileinformation);
+    doPrint($fileinfo);
 
-    $artist = "";
-    if(isset($fileinfo["tags"]["id3v2"]["artist"][0]) AND !empty($fileinfo["tags"]["id3v2"]["artist"][0])) {
-        $artist = $fileinfo["tags"]["id3v2"]["artist"][0];
-    }
-    elseif(isset($fileinfo["tags"]["id3v1"]["artist"][0]) AND !empty($fileinfo["tags"]["id3v1"]["artist"][0])) {
-        $artist = $fileinfo["tags"]["id3v1"]["artist"][0];
-    }
-    elseif(isset($fileinfo["tags"]["vorbiscomment"]["artist"][0]) AND !empty($fileinfo["tags"]["vorbiscomment"]["artist"][0])) {
-        $artist = $fileinfo["tags"]["vorbiscomment"]["artist"][0];
-    }
-
-    $album = "";
-    if(isset($fileinfo["tags"]["id3v2"]["album"][0]) AND !empty($fileinfo["tags"]["id3v2"]["album"][0])) {
-        $album = $fileinfo["tags"]["id3v2"]["album"][0];
-    }
-    elseif(isset($fileinfo["tags"]["id3v1"]["album"][0]) AND !empty($fileinfo["tags"]["id3v1"]["album"][0])) {
-        $album = $fileinfo["tags"]["id3v1"]["album"][0];
-    }
-    elseif(isset($fileinfo["tags"]["vorbiscomment"]["album"][0]) AND !empty($fileinfo["tags"]["vorbiscomment"]["album"][0])) {
-        $album = $fileinfo["tags"]["vorbiscomment"]["album"][0];
+    $neededTags = array("artist", "album", "title", "track");
+    foreach($neededTags as $tag) {
+      if(isset($fileinfo["comments"][$tag][0]) AND !empty($fileinfo["comments"][$tag][0])) {
+        $$tag = $fileinfo["comments"][$tag][0];
+      } else {
+        $$tag = "";
+      }
     }
 
-    $title = "";
-    if(isset($fileinfo["tags"]["id3v2"]["title"][0]) AND !empty($fileinfo["tags"]["id3v2"]["title"][0])) {
-        $title = $fileinfo["tags"]["id3v2"]["title"][0];
-    }
-    elseif(isset($fileinfo["tags"]["id3v1"]["title"][0]) AND !empty($fileinfo["tags"]["id3v1"]["title"][0])) {
-        $title = $fileinfo["tags"]["id3v1"]["title"][0];
-    }
-    elseif(isset($fileinfo["tags"]["vorbiscomment"]["title"][0]) AND !empty($fileinfo["tags"]["vorbiscomment"]["title"][0])) {
-        $title = $fileinfo["tags"]["vorbiscomment"]["title"][0];
-    }
-
-    $tracknum = "";
-    if(isset($fileinfo["tags"]["id3v2"]["tracknum"][0]) AND !empty($fileinfo["tags"]["id3v2"]["tracknum"][0])) {
-        $tracknum = $fileinfo["tags"]["id3v2"]["tracknum"][0];
-    }
-    elseif(isset($fileinfo["tags"]["id3v2"]["track"][0]) AND !empty($fileinfo["tags"]["id3v2"]["track"][0])) {
-        $tracknum = $fileinfo["tags"]["id3v2"]["track"][0];
-    }
-    elseif(isset($fileinfo["tags"]["id3v1"]["tracknum"][0]) AND !empty($fileinfo["tags"]["id3v1"]["tracknum"][0])) {
-        $tracknum = $fileinfo["tags"]["id3v1"]["tracknum"][0];
-    }
-    elseif(isset($fileinfo["tags"]["id3v1"]["track"][0]) AND !empty($fileinfo["tags"]["id3v1"]["track"][0])) {
-        $tracknum = $fileinfo["tags"]["id3v1"]["track"][0];
-    }
-    elseif(isset($fileinfo["tags"]["vorbiscomment"]["tracknumber"][0]) AND !empty($fileinfo["tags"]["vorbiscomment"]["tracknumber"][0])) {
-        $tracknum = $fileinfo["tags"]["vorbiscomment"]["tracknumber"][0];
-    }
-    elseif(isset($fileinfo["tags"]["vorbiscomment"]["track"][0]) AND !empty($fileinfo["tags"]["vorbiscomment"]["track"][0])) {
-        $tracknum = $fileinfo["tags"]["vorbiscomment"]["track"][0];
-    }
-
-    if(!isset($fileinfo["playtime_string"]))  { $fileinfo["playtime_string"] = "0:0"; }
+    if(!isset($fileinfo["playtime_string"]))  { $fileinfo["playtime_string"] = ""; }
 
     # track should be at least 2 chars width
-    if(strlen($tracknum) == 1) {
-        $tracknum = "0".$tracknum;
+    if(strlen($track) == 1) {
+        $track = "0".$track;
     }
 
-    return(array($artist,$album,$title,$tracknum,$fileinfo["playtime_string"]));
+    return(array($artist,$album,$title,$track,$fileinfo["playtime_string"]));
 }
 
 #########################################################################################

@@ -703,6 +703,11 @@ webmp3.playingbar = new Ext.Toolbar({
                   key: Ext.EventObject.BACKSPACE,
                   fn: webmp3.removeFromPlaylist,
                   scope: this
+                },
+                {
+                  key: Ext.EventObject.DELETE,
+                  fn: webmp3.removeFromPlaylist,
+                  scope: this
                 }
         ],
         tbar: [
@@ -965,7 +970,7 @@ webmp3.playingbar = new Ext.Toolbar({
                     id: 'filestatus'
                   }
               ],
-        bbar: [ 
+        bbar: [
           new Ext.PagingToolbar({
             pageSize: 20,
             autoHeight: true,
@@ -974,7 +979,7 @@ webmp3.playingbar = new Ext.Toolbar({
             store: webmp3.FilesystemDataStore,
             displayInfo: true,
             id: 'webmp3.fileSystemSearchPagingToolbar'
-          }) 
+          })
         ]
     });
 
