@@ -66,7 +66,7 @@ Ext.onReady(function(){
         now=new Date();
         diff_time = now.getTime() - webmp3.lastStatusUpdate.getTime();
         if(diff_time > 300000) {
-            webmp3.refreshStatusStore();
+            webmp3.PlaylistDataStore.load();
         }
 
         if(webmp3.pause == true) {
@@ -93,7 +93,7 @@ Ext.onReady(function(){
             preMin.innerHTML = "-";
 
             if(remSec.innerHTML == 1 && remMin.innerHTML == "0") {
-                window.setTimeout(webmp3.refreshStatusStore,1000);
+                window.setTimeout(webmp3.PlaylistDataStore.load,1000);
                 remSec.innerHTML = "";
                 remMin.innerHTML = "";
                 window.setTimeout(webmp3.updateTime, 999);
@@ -116,7 +116,7 @@ Ext.onReady(function(){
             remMin.innerHTML = remMin.innerHTML;
 
             if(remMin.innerHTML < 0) {
-                window.setTimeout(webmp3.refreshStatusStore,1000);
+                window.setTimeout(webmp3.PlaylistDataStore.load,1000);
             }
         }
         window.setTimeout(webmp3.updateTime, 999);
@@ -151,7 +151,7 @@ Ext.onReady(function(){
         document.getElementById('playPic').src = 'webmp3.php?action=pic&token='+webmp3.token;
     }
 
-    function refreshAll() {
+    webmp3.refreshStatusData = function() {
         record = webmp3.StatusDataStore.getAt(0);
 
         // set stream status
@@ -253,7 +253,7 @@ Ext.onReady(function(){
                 params: 'action=setToggle&button='+item.text+'&param=' + pressed,
                 text: 'setting '+item.text+' to '+pressed
             });
-            webmp3.taskDelay.delay(1000, webmp3.refreshStatusStore, "refresh");
+            webmp3.taskDelay.delay(1000, webmp3.PlaylistDataStore.load, "refresh");
         }
         if(item.text == "Mute") {
             item.setText("Unmute");
@@ -794,6 +794,9 @@ webmp3.playingbar = new Ext.Toolbar({
                 this.store.reload({params:o});
                 this.triggers[0].hide();
                 this.hasSearch = false;
+                webmp3.fileGrid.getBottomToolbar().hide();
+                webmp3.fileGrid.syncSize();
+                webmp3.border.doLayout();
             }
         },
 
@@ -805,6 +808,9 @@ webmp3.playingbar = new Ext.Toolbar({
                 this.onTrigger1Click();
                 return;
             }
+            webmp3.fileGrid.getBottomToolbar().show();
+            webmp3.fileGrid.syncSize();
+            webmp3.border.doLayout();
             var o = {start: 0, limit: 15};
             this.store.baseParams = this.store.baseParams || {};
             this.store.baseParams[this.paramName] = v;
@@ -955,8 +961,18 @@ webmp3.playingbar = new Ext.Toolbar({
                     border: false,
                     id: 'filestatus'
                   }
-              ]
-
+              ],
+        bbar: [ 
+          new Ext.PagingToolbar({
+            pageSize: 20,
+            autoHeight: true,
+            width: 500,
+            hideParent: true,
+            store: webmp3.FilesystemDataStore,
+            displayInfo: true,
+            id: 'webmp3.fileSystemSearchPagingToolbar'
+          }) 
+        ]
     });
 
 
@@ -1011,7 +1027,8 @@ webmp3.playingbar = new Ext.Toolbar({
     });
 
     Ext.get('infoBtn').on("click", function(button, event) {
-        webmp3.refreshStatusStore();
+        webmp3.PlaylistDataStore.load();
+        //webmp3.refreshStatusStore();
     });
     Ext.get('nextBtn').on("click", function(button, event) {
         token = webmp3.token;
@@ -1112,24 +1129,11 @@ webmp3.playingbar = new Ext.Toolbar({
       webmp3.streamAddWindow.hide();
       webmp3.enterMap.disable();
     });
-//    Ext.get('playlistGrid').on("dragOver", function(e, targetId) {
-//      alert("dropin");
-//                        document.title('dragOver: ' + targetId);
-//        //                if('dd1-ct' === targetId || 'dd2-ct' === targetId) {
-//                            var target = Ext.get(targetId);
-//                            webmp3.lastDropTarget = target;
-//        //                    target.addClass('dd-over');
-//        //                }
-//                    });
-//    webmp3.dropZone.on("onDragOut", function(e, targetId) {
-//                        //console.log('dragOut: ' + targetId);
-//                        document.title('dragOut: ' + targetId);
-//        //                if('dd1-ct' === targetId || 'dd2-ct' === targetId) {
-//                            var target = Ext.get(targetId);
-//                            webmp3.lastDropTarget = null;
-//        //                    target.removeClass('dd-over');
-//        //                }
-//            });
+
+    // initially hide our paging tool bar
+    webmp3.fileGrid.getBottomToolbar().hide();
+    webmp3.fileGrid.syncSize();
+    webmp3.border.doLayout();
 
 /****************************************
  * Filesystem Button EventHandler
@@ -1174,7 +1178,7 @@ webmp3.playingbar = new Ext.Toolbar({
         ]),
         listeners: {
             load: function(store, records, options) {
-                    refreshAll();
+                    webmp3.refreshStatusData();
             },
             loadexception: function(o, arg, e){
                 alert('** - StatusDataStore fired (loadexception) '+e.status+' ' +e.statusText+': ' + e.responseText);
@@ -1196,7 +1200,7 @@ webmp3.playingbar = new Ext.Toolbar({
     webmp3.slider.setValue('<!--php: volume -->', 1);
     webmp3.sliderInit = 0;
 
-    window.setTimeout(webmp3.refreshStatusStore,360000);
+    window.setTimeout(webmp3.PlaylistDataStore.load,360000);
 });
 -->
 </script>

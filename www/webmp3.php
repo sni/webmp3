@@ -472,7 +472,11 @@ function action_getFilesystem()
     } else {
         # get Files from Search
         $search = $_REQUEST['query'];
-        doPrint("searched for: ".$search);
+        $start = 0;
+        $limit = 20;
+        if(isset($_REQUEST['start']) AND is_numeric($_REQUEST['start'])) { $start = $_REQUEST['start']; }
+        if(isset($_REQUEST['limit']) AND is_numeric($_REQUEST['limit'])) { $limit = $_REQUEST['limit']; }
+        doPrint("searched for: ".$search." (".$start."/".$limit.")");
         $contents = "";
         $handle = popen("grep -i ".escapeshellarg($search)." ".$config["tagCache"], "r");
         while (!feof($handle)) {
@@ -486,6 +490,8 @@ function action_getFilesystem()
                 $filesystem[] = array("file" => $fileArray[0], "type" => "F", "icon" => "images/music.png");
             }
         }
+        $count = count($filesystem);
+        $filesystem = array_slice($filesystem, $start, $limit);
     }
     natcasesort($dirs);
     natcasesort($files);
@@ -501,9 +507,13 @@ function action_getFilesystem()
         $filesystem[] = array("file" => $file, "type" => "F", "icon" => "images/music.png");
     }
 
+    if(!isset($count)) {
+        $count = count($filesystem);
+    }
+
     if(count($filesystem) > 0) {
         $data = json_encode($filesystem);
-        echo '({"total":"'.count($filesystem).'","results":'.$data.'})';
+        echo '({"total":"'.$count.'","results":'.$data.'})';
     } else {
         echo '({"total":"0", "results":""})';
     }
@@ -601,6 +611,9 @@ function action_getPlaylist()
 
     $playlist = array();
     foreach($data['playlist'] as $key => $entry) {
+        if(empty($key) or !isset($entry["filename"])) {
+          continue;
+        }
         $playlist[] = array(
             "tracknum"  => $entry['tracknum'],
             "artist"    => $entry['artist'],
@@ -771,16 +784,21 @@ function action_getPath()
 
 function action_getCurStatus()
 {
+    global $config;
+
     doPrint("got json status request");
     $data = getData();
     $data = fillInDefaults($data);
 
     $text = "idle";
     if(isset($data['ppid'])) {
+        $file = $data['filename'];
+        $file = str_replace($config["searchPath"], "", $file);
+        if(strpos($file, "/") !== 0) { $file = "/".$file; }
         if($data['pause']) {
-            $text = "paused (pid: ".$data['ppid']."): ".$data['filename'];
+            $text = "paused (pid: ".$data['ppid']."): ".$file;
         } else {
-            $text = "playing (pid: ".$data['ppid']."): ".$data['filename'];
+            $text = "playing (pid: ".$data['ppid']."): ".$file;
         }
     }
 

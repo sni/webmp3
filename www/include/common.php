@@ -758,6 +758,7 @@ function fillInDefaults($data) {
     if(!isset($data["play"]))           { $data["play"]   = 0; }
     if(!isset($data["pause"]))          { $data["pause"]  = 0; }
     if(!isset($data["playingStream"]))  { $data["playingStream"]  = 0; }
+    if(!isset($data["filename"]))       { $data["filename"]  = ""; }
 
     if(!isset($data["artist"])) { $data["artist"] = " "; }
     if(!isset($data["album"]))  { $data["album"]  = " "; }
