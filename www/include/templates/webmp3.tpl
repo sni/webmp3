@@ -1176,7 +1176,7 @@ webmp3.playingbar = new Ext.Toolbar({
           //loaded
           webmp3.preload.show();
           Ext.get('folderPicHuge').replaceWith(webmp3.preload);
-          webmp3.pictureWindow.setWidth(Ext.get('fullImg').getWidth() + 10);
+          webmp3.pictureWindow.setWidth(Ext.get('fullImg').getWidth() + 15);
           Ext.ComponentMgr.get('picPanel').setSize(Ext.get('fullImg').getSize());
           webmp3.pictureWindow.center();
         });
