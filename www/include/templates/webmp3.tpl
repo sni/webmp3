@@ -209,7 +209,11 @@ Ext.onReady(function(){
 
         // set title
         if(record.get('play')) {
-            document.title = record.get('nr') + ' - ' + record.get('title');
+            if(webmp3.stream == true) {
+              document.title = record.get('title');
+            } else {
+              document.title = record.get('nr') + ' - ' + record.get('title');
+            }
         } else {
             document.title = 'WebMP3';
         }

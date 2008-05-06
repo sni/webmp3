@@ -116,8 +116,10 @@ function playlistAdd($playlist, $toAdd)
 
     if(strpos($toAdd, "http://") === 0) {
         list($artist,$album,$title,$tracknum,$playtime_string) = getTag($toAdd);
+        //$display = $artist." - ".$album." - ".$title;
+        $display = $toAdd;
+        $title   = $toAdd;
         $token = md5(uniqid(rand(), true));
-        $display = $artist." - ".$album." - ".$title;
         $newFile = array(
             "display"   => $display,
             "filename"  => $toAdd,
