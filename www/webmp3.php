@@ -802,6 +802,7 @@ function action_getCurStatus()
     $data = fillInDefaults($data);
 
     $version = '$Id$';
+    $version = str_replace("webmp3.php", "WebMP3", $version);
 
     $text = "idle";
     if(isset($data['ppid'])) {

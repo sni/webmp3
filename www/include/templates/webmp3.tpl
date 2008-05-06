@@ -60,6 +60,8 @@ Ext.onReady(function(){
     webmp3.lastSearch           = "";
     webmp3.taskDelay            = new Ext.util.DelayedTask();
 
+    webmp3.version              = webmp3.version.replace("webmp3.tpl", "WebMP3");
+
 /****************************************
  * Functions
  ***************************************/
