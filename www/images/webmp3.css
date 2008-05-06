@@ -21,6 +21,16 @@ body
   font-size: 100.01%;
 }
 
+a:link, a:visited, a:active
+{
+  color:#000000;
+}
+
+a:hover
+{
+  color:#404040;
+}
+
 .x-btn.repeat-btn .x-btn-text {
    background-image: url('../images/control_norepeat_blue.png') ! important;
 }

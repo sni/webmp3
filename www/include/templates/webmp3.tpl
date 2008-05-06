@@ -1,4 +1,27 @@
-<!-- $Id: index.tpl 2 2008-04-24 13:41:58Z sven $ -->
+<!--
+#################################################################
+#
+# Copyright 2008 Sven Nierlein, <sven@nierlein.de>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#################################################################
+#
+# $Id:$
+#
+#################################################################
+-->
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
@@ -25,6 +48,7 @@
 
 Ext.onReady(function(){
     Ext.namespace("webmp3");
+    webmp3.version              = '$Id:$';
     webmp3.sliderInit           = 1;
     webmp3.lastSliderUpdate     = new Date();
     webmp3.lastStatusUpdate     = new Date();
@@ -52,7 +76,8 @@ Ext.onReady(function(){
       Ext.Msg.show({
         title:'ERROR?',
         msg: "*** " + what + ": " + exception,
-        icon: Ext.MessageBox.ERROR
+        icon: Ext.MessageBox.ERROR,
+        buttons: Ext.Msg.OK
      });
     }
   }
@@ -196,7 +221,9 @@ Ext.onReady(function(){
         document.getElementById('statusbar').innerHTML = record.get('status');
 
         // set current track data
-        document.getElementById('artistText').innerHTML = record.get('artist');
+        artist = record.get('artist');
+        wikilink = '<a href="http://en.wikipedia.org/wiki/'+artist.replace(" ", "_")+'" target="_blank">'+artist+'<\/a>';
+        document.getElementById('artistText').innerHTML = wikilink;
         document.getElementById('albumText').innerHTML = record.get('album');
         document.getElementById('trackText').innerHTML = record.get('nr');
         document.getElementById('titleText').innerHTML = record.get('title');
@@ -508,7 +535,7 @@ webmp3.playingbar = new Ext.Toolbar({
     items: [
                 {
                     text: 'Info',
-                    tooltip: 'Wikipedia information for this artist',
+                    tooltip: 'Information about this application',
                     cls: 'x-btn-text-icon',
                     id: 'infoBtn',
                     icon: 'images/information.png'
@@ -1085,6 +1112,12 @@ webmp3.playingbar = new Ext.Toolbar({
     });
 
     Ext.get('infoBtn').on("click", function(button, event) {
+        Ext.Msg.show({
+          title:'About WebMP3',
+          msg: 'WebMP3<br><br>Copyright 2008 Sven Nierlein, sven@nierlein.de<br><br>License: GPL v3<br>Download it at <a href="http://www.nierlein.de/pub/webmp3/" target="_blank">http://www.nierlein.de/pub/webmp3/<\/a><br><br>Version: '+webmp3.version,
+          icon: Ext.MessageBox.INFO,
+          buttons: Ext.Msg.OK
+        });
         webmp3.PlaylistDataStore.load();
         //webmp3.refreshStatusStore();
     });
@@ -1259,14 +1292,16 @@ webmp3.playingbar = new Ext.Toolbar({
       Ext.Msg.show({
         title:'Information',
         msg: "Not implemented yet",
-        icon: Ext.MessageBox.INFO
+        icon: Ext.MessageBox.INFO,
+        buttons: Ext.Msg.OK
      });
     });
     Ext.get('hitlistBtn').on("click", function(button, event) {
       Ext.Msg.show({
         title:'Information',
         msg: "Not implemented yet",
-        icon: Ext.MessageBox.INFO
+        icon: Ext.MessageBox.INFO,
+        buttons: Ext.Msg.OK
      });
     });
 
