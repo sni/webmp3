@@ -594,13 +594,14 @@ function getTag($file) {
     }
 
    if(strpos($file, "http://") === 0) {
-       if ($fp1 = fopen($file, 'rb')) {
-          $tempname = tempnam('/tmp', 'foo');
-          if ($fp2 = fopen($tempname, 'wb')) {
-            fwrite($fp2, fread($fp, 102400));
-            fclose($fp2);
-          }
-          fclose($fp1);
+       return(array("","","","","0:0"));
+       if($fp1 = fopen($file, 'rb')) {
+            $tempname = tempnam('/tmp', 'foo');
+            if ($fp2 = fopen($tempname, 'wb')) {
+                fwrite($fp2, fread($fp, 102400));
+                fclose($fp2);
+            }
+            fclose($fp1);
         }
         $file = $tempname;
     }
@@ -772,7 +773,7 @@ function getRemaining($data)
     if(isset($data["start"])) {
         $start = $data["start"];
     }
-    if(isset($data["pause"]) and isset($start) and isset($data["pauseStart"])) {
+    if(isset($data["pause"]) and $data["pause"] == 1 and isset($start) and isset($data["pauseStart"])) {
         $start = $start + (time() - $data["pauseStart"]);
     }
 
