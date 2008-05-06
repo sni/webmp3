@@ -18,7 +18,7 @@
 #
 #################################################################
 #
-# $Id:$
+# $Id$
 #
 #################################################################
 -->
@@ -48,7 +48,7 @@
 
 Ext.onReady(function(){
     Ext.namespace("webmp3");
-    webmp3.version              = '$Id:$';
+    webmp3.version              = '$Id$';
     webmp3.sliderInit           = 1;
     webmp3.lastSliderUpdate     = new Date();
     webmp3.lastStatusUpdate     = new Date();
@@ -196,6 +196,23 @@ Ext.onReady(function(){
     webmp3.refreshStatusData = function() {
         record = webmp3.StatusDataStore.getAt(0);
 
+        // check server version against client version
+        version = record.get('version');
+        if(version != webmp3.version) {
+          Ext.Msg.show({
+            title:'new version available',
+            msg: 'server version differs from client<br>-&gt; reload required.<br><br><br><pre>client:'+webmp3.version+'<br>server:'+version+'<\/pre>',
+            icon: Ext.MessageBox.WARNING,
+            buttons: Ext.Msg.OK,
+            minWidth: 450,
+            fn: function(btn, text){
+              if (btn == 'ok'){
+                document.location.reload();
+              }
+            }
+          });
+        }
+
         // set stream status
         webmp3.stream = record.get('stream');
 
@@ -269,11 +286,13 @@ Ext.onReady(function(){
         var files = "";
         for(i=0;i<selects.length;i++)
         {
-            files = files + "&add[]=" + selects[i].get('file');
+            files = files + "&add[]=" + webmp3.urlencode(selects[i].get('file'));
         }
+        aktPath = Ext.util.Format.stripTags(document.getElementById('filestatus').innerHTML);
+        aktPath = webmp3.urlencode(aktPath);
         webmp3.PlaylistDataStore.load({
             url: 'webmp3.php',
-            params: 'action=getPlaylist&aktPath=' + Ext.util.Format.stripTags(document.getElementById('filestatus').innerHTML) + files,
+            params: 'action=getPlaylist&aktPath=' + aktPath + files,
             text: 'added files to playlist'
         });
         webmp3.fsm.clearSelections();
@@ -1344,7 +1363,8 @@ webmp3.playingbar = new Ext.Toolbar({
             {name: 'repeat',  mapping: 'repeat',   type: 'int'},
             {name: 'mute',    mapping: 'mute',     type: 'int'},
             {name: 'quiet',   mapping: 'quiet',    type: 'int'},
-            {name: 'stream',  mapping: 'stream',   type: 'int'}
+            {name: 'stream',  mapping: 'stream',   type: 'int'},
+            {name: 'version', mapping: 'version',  type: 'string'}
         ]),
         listeners: {
             load: function(store, records, options) {

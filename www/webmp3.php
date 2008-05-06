@@ -7,18 +7,18 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #################################################################
 #
-# $Id:$
+# $Id$
 #
 #################################################################
 
@@ -385,41 +385,6 @@ function action_hitlist()
 
 #################################################################
 
-function action_addFile()
-{
-    global $config;
-
-    if(strpos($_GET["file"], "http://") === 0) {
-        $data = getData();
-        $title = $_GET["file"];
-        $token = md5(uniqid(rand(), true));
-        $newFile = array(
-            "filename"  => $title,
-            "token"     => $token,
-            "status"    => "&nbsp;",
-            "album"     => "",
-            "title"     => $title,
-            "artist"    => "",
-            "tracknum"  => "",
-            "lengths"   => "1",
-            "stream"    => "1",
-            "length"    => "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;",
-        );
-        $data["playlist"][$token] = $newFile;
-        storeData($data);
-    } else {
-        if(!is_file($config["searchPath"].$_GET["file"])) { user_error("file does not exist"); }
-        $file = $config["searchPath"].$_GET["file"];
-
-        $data = getData();
-        $data["playlist"] = playlistAdd($data["playlist"], $file);
-        storeData($data);
-    }
-    redirect("webmp3.php?action=hitlist&reload=1");
-}
-
-#################################################################
-
 function action_clearHitlist()
 {
     $data = getData();
@@ -591,6 +556,7 @@ function action_getPlaylist()
     if(isset($_REQUEST["add"]) AND is_array($_REQUEST["add"])) {
         if(!isset($_REQUEST["aktPath"])) { $_REQUEST["aktPath"] = ""; }
         $aktPath = strip_tags($_REQUEST["aktPath"]);
+        $aktPath = stripslashes($_REQUEST["aktPath"]);
         foreach($_REQUEST["add"] as $file) {
             $file = stripslashes($file);
             $file = trim($file);
@@ -835,6 +801,8 @@ function action_getCurStatus()
     $data = getData();
     $data = fillInDefaults($data);
 
+    $version = '$Id$';
+
     $text = "idle";
     if(isset($data['ppid'])) {
         $file = $data['filename'];
@@ -873,6 +841,7 @@ function action_getCurStatus()
             'mute'    => $data['mute'],
             'quiet'   => $data['quiet'],
             "stream"  => $data['playingStream'],
+            "version" => $version,
     );
 
     if(isset($_REQUEST['debug'])) {
