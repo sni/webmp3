@@ -33,13 +33,15 @@ error_reporting(2047);
 function getVolume()
 {
     global $config;
-    $erg = exec($config["aumixBin"]." -vq");
-    if(empty($erg))
+    $rc = 0;
+    $output = array();
+    exec($config["aumixBin"]." -vq 2>&1", $output, $rc);
+    if($rc != 0 or !isset($output[0]))
     {
-        #$erg = " couldn&quot;t get volume, perhabs ".getmyuid()." is not a member of group audio";
-        $erg = "50";
+        $config['lastError'] = "getting Volume failed (rc: ".$rc."): ".join('<br />\n', $output);
+        $erg = "20";
     } else {
-        list($blah, $vol) = explode(",", $erg);
+        list($blah, $vol) = explode(",", $output[0]);
         $erg = trim($vol);
     }
     return($erg);
@@ -743,7 +745,6 @@ function fillInDefaults($data) {
     if(!isset($data["length"]))         { $data["length"] = ""; }
     if(!isset($data["start"]))          { $data["start"]  = ""; }
     if(!isset($data["title"]))          { $data["title"]  = ""; }
-    if(!isset($data["volume"]))         { $data["volume"] = getVolume(); }
     if(!isset($data["quiet"]))          { $data["quiet"]  = 0; }
     if(!isset($data["play"]))           { $data["play"]   = 0; }
     if(!isset($data["pause"]))          { $data["pause"]  = 0; }

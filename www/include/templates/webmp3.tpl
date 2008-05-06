@@ -28,6 +28,7 @@ Ext.onReady(function(){
     webmp3.sliderInit           = 1;
     webmp3.lastSliderUpdate     = new Date();
     webmp3.lastStatusUpdate     = new Date();
+    webmp3.lastexception        = "";
     webmp3.token                = "<!--php: token -->";
     webmp3.pause                = <!--php: pause -->;
     webmp3.stream               = <!--php: stream -->;
@@ -39,6 +40,18 @@ Ext.onReady(function(){
  * Functions
  ***************************************/
 
+  webmp3.fireException = function(el ,exception) {
+    if(webmp3.lastexception != exception) {
+      webmp3.lastexception = exception;
+      var what = "";
+      if(typeof( el ) == 'string') {
+        what = el;
+      } else {
+        what = el.id;
+      }
+      alert("*** " + what + ": " + exception);
+    }
+  }
     // play this token
     webmp3.playToken = function(token) {
         webmp3.PlaylistDataStore.load({
@@ -259,14 +272,28 @@ Ext.onReady(function(){
             webmp3.taskDelay.delay(1000, webmp3.refreshPlaylist, "refresh");
         }
         if(item.text == "Mute") {
-            item.setText("Unmute");
+          webmp3.noTogggleEvents = 1;
+          Ext.ComponentMgr.get('quietBtn').toggle(0);
+          webmp3.noTogggleEvents = 0;
+          item.setText("Unmute");
         } else if(item.text == "Unmute") {
+          webmp3.noTogggleEvents = 1;
+          Ext.ComponentMgr.get('quietBtn').toggle(0);
+          webmp3.noTogggleEvents = 0;
             item.setText("Mute");
         }
         if(item.text == "Play") {
             item.setText("Stop");
+            webmp3.stream = false;
         } else if(item.text == "Stop") {
             item.setText("Play");
+        }
+
+        if(item.text == "Quiet") {
+          webmp3.noTogggleEvents = 1;
+          Ext.ComponentMgr.get('muteBtn').toggle(0);
+          Ext.ComponentMgr.get('muteBtn').setText("Mute");
+          webmp3.noTogggleEvents = 0;
         }
     }
 
@@ -281,15 +308,29 @@ Ext.onReady(function(){
         keyIncrement: 5
     });
 
+    webmp3.resetQuietAndMuteButton = function() {
+      var reset = "";
+      if(Ext.ComponentMgr.get('muteBtn').pressed || Ext.ComponentMgr.get('quietBtn').pressed) {
+        reset = "&reset=1";
+        webmp3.noTogggleEvents = 1;
+        Ext.ComponentMgr.get('muteBtn').toggle(0);
+        Ext.ComponentMgr.get('muteBtn').setText("Mute");
+        Ext.ComponentMgr.get('quietBtn').toggle(0);
+        webmp3.noTogggleEvents = 0;
+      }
+      return(reset);
+    }
+
     webmp3.slider.on("change", function(slider, value) {
         if(webmp3.sliderInit == 0) {
+            var reset = webmp3.resetQuietAndMuteButton();
             webmp3.now=new Date();
             diff_time = webmp3.now.getTime() - webmp3.lastSliderUpdate.getTime();
             if(diff_time > 300) {
                 var msg = Ext.get('statustext');
                 msg.load({
                     url: 'webmp3.php',
-                    params: 'action=setVolume&vol=' + slider.getValue(),
+                    params: 'action=setVolume'+reset+'&vol=' + slider.getValue(),
                     text: 'setting volume...' + slider.getValue()
                 });
                 webmp3.lastSliderUpdate = new Date();
@@ -298,10 +339,11 @@ Ext.onReady(function(){
     });
     webmp3.slider.on("dragend", function(slider, value) {
         if(webmp3.sliderInit == 0) {
+            var reset = webmp3.resetQuietAndMuteButton();
             var msg = Ext.get('statustext');
             msg.load({
                 url: 'webmp3.php',
-                params: 'action=setVolume&vol=' + slider.getValue(),
+                params: 'action=setVolume'+reset+'&vol=' + slider.getValue(),
                 text: 'setting volume...' + slider.getValue()
             });
             webmp3.lastSliderUpdate = new Date();
@@ -536,10 +578,7 @@ webmp3.playingbar = new Ext.Toolbar({
                   },
             loadexception: function(o, arg, e){
                 var exception = e.status+' ' +e.statusText+': ' + e.responseText;
-                if(webmp3.lastexception != exception) {
-                  webmp3.lastexception = exception;
-                  alert('** - PlaylistDataStore fired (loadexception) ' + exception);
-                }
+                webmp3.fireException(this, exception);
             }
         }
     });
@@ -888,10 +927,7 @@ webmp3.playingbar = new Ext.Toolbar({
         listeners: {
             loadexception: function(o, arg, e){
                 var exception = e.status+' ' +e.statusText+': ' + e.responseText;
-                if(webmp3.lastexception != exception) {
-                  webmp3.lastexception = exception;
-                  alert('** - FilesystemDataStore fired (loadexception) ' + exception);
-                }
+                webmp3.fireException(this, exception);
             }
         }
     });
@@ -1181,9 +1217,6 @@ webmp3.playingbar = new Ext.Toolbar({
           webmp3.pictureWindow.center();
         });
         webmp3.pictureWindow.show();
-        //webmp3.pictureWindow.syncSize();
-        //webmp3.pictureWindow.doLayout();
-        //webmp3.pictureWindow.expand(1);
         Ext.get('picWindowCloseBtn').on("click", function(button, event) {
           webmp3.pictureWindow.hide(1);
           webmp3.pictureWindow.close();
@@ -1206,6 +1239,7 @@ webmp3.playingbar = new Ext.Toolbar({
       webmp3.showPictureWindow(document.getElementById('playPic').src, artist+' - '+album);
     });
     Ext.get('filePic').on("click", function(button, event) {
+      webmp3.aktPath = Ext.util.Format.stripTags(document.getElementById('filestatus').innerHTML);
       webmp3.showPictureWindow(document.getElementById('filePic').src, webmp3.aktPath);
     });
 
@@ -1256,10 +1290,7 @@ webmp3.playingbar = new Ext.Toolbar({
             },
             loadexception: function(o, arg, e){
                 var exception = e.status+' ' +e.statusText+': ' + e.responseText;
-                if(webmp3.lastexception != exception) {
-                  webmp3.lastexception = exception;
-                  alert('** - StatusDataStore fired (loadexception) ' + exception);
-                }
+                webmp3.fireException(this, exception);
             }
 
         }

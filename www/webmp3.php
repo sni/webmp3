@@ -103,6 +103,15 @@ function action_setVolume()
       print "no params??";
       exit;
     }
+    if(isset($_REQUEST["reset"]) AND $_REQUEST["reset"] == 1) {
+        $data = getData();
+        $data["mute"]  = 0;
+        $data["quiet"] = 0;
+        if(isset($data['origVolume'])) {
+           unset($data['origVolume']);
+        }
+        storeData($data);
+    }
     exec($config["aumixBin"]." -v ".escapeshellarg($_REQUEST["vol"]));
 
     doPrint("setting volume to ".$_REQUEST["vol"]);
@@ -733,19 +742,21 @@ function action_setToggle()
 
     # Mute
     if($_REQUEST['button'] == "Mute") {
-        $data["mute"] = $param;
+        $data["mute"]  = $param;
+        $data["quiet"] = 0;
         doPrint("pressed mute");
-        $data["origVolume"] = $data['volume'];
+        $data["origVolume"] = getVolume();
         $_REQUEST["vol"] = 0;
         action_setVolume();
         print "mute set to true";
         storeData($data);
     }
     if($_REQUEST['button'] == "Unmute") {
+        $data["quiet"] = 0;
         $data["mute"] = $param;
         doPrint("pressed unmute");
+        $_REQUEST["vol"] = $data['origVolume'];
         unset($data["origVolume"]);
-        $_REQUEST["vol"] = $data['volume'];
         action_setVolume();
         print "mute set to false";
         storeData($data);
@@ -753,15 +764,16 @@ function action_setToggle()
 
     # Quiet
     if($_REQUEST['button'] == "Quiet") {
+        $data["mute"] = 0;
         $data["quiet"] = $param;
         doPrint("pressed quiet");
         if($param) {
-            $data["origVolume"] = $data['volume'];
+            $data["origVolume"] = getVolume();
             $_REQUEST["vol"] = $config["quietVol"];
             action_setVolume();
         } else {
-            $data["origVolume"] = $data['volume'];
-            $_REQUEST["vol"] = 0;
+            $_REQUEST["vol"] = $data["origVolume"];
+            unset($data["origVolume"]);
             action_setVolume();
         }
         print "quiet set to ".$param;
@@ -814,6 +826,8 @@ function action_getCurStatus()
         } else {
             $text = "playing (pid: ".$data['ppid']."): ".$file;
         }
+    } else {
+        $data['playingStream'] = 0;
     }
 
     list($remMin, $remSec, $remaining, $stream, $started) = getRemaining($data);
@@ -829,7 +843,7 @@ function action_getCurStatus()
             'title'   => $data['title'],
             'length'  => $data['length'],
             'token'   => $data['token'],
-            'volume'  => $data['volume'],
+            'volume'  => getVolume(),
             'status'  => $text,
             'remMin'  => $remMin,
             'remSec'  => $remSec,
@@ -847,6 +861,13 @@ function action_getCurStatus()
         print_r($status);
         print "\ndata:\n";
         print_r($data);
+    }
+
+    if(isset($config['lastError']) AND !empty($config['lastError'])) {
+        header("HTTP/1.0 508 Application Error");
+        print($config['lastError']);
+        doPrint("Error: ".$config['lastError']);
+        exit(1);
     }
 
     $jsonstatus = json_encode($status);
