@@ -399,6 +399,7 @@ Ext.onReady(function(){
                     toggleHandler: onButtonToggle,
                     cls:"x-btn-text-icon",
                     icon: 'images/sound_mute.png',
+                    minWidth: 70,
                     id: 'muteBtn',
                     pressed: <!--php: mute -->
                     }, '-',{
@@ -408,6 +409,7 @@ Ext.onReady(function(){
                     tooltip: 'Quiet',
                     cls:"x-btn-text-icon",
                     icon: 'images/sound_low.png',
+                    minWidth: 70,
                     id: 'quietBtn',
                     pressed: <!--php: quiet -->
                     }
