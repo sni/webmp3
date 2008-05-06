@@ -49,7 +49,11 @@ Ext.onReady(function(){
       } else {
         what = el.id;
       }
-      alert("*** " + what + ": " + exception);
+      Ext.Msg.show({
+        title:'ERROR?',
+        msg: "*** " + what + ": " + exception,
+        icon: Ext.MessageBox.ERROR
+     });
     }
   }
     // play this token
@@ -776,10 +780,12 @@ webmp3.playingbar = new Ext.Toolbar({
                     id: 'shuffleBtn'
                   }, '-',{
                     text: 'Playlist',
-                    tooltip: 'Playlist Actions'
+                    tooltip: 'Playlist Actions',
+                    id: 'playlistBtn'
                   }, '-',{
                     text: 'Hitlist',
-                    tooltip: 'Hitlist'
+                    tooltip: 'Hitlist',
+                    id: 'hitlistBtn'
                   }, '-',{
                     text: 'add Stream',
                     tooltip: 'add Stream',
@@ -1247,6 +1253,21 @@ webmp3.playingbar = new Ext.Toolbar({
     Ext.get('filePic').on("click", function(button, event) {
       webmp3.aktPath = Ext.util.Format.stripTags(document.getElementById('filestatus').innerHTML);
       webmp3.showPictureWindow(document.getElementById('filePic').src, webmp3.aktPath);
+    });
+
+    Ext.get('playlistBtn').on("click", function(button, event) {
+      Ext.Msg.show({
+        title:'Information',
+        msg: "Not implemented yet",
+        icon: Ext.MessageBox.INFO
+     });
+    });
+    Ext.get('hitlistBtn').on("click", function(button, event) {
+      Ext.Msg.show({
+        title:'Information',
+        msg: "Not implemented yet",
+        icon: Ext.MessageBox.INFO
+     });
     });
 
 /****************************************
