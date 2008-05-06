@@ -486,14 +486,14 @@ webmp3.playingbar = new Ext.Toolbar({
         items: [{
             height: 120,
             width: 120,
-            html: '<a href="#"><img border="0" id="playPic" src="webmp3.php?action=pic&token='+webmp3.token+'"></a>',
+            html: '<a href="#"><img border="0" id="playPic" src="webmp3.php?action=pic&token='+webmp3.token+'"><\/a>',
             rowspan: 4
         },{
             items: [webmp3.navtoolbar]
         },{
             height: 120,
             width: 120,
-            html: '<a href="#"><img border="0" id="filePic" src="webmp3.php?action=pic&pic='+webmp3.aktPath+'"></a>',
+            html: '<a href="#"><img border="0" id="filePic" src="webmp3.php?action=pic&pic='+webmp3.aktPath+'"><\/a>',
             rowspan: 4
         },{
             items: [webmp3.statusbar]
@@ -535,7 +535,11 @@ webmp3.playingbar = new Ext.Toolbar({
                       webmp3.refreshStatusStore();
                   },
             loadexception: function(o, arg, e){
-                alert('** - PlaylistDataStore fired (loadexception) '+e.status+' ' +e.statusText+': ' + e.responseText);
+                var exception = e.status+' ' +e.statusText+': ' + e.responseText;
+                if(webmp3.lastexception != exception) {
+                  webmp3.lastexception = exception;
+                  alert('** - PlaylistDataStore fired (loadexception) ' + exception);
+                }
             }
         }
     });
@@ -664,17 +668,11 @@ webmp3.playingbar = new Ext.Toolbar({
             }
         },
         onRender: function() {
-            webmp3.DropGridPanel.superclass.onRender.apply(this, arguments);
-            try {
-                webmp3.dropZone = new Ext.dd.DropTarget(this.id, {
-                    ddGroup : 'playlistDD',
-                    notifyDrop : this.droppedItem
-//                    notifyOver : this.notifyOver,
-//                    notifyOut  : this.notifyOut
-                });
-            } catch (e) {
-              alert('** - onRender fired exception '+e.status+' ' +e.statusText+': ' + e.responseText);
-            }
+          webmp3.DropGridPanel.superclass.onRender.apply(this, arguments);
+          webmp3.dropZone = new Ext.dd.DropTarget(this.id, {
+              ddGroup : 'playlistDD',
+              notifyDrop : this.droppedItem
+          });
         }
     });
 
@@ -889,7 +887,11 @@ webmp3.playingbar = new Ext.Toolbar({
         ]),
         listeners: {
             loadexception: function(o, arg, e){
-                alert('** - FilesystemDataStore fired (loadexception) '+e.status+' ' +e.statusText+': ' + e.responseText);
+                var exception = e.status+' ' +e.statusText+': ' + e.responseText;
+                if(webmp3.lastexception != exception) {
+                  webmp3.lastexception = exception;
+                  alert('** - FilesystemDataStore fired (loadexception) ' + exception);
+                }
             }
         }
     });
@@ -1152,16 +1154,16 @@ webmp3.playingbar = new Ext.Toolbar({
         var urlFull = url + "&full=yes";
         webmp3.pictureWindow = new Ext.Window({
             title: title,
-            height: '300',
-            width: '300',
+            height: '120',
+            width: '120',
             buttonAlign: 'center',
-            layout:'fit',
-                items: [{
-                  xtype: 'panel',
-                  id: 'picPanel',
-                  border: false,
-                  html: '<img width=120 height=120 id="folderPicHuge" src="'+url+'>',
-                }],
+            //layout:'fit',
+            items: [{
+              xtype: 'panel',
+              id: 'picPanel',
+              border: false,
+              html: '<img width=120 height=120 id="folderPicHuge" src="'+url+'>',
+            }],
             buttons: [
                       {
                         text: 'Close',
@@ -1172,12 +1174,22 @@ webmp3.playingbar = new Ext.Toolbar({
         webmp3.preload = Ext.DomHelper.append(document.body, {tag:"img", src:urlFull, id:"fullImg", style:"display:none"}, true);
         webmp3.preload.on('load', function() {
           //loaded
-          webmp3.preload.show(1);
+          webmp3.preload.show();
           Ext.get('folderPicHuge').replaceWith(webmp3.preload);
+          webmp3.pictureWindow.setWidth(Ext.get('fullImg').getWidth() + 10);
+          Ext.ComponentMgr.get('picPanel').setSize(Ext.get('fullImg').getSize());
+          webmp3.pictureWindow.center();
         });
         webmp3.pictureWindow.show();
-        webmp3.pictureWindow.expand(1);
+        //webmp3.pictureWindow.syncSize();
+        //webmp3.pictureWindow.doLayout();
+        //webmp3.pictureWindow.expand(1);
         Ext.get('picWindowCloseBtn').on("click", function(button, event) {
+          webmp3.pictureWindow.hide(1);
+          webmp3.pictureWindow.close();
+          webmp3.pictureWindow.destroy();
+        });
+        webmp3.preload.on("click", function(button, event) {
           webmp3.pictureWindow.hide(1);
           webmp3.pictureWindow.close();
           webmp3.pictureWindow.destroy();
@@ -1243,7 +1255,11 @@ webmp3.playingbar = new Ext.Toolbar({
                     webmp3.refreshStatusData();
             },
             loadexception: function(o, arg, e){
-                alert('** - StatusDataStore fired (loadexception) '+e.status+' ' +e.statusText+': ' + e.responseText);
+                var exception = e.status+' ' +e.statusText+': ' + e.responseText;
+                if(webmp3.lastexception != exception) {
+                  webmp3.lastexception = exception;
+                  alert('** - StatusDataStore fired (loadexception) ' + exception);
+                }
             }
 
         }

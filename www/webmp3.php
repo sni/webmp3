@@ -146,7 +146,21 @@ function action_pic() {
 
     if(file_exists($url)) {
         if(isset($_GET["full"]) AND $_GET["full"] == "yes") {
-            header("Content-type: ".mime_content_type($url));
+            $ext = substr($url, -4);
+            $ct = "text/plain";
+            if($ext == ".png") {
+                $ct = "image/png";
+            }
+            if($ext == "jpeg") {
+                $ct = "image/jpg";
+            }
+            if($ext == ".jpg") {
+                $ct = "image/jpg";
+            }
+            if($ext == ".gif") {
+                $ct = "image/gif";
+            }
+            header("Content-type: ".$ct);
             readfile($url);
             exit();
         }
