@@ -486,14 +486,14 @@ webmp3.playingbar = new Ext.Toolbar({
         items: [{
             height: 120,
             width: 120,
-            html: '<img id="playPic" src="webmp3.php?action=pic&token='+webmp3.token+'">',
+            html: '<a href="#"><img border="0" id="playPic" src="webmp3.php?action=pic&token='+webmp3.token+'"></a>',
             rowspan: 4
         },{
             items: [webmp3.navtoolbar]
         },{
             height: 120,
             width: 120,
-            html: '<img id="filePic" src="webmp3.php?action=pic&pic='+webmp3.aktPath+'">',
+            html: '<a href="#"><img border="0" id="filePic" src="webmp3.php?action=pic&pic='+webmp3.aktPath+'"></a>',
             rowspan: 4
         },{
             items: [webmp3.statusbar]
@@ -1148,36 +1148,53 @@ webmp3.playingbar = new Ext.Toolbar({
 /****************************************
  * Picture Window
  ***************************************/
-    Ext.get('playPic').on("click", function(button, event) {
-      webmp3.pictureWindow = new Ext.Window({
-          title: 'Folder Image',
-          height: '100',
-          width: '100',
-          resizable: false,
-          bodyStyle:'padding:0px',
-          border: true,
-          closable: true,
-          buttonAlign: 'center',
-              items: [{
+    webmp3.showPictureWindow = function(url, title) {
+        var urlFull = url + "&full=yes";
+        webmp3.pictureWindow = new Ext.Window({
+            title: title,
+            height: '300',
+            width: '300',
+            buttonAlign: 'center',
+            layout:'fit',
+                items: [{
                   xtype: 'panel',
-                  height: 'auto',
-                  width: 'auto',
-                  html: '<img id="folderPicHuge" src="webmp3.php?action=pic&full=yes&token='+webmp3.token+'">'
-              }],
-          buttons: [
-                    {
-                      text: 'Close',
-                      id: 'picWindowCloseBtn'
-                    }
-                ]
-      });
-      webmp3.pictureWindow.show();
-      Ext.get('picWindowCloseBtn').on("click", function(button, event) {
-        webmp3.pictureWindow.destroy();
-      });
-    });
+                  id: 'picPanel',
+                  border: false,
+                  html: '<img width=120 height=120 id="folderPicHuge" src="'+url+'>',
+                }],
+            buttons: [
+                      {
+                        text: 'Close',
+                        id: 'picWindowCloseBtn'
+                      }
+                  ]
+        });
+        webmp3.preload = Ext.DomHelper.append(document.body, {tag:"img", src:urlFull, id:"fullImg", style:"display:none"}, true);
+        webmp3.preload.on('load', function() {
+          //loaded
+          webmp3.preload.show(1);
+          Ext.get('folderPicHuge').replaceWith(webmp3.preload);
+        });
+        webmp3.pictureWindow.show();
+        webmp3.pictureWindow.expand(1);
+        Ext.get('picWindowCloseBtn').on("click", function(button, event) {
+          webmp3.pictureWindow.hide(1);
+          webmp3.pictureWindow.close();
+          webmp3.pictureWindow.destroy();
+        });
+      }
     Ext.get('playPic').on("click", function(button, event) {
-      webmp3.pictureWindow.show();
+      var index  = webmp3.PlaylistDataStore.find("token", webmp3.token);
+      var album  = "";
+      var artist = "";
+      if(index >= 0) {
+        album  = webmp3.PlaylistDataStore.getAt(index).get('album');
+        artist = webmp3.PlaylistDataStore.getAt(index).get('album');
+      }
+      webmp3.showPictureWindow(document.getElementById('playPic').src, artist+' - '+album);
+    });
+    Ext.get('filePic').on("click", function(button, event) {
+      webmp3.showPictureWindow(document.getElementById('filePic').src, webmp3.aktPath);
     });
 
 /****************************************
