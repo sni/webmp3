@@ -625,8 +625,7 @@ webmp3.playingbar = new Ext.Toolbar({
         baseParams:{action: "getPlaylist"},
         reader: new Ext.data.JsonReader({
             root: 'results',
-            totalProperty: 'total',
-            id: 'id'
+            totalProperty: 'total'
         },[
             {name: 'artist',  mapping: 'artist',   type: 'string'},
             {name: 'album',   mapping: 'album',    type: 'string'},
@@ -899,7 +898,7 @@ webmp3.playingbar = new Ext.Toolbar({
         onTrigger1Click : function(){
             if(this.hasSearch){
                 this.el.dom.value = '';
-                var o = {start: 0, limit: 15};
+                var o = {start: 0, limit: 20};
                 this.store.baseParams = this.store.baseParams || {};
                 this.store.baseParams[this.paramName] = '';
                 this.store.reload({params:o});
@@ -983,8 +982,7 @@ webmp3.playingbar = new Ext.Toolbar({
         ddGroup : 'playlistDD',
         reader: new Ext.data.JsonReader({
             root: 'results',
-            totalProperty: 'total',
-            id: 'id'
+            totalProperty: 'total'
         },[
             {name: 'file',    mapping: 'file',    type: 'string'},
             {name: 'type',    mapping: 'type',    type: 'string'},
@@ -1325,14 +1323,6 @@ webmp3.playingbar = new Ext.Toolbar({
         buttons: Ext.Msg.OK
      });
     });
-    Ext.get('hitlistBtn').on("click", function(button, event) {
-      Ext.Msg.show({
-        title:'Information',
-        msg: "Not implemented yet",
-        icon: Ext.MessageBox.INFO,
-        buttons: Ext.Msg.OK
-     });
-    });
 
 /****************************************
  * Filesystem Button EventHandler
@@ -1354,8 +1344,7 @@ webmp3.playingbar = new Ext.Toolbar({
         baseParams:{action: "getCurStatus"},
         reader: new Ext.data.JsonReader({
             root: 'results',
-            totalProperty: 'total',
-            id: 'id'
+            totalProperty: 'total'
         },[
             {name: 'artist',  mapping: 'artist',   type: 'string'},
             {name: 'album',   mapping: 'album',    type: 'string'},
@@ -1387,6 +1376,98 @@ webmp3.playingbar = new Ext.Toolbar({
 
         }
     });
+
+/****************************************
+ * Hitlist
+ ***************************************/
+    webmp3.HitlistDataStore = new Ext.data.Store({
+        id: 'HitlistDataStore',
+        autoLoad: false,
+        proxy: new Ext.data.HttpProxy({
+                url: 'webmp3.php',
+                method: 'POST'
+        }),
+        baseParams:{action: "getHitlist"},
+        reader: new Ext.data.JsonReader({
+            root: 'results',
+            totalProperty: 'total'
+        },[
+            {name: 'nr',     mapping: 'nr',     type: 'int'},
+            {name: 'file',   mapping: 'file',   type: 'string'},
+            {name: 'count',  mapping: 'count',  type: 'int'}
+        ]),
+        listeners: {
+            loadexception: function(o, arg, e){
+                var exception = e.status+' ' +e.statusText+': ' + e.responseText;
+                webmp3.fireException(this, exception);
+            }
+
+        }
+    });
+
+    webmp3.hitlistColModel = new Ext.grid.ColumnModel([
+       {header: " ",    menuDisabled: true, dataIndex: 'nr',    width:10 },
+       {header: "#",    menuDisabled: true, dataIndex: 'count', width:10 },
+       {header: "File", menuDisabled: true, dataIndex: 'file'            }
+    ]);
+
+    webmp3.hitlistGrid = new Ext.grid.GridPanel({
+        cm: webmp3.hitlistColModel,
+        store: webmp3.HitlistDataStore,
+        viewConfig: {
+            forceFit: true
+        },
+        listeners: {
+            celldblclick: function(grid, rowIndex, columnIndex, e) {
+            }
+        },
+        width: 600,
+        height:550,
+        bbar: [
+          new Ext.PagingToolbar({
+            pageSize: 20,
+            autoHeight: true,
+            width: '600',
+            hideParent: true,
+            store: webmp3.HitlistDataStore,
+            displayInfo: true,
+            id: 'webmp3.hitlistPagingToolbar'
+          })
+        ],
+        listeners: {
+            rowdblclick : function ( grid, rowIndex, event ) {
+                                var file = webmp3.HitlistDataStore.getAt(rowIndex).get('file');
+                                webmp3.PlaylistDataStore.load({
+                                        url: 'webmp3.php',
+                                        params: 'action=getPlaylist&add[]=' + webmp3.urlencode(file),
+                                        text: 'added tack nr. ' + rowIndex
+                                });
+            }
+        }
+    });
+    webmp3.hitlistWindow = new Ext.Window({
+        title: "Hitlist",
+        height: '550',
+        width: '600',
+        buttonAlign: 'center',
+        layout:'fit',
+        closeAction: 'hide',
+        items: [ webmp3.hitlistGrid ],
+        buttons: [
+                  {
+                    text: 'Close',
+                    id: 'hitlistWindowCloseBtn'
+                  }
+              ]
+    });
+    Ext.get('hitlistBtn').on("click", function(button, event) {
+      webmp3.HitlistDataStore.load();
+      webmp3.hitlistWindow.show();
+    });
+    Ext.ComponentMgr.get('hitlistWindowCloseBtn').on("click", function(button, event) {
+      webmp3.hitlistWindow.hide();
+    });
+
 
 /****************************************
  * Initialization

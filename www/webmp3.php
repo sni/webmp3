@@ -48,7 +48,6 @@ include("include/Action.php");
 # action_loadPl()
 # action_doLoad()
 # action_doDelete()
-# action_hitlist()
 # action_clearHitlist()
 # action_updateTagCache()
 #
@@ -57,6 +56,7 @@ include("include/Action.php");
 # action_setToggle()
 # action_getPath()
 # action_addPlaylist()
+# action_getHitlist()
 #
 #################################################################
 
@@ -340,51 +340,6 @@ function action_doDelete()
 
 #################################################################
 
-function action_hitlist()
-{
-    global $config;
-
-    $songs = file($config["hitlist"]) or die("cannot open hitlist file");
-
-    $hitlist = array();
-    foreach($songs as $song) {
-        list($num, $track) = explode(",", $song);
-        $hitlist[$num][] = $track;
-    }
-    krsort($hitlist);
-
-    $newHitlist = array();
-    $x = 1;
-    foreach($hitlist as $num => $tracks) {
-
-        foreach($tracks as $track) {
-            if((!isset($_GET["view"]) OR $_GET["view"] != "all") AND  $x > 20) { break; }
-            $newHitlist[] = array(
-                "name"  => str_replace($config["searchPath"], "", $track),
-                "num"   => $num,
-                "x"     => $x,
-            );
-            $x++;
-        }
-    }
-
-    $reload = "";
-    if(isset($_GET["reload"]) AND $_GET["reload"] == 1) {
-        $reload = " onLoad='window.opener.location.reload()'";
-    }
-
-    $t = new template();
-    $t -> main("hitlist.tpl");
-    $t -> code(array(
-        "hitlist"  => $newHitlist,
-        "reload"   => $reload,
-    ));
-    $temp = $t -> return_template();
-    print $temp;
-}
-
-#################################################################
-
 function action_clearHitlist()
 {
     $data = getData();
@@ -564,9 +519,11 @@ function action_getPlaylist()
                 doPrint("added file ".$aktPath."/".$file);
                 $data["playlist"] = playlistAdd($data["playlist"], $config["searchPath"].$aktPath."/".$file);
             }
-            if(strpos($file, "http://") === 0) {
+            elseif(strpos($file, "http://") === 0) {
                 doPrint("added stream ".$file);
                 $data["playlist"] = playlistAdd($data["playlist"], $file);
+            } else {
+              doPrint("action_getPlaylist(): dont know what to do with: ".$config["searchPath"].$aktPath."/".$file);
             }
         }
         $data = recalcTotalPlaytime($data);
@@ -865,6 +822,51 @@ function action_getCurStatus()
 
     $jsonstatus = json_encode($status);
     echo '({"total":"'.count($status).'","results":'.$jsonstatus.'})';
+}
+
+#################################################################
+
+function action_getHitlist()
+{
+    global $config;
+    #doPrint($_REQUEST);
+
+    $start = 0;
+    $limit = 20;
+    if(isset($_REQUEST['start']) AND is_numeric($_REQUEST['start'])) { $start = $_REQUEST['start']; }
+    if(isset($_REQUEST['limit']) AND is_numeric($_REQUEST['limit'])) { $limit = $_REQUEST['limit']; }
+    doPrint("got json hitlist request (".$start."/".$limit.")");
+
+
+    $songs = file($config["hitlist"]) or die("cannot open hitlist file");
+    $hitlist = array();
+    foreach($songs as $song) {
+        list($num, $track) = explode(",", $song);
+        $hitlist[$num][] = $track;
+    }
+    krsort($hitlist);
+
+    $newHitlist = array();
+    $x = 1;
+    foreach($hitlist as $num => $tracks) {
+        foreach($tracks as $track) {
+            $newHitlist[] = array(
+                "nr"    => $x,
+                "file"  => $track,
+                "count" => $num,
+            );
+            $x++;
+        }
+    }
+    $count = count($newHitlist);
+    $newHitlist = array_slice($newHitlist, $start, $limit);
+
+    if(count($newHitlist) > 0) {
+        $data = json_encode($newHitlist);
+        echo '({"total":"'.$count.'","results":'.$data.'})';
+    } else {
+        echo '({"total":"0", "results":""})';
+    }
 }
 
 #################################################################

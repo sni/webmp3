@@ -544,6 +544,8 @@ function addFileToHitlist($file)
 {
     global $config;
 
+    $file = str_replace($config['searchPath'], "", $file);
+
     # read data
     if(!file_exists($config["hitlist"])) {
       $tmp = array();
