@@ -159,8 +159,8 @@ Ext.onReady(function(){
             remSec.innerHTML = pre_s+remSec.innerHTML;
             remMin.innerHTML = remMin.innerHTML;
 
-            if(remMin.innerHTML < 0) {
-                window.setTimeout(webmp3.PlaylistDataStore.load,1000);
+            if(remMin.innerHTML < 0 || remMin.innerHTML < 0) {
+                window.setTimeout(webmp3.refreshPlaylist,2000);
             }
         }
         window.setTimeout(webmp3.updateTime, 999);
@@ -586,14 +586,14 @@ webmp3.playingbar = new Ext.Toolbar({
         items: [{
             height: 120,
             width: 120,
-            html: '<a href="#"><img border="0" id="playPic" src="webmp3.php?action=pic&token='+webmp3.token+'"><\/a>',
+            html: '<a href="#" onClick="return(false);"><img border="0" id="playPic" src="webmp3.php?action=pic&token='+webmp3.token+'"><\/a>',
             rowspan: 4
         },{
             items: [webmp3.navtoolbar]
         },{
             height: 120,
             width: 120,
-            html: '<a href="#"><img border="0" id="filePic" src="webmp3.php?action=pic&pic='+webmp3.aktPath+'"><\/a>',
+            html: '<a href="#" onClick="return(false);"><img border="0" id="filePic" src="webmp3.php?action=pic&pic='+webmp3.aktPath+'"><\/a>',
             rowspan: 4
         },{
             items: [webmp3.statusbar]
