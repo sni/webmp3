@@ -480,14 +480,16 @@ webmp3.titlebar = new Ext.Toolbar({
                 }, ' ', {
                     xtype: 'label',
                     html: '<!--php: artist -->',
-                    id: 'artistText'
+                    id: 'artistText',
+                    width: 80
                 }, '-', {
                     xtype: 'tbtext',
                     text: 'Album:'
                 }, ' ', {
                     xtype: 'label',
                     html: '<!--php: album -->',
-                    id: 'albumText'
+                    id: 'albumText',
+                    width: 80
                 }, '-', {
                     xtype: 'tbtext',
                     text: 'Track:'
@@ -538,6 +540,11 @@ webmp3.statusbar = new Ext.Toolbar({
     style: 'vertical-align: middle',
     items: [
                 {
+                    tooltip: 'Refresh status information',
+                    cls: 'x-btn-icon',
+                    id: 'refreshBtn',
+                    icon: 'images/reload.png'
+                }, '-', {
                     xtype: 'tbtext',
                     text: 'Status:'
                 }, '-', {
@@ -555,9 +562,8 @@ webmp3.playingbar = new Ext.Toolbar({
     margins: '0 0 0 0',
     items: [
                 {
-                    text: 'Info',
                     tooltip: 'Information about this application',
-                    cls: 'x-btn-text-icon',
+                    cls: 'x-btn-icon',
                     id: 'infoBtn',
                     icon: 'images/information.png'
                 }, '-', {
@@ -1132,6 +1138,9 @@ webmp3.playingbar = new Ext.Toolbar({
       webmp3.removeFromPlaylist();
     });
 
+    Ext.get('refreshBtn').on("click", function(button, event) {
+        webmp3.PlaylistDataStore.load();
+    });
     Ext.get('infoBtn').on("click", function(button, event) {
         Ext.Msg.show({
           title:'About WebMP3',
@@ -1140,7 +1149,6 @@ webmp3.playingbar = new Ext.Toolbar({
           buttons: Ext.Msg.OK
         });
         webmp3.PlaylistDataStore.load();
-        //webmp3.refreshStatusStore();
     });
     Ext.get('nextBtn').on("click", function(button, event) {
         token = webmp3.token;
