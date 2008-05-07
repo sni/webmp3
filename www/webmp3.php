@@ -801,8 +801,12 @@ function action_getCurStatus()
     $data = getData();
     $data = fillInDefaults($data);
 
-    $version = '$Id$';
-    $version = str_replace("webmp3.php", "WebMP3", $version);
+    # get client version
+    $client = join("", file("include/templates/webmp3.tpl"));
+    $pos1   = strpos($client, '$Id:', $client);
+    $pos2   = strpos($client, '$', $pos1 + 1);
+    $pos2   = $pos2 + 1;
+    $version = str_replace("webmp3.tpl", "WebMP3", substr($client, $pos1, $pos2 - $pos1));
 
     $text = "idle";
     if(isset($data['ppid'])) {
@@ -820,7 +824,7 @@ function action_getCurStatus()
 
     list($remMin, $remSec, $remaining, $stream, $started) = getRemaining($data);
     $pre = "-";
-    if($stream) {
+    if($stream == 1) {
       $pre = "";
     }
 
