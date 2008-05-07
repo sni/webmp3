@@ -546,6 +546,13 @@ function addFileToHitlist($file)
 
     $file = str_replace($config['searchPath'], "", $file);
 
+    # add leading / when its not a stream
+    if(strpos($file, "http://") === false) {
+      if(strpos($file, "/") !== 0) {
+          $file = "/".$file;
+      }
+    }
+
     # read data
     if(!file_exists($config["hitlist"])) {
       $tmp = array();
@@ -557,7 +564,7 @@ function addFileToHitlist($file)
         $row = trim($row);
         if(!empty($row)) {
             $blah = explode(",", $row, 2);
-            if(isset($blah[0]) AND is_numeric($blah[0]) AND isset($blah[1])) {
+            if(isset($blah[0]) AND is_numeric($blah[0]) AND isset($blah[1]) and !empty($blah[1])) {
                 $mostPlayed[$blah[1]] = $blah[0];
             }
         }

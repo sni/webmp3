@@ -18,7 +18,7 @@
 #
 #################################################################
 #
-# $Id:$
+# $Id$
 #
 #################################################################
 
@@ -76,7 +76,12 @@ function action_default()
         $tmpDisp = str_replace(';', '', $tmpDisp);
         $tmp = str_replace("%T", $tmpDisp, $tmp);
         doPrint("notify: ".$tmp);
-        system($tmp);
+        $output = "";
+        $rc     = 0;
+        exec($tmp, $output, $rc);
+        if($rc != 0) {
+          doPrint("notify failed: ".$output);
+        }
     }
 
     $data["ppid"] = getmypid();
