@@ -1306,7 +1306,7 @@ webmp3.playingbar = new Ext.Toolbar({
       var artist = "";
       if(index >= 0) {
         album  = webmp3.PlaylistDataStore.getAt(index).get('album');
-        artist = webmp3.PlaylistDataStore.getAt(index).get('album');
+        artist = webmp3.PlaylistDataStore.getAt(index).get('artist');
       }
       webmp3.showPictureWindow(document.getElementById('playPic').src, artist+' - '+album);
     });
