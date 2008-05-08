@@ -530,7 +530,7 @@ function recalcTotalPlaytime($data)
     $totalSeconds = $totalSeconds%60;
 
     if($totalHours > 0)   { $totalTime .= $totalHours.":"; }
-    if($totalMinutes > 0) { $totalTime .= sprintf("%02s", $totalMinutes).":"; }
+    $totalTime .= sprintf("%02s", $totalMinutes).":";
     $totalTime .= sprintf("%02s", $totalSeconds);
 
     $data["totalTime"] = $totalTime;

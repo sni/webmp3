@@ -32,7 +32,7 @@
   <meta name="copyright" content="Sven Nierlein">
   <meta name="description" content="">
   <meta name="keywords" content="">
-  <link rel="stylesheet" href="images/webmp3.css">
+  <link rel="stylesheet" type="text/css" href="images/webmp3.css">
   <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico">
   <title><!--php: pageTitle --></title>
     <script type="text/javascript" src="include/extjs/ext-base.js"></script>
@@ -42,7 +42,6 @@
 </head>
 <body>
 <div id="viewport"></div>
-
 <script type="text/javascript">
 <!--
 
@@ -59,12 +58,27 @@ Ext.onReady(function(){
     webmp3.lastHighlightedToken = "";
     webmp3.lastSearch           = "";
     webmp3.taskDelay            = new Ext.util.DelayedTask();
+    webmp3.disablePlayMask      = false;
+    webmp3.pathButtons          = new Array();
 
     webmp3.version              = webmp3.version.replace("webmp3.tpl", "WebMP3");
 
 /****************************************
  * Functions
  ***************************************/
+
+  webmp3.pathClickHandler = function(button, event) {
+    webmp3.FilesystemDataStore.load({
+      url: 'webmp3.php',
+      params: 'action=getFilesystem&aktPath=/&append='+webmp3.urlencode(button.initialConfig.tooltip),
+      text: 'loading files for '+record.get('file')
+    });
+    Ext.ComponentMgr.get('filesearch').reset();
+    Ext.ComponentMgr.get('filesearch').triggers[0].hide();
+    webmp3.fileGrid.getBottomToolbar().hide();
+    webmp3.fileGrid.syncSize();
+    webmp3.border.doLayout();
+  }
 
   webmp3.fireException = function(el ,exception) {
     if(webmp3.lastexception != exception) {
@@ -110,6 +124,7 @@ Ext.onReady(function(){
         now=new Date();
         diff_time = now.getTime() - webmp3.lastStatusUpdate.getTime();
         if(diff_time > 300000) {
+            webmp3.disablePlayMask = true;
             webmp3.PlaylistDataStore.load();
         }
 
@@ -120,7 +135,7 @@ Ext.onReady(function(){
 
         if(webmp3.stream == true) {
             // playing stream
-            preMin.innerHTML = "";
+            preMin.innerHTML = " ";
 
             sec = new Number(remSec.innerHTML) + 1;
             min = new Number(remMin.innerHTML);
@@ -134,16 +149,25 @@ Ext.onReady(function(){
             remMin.innerHTML = min;
         } else {
             // playing file
-            preMin.innerHTML = "-";
+            if((remSec.innerHTML == "" || remMin.innerHTML  == "") || (remSec.innerHTML == "01" && remMin.innerHTML  == "0")) {
+              preMin.innerHTML = " ";
+            } else {
+              preMin.innerHTML = "-";
+            }
 
-            if(remSec.innerHTML == 1 && remMin.innerHTML == "0") {
-                window.setTimeout(webmp3.refreshPlaylist,1000);
+            if(remSec.innerHTML == "01" && remMin.innerHTML == "0") {
+                webmp3.disablePlayMask = true;
+                window.setTimeout(webmp3.refreshPlaylist,2000);
                 remSec.innerHTML = "";
                 remMin.innerHTML = "";
                 window.setTimeout(webmp3.updateTime, 999);
                 return(0);
             }
             if(remSec.innerHTML == "" && remMin.innerHTML == "") {
+                window.setTimeout(webmp3.updateTime, 999);
+                return(0);
+            }
+            if(remSec.innerHTML == "00" && remMin.innerHTML == "0") {
                 window.setTimeout(webmp3.updateTime, 999);
                 return(0);
             }
@@ -158,10 +182,6 @@ Ext.onReady(function(){
             pre_s=((remSec.innerHTML<10)?"0":"");
             remSec.innerHTML = pre_s+remSec.innerHTML;
             remMin.innerHTML = remMin.innerHTML;
-
-            if(remMin.innerHTML < 0 || remMin.innerHTML < 0) {
-                window.setTimeout(webmp3.refreshPlaylist,2000);
-            }
         }
         window.setTimeout(webmp3.updateTime, 999);
     }
@@ -194,6 +214,18 @@ Ext.onReady(function(){
         }
         document.getElementById('playPic').src = 'webmp3.php?action=pic&token='+webmp3.token;
     }
+
+    webmp3.ucFirst = function(s) {
+      var words   = s.split(" ");
+      var newWord = "";
+      for(i=0;i<words.length;i++) {
+        word = words[i];
+        newWord = newWord + word.substr(0,1).toUpperCase() + word.substr(1,word.length).toLowerCase() + " ";
+      }
+      newWord = newWord.substr(0,newWord.length -1);
+      return(newWord);
+    };
+
 
     webmp3.refreshStatusData = function() {
         record = webmp3.StatusDataStore.getAt(0);
@@ -236,21 +268,20 @@ Ext.onReady(function(){
         Ext.ComponentMgr.get('quietBtn').toggle(record.get('quiet'));
         webmp3.noTogggleEvents = 0;
 
-        // set status text
-        document.getElementById('statusbar').innerHTML = record.get('status');
-
         // set current track data
-        artist = record.get('artist');
-        wikilink = '<a href="http://en.wikipedia.org/wiki/'+artist.replace(" ", "_")+'" target="_blank">'+artist+'<\/a>';
+        artist = webmp3.ucFirst(record.get('artist'));
+        wikilink = '&nbsp;<a href="http://en.wikipedia.org/wiki/'+artist.replace(" ", "_")+'" target="_blank">'+artist+'<\/a>';
         document.getElementById('artistText').innerHTML = wikilink;
-        document.getElementById('albumText').innerHTML = record.get('album');
-        document.getElementById('trackText').innerHTML = record.get('nr');
-        document.getElementById('titleText').innerHTML = record.get('title');
+        document.getElementById('albumText').innerHTML = "&nbsp;" + record.get('album');
+        document.getElementById('trackText').innerHTML = "&nbsp;" + record.get('nr');
+        document.getElementById('titleText').innerHTML = "&nbsp;" + record.get('title');
 
         document.getElementById('remMin').innerHTML = record.get('remMin');
         document.getElementById('remSec').innerHTML = record.get('remSec');
         document.getElementById('pre').innerHTML = record.get('pre');
 
+        // set total play time
+        webmp3.playlistGrid.setTitle("Playlist  -  Files: "+webmp3.PlaylistDataStore.getTotalCount()+"  -  Total: " + record.get('totalTime'));
 
         // set volume
         webmp3.sliderInit = 1;
@@ -280,6 +311,9 @@ Ext.onReady(function(){
         });
     }
     webmp3.refreshPlaylist = function() {
+        if(webmp3.disablePlayMask == true) {
+          webmp3.playlistLoadingMask.disable();
+        }
         webmp3.PlaylistDataStore.load();
     }
 
@@ -290,8 +324,7 @@ Ext.onReady(function(){
         {
             files = files + "&add[]=" + webmp3.urlencode(selects[i].get('file'));
         }
-        aktPath = Ext.util.Format.stripTags(document.getElementById('filestatus').innerHTML);
-        aktPath = webmp3.urlencode(aktPath);
+        aktPath = webmp3.urlencode(webmp3.aktPath);
         webmp3.PlaylistDataStore.load({
             url: 'webmp3.php',
             params: 'action=getPlaylist&aktPath=' + aktPath + files,
@@ -480,22 +513,23 @@ webmp3.titlebar = new Ext.Toolbar({
                 }, ' ', {
                     xtype: 'label',
                     html: '<!--php: artist -->',
-                    id: 'artistText',
-                    width: 80
+                    width: 150,
+                    id: 'artistText'
                 }, '-', {
                     xtype: 'tbtext',
                     text: 'Album:'
                 }, ' ', {
                     xtype: 'label',
                     html: '<!--php: album -->',
-                    id: 'albumText',
-                    width: 80
+                    width: 150,
+                    id: 'albumText'
                 }, '-', {
                     xtype: 'tbtext',
                     text: 'Track:'
                 }, ' ', {
                     xtype: 'label',
                     text: '<!--php: track -->',
+                    width: 150,
                     id: 'trackText'
                 }, '-', {
                     xtype: 'tbtext',
@@ -503,6 +537,7 @@ webmp3.titlebar = new Ext.Toolbar({
                 }, ' ', {
                     xtype: 'label',
                     html: '<!--php: title -->',
+                    width: 150,
                     id: 'titleText'
                 }, '-' ,{
                     xtype: 'tbtext',
@@ -568,7 +603,7 @@ webmp3.playingbar = new Ext.Toolbar({
                     icon: 'images/information.png'
                 }, '-', {
                     xtype: 'panel',
-                    html: '',
+                    text: '',
                     border: false,
                     id: 'statusbar'
                 }
@@ -638,6 +673,7 @@ webmp3.playingbar = new Ext.Toolbar({
             load: function(store, records, options) {
                       webmp3.highlightCurrentSong();
                       webmp3.refreshStatusStore();
+                      webmp3.playlistLoadingMask.enable();
                   },
             loadexception: function(o, arg, e){
                 var exception = e.status+' ' +e.statusText+': ' + e.responseText;
@@ -719,7 +755,7 @@ webmp3.playingbar = new Ext.Toolbar({
             webmp3.e    = e;
             var selects = data.selections;
             var files   = "";
-            if(data.grid.title == "Playlist") {
+            if(data.grid.id == "playlistGrid") {
               // drag&drop in our playlist
               var ds = webmp3.PlaylistDataStore;
               var rows=webmp3.psm.getSelections();
@@ -762,7 +798,7 @@ webmp3.playingbar = new Ext.Toolbar({
               if(files != "") {
                 webmp3.PlaylistDataStore.load({
                     url: 'webmp3.php',
-                    params: 'action=getPlaylist&aktPath=' + webmp3.urlencode(Ext.util.Format.stripTags(document.getElementById('filestatus').innerHTML)) + files,
+                    params: 'action=getPlaylist&aktPath=' + webmp3.urlencode(webmp3.aktPath) + files,
                     text: 'added files to playlist'
                 });
               }
@@ -791,6 +827,9 @@ webmp3.playingbar = new Ext.Toolbar({
         margins: '5 0 0 0',
         store: webmp3.PlaylistDataStore,
         cm: webmp3.playlistColModel,
+        //loadMask: {
+        //  store: webmp3.PlaylistDataStore
+        //},
         title: 'Playlist',
         width: 500,
         height:400,
@@ -834,7 +873,26 @@ webmp3.playingbar = new Ext.Toolbar({
                   }, '-',{
                     text: 'Playlist',
                     tooltip: 'Playlist Actions',
-                    id: 'playlistBtn'
+                    handler: webmp3.playlistMenuHandler,
+                    menu:{
+                          id: 'playlistMenu',
+                          items: [
+                            {
+                              text: 'Load',
+                              icon: 'images/folder_go.png',
+                              menu: { items: [
+                                      { text: 'File 1' },
+                                      { text: 'File 2' },
+                                      { text: 'File 3' }
+                              ]}
+                            },
+                            {
+                              xtype: 'button',
+                              text: 'Save',
+                              cls: 'x-btn-text-icon',
+                              icon: 'images/disk.png'
+                            },
+                            ]}
                   }, '-',{
                     text: 'Hitlist',
                     tooltip: 'Hitlist',
@@ -867,6 +925,7 @@ webmp3.playingbar = new Ext.Toolbar({
             }
         }
     });
+
 /****************************************
  * Filesystem Searchfield
  ***************************************/
@@ -911,7 +970,6 @@ webmp3.playingbar = new Ext.Toolbar({
         },
 
         onTrigger2Click : function(){
-            document.getElementById('filestatus').innerHTML = "";
             webmp3.aktPath = "";
             var v = this.getRawValue();
             if(v.length < 1){
@@ -989,6 +1047,46 @@ webmp3.playingbar = new Ext.Toolbar({
             {name: 'icon',    mapping: 'icon',    type: 'string'}
         ]),
         listeners: {
+            load: function(store, records, options) {
+                record = store.getAt(0);
+                webmp3.aktPath = record.get('file');
+                store.remove(record);
+                document.getElementById('statustext').innerHTML = "change path to " + webmp3.aktPath;
+                // remove old buttons
+                if(Ext.ComponentMgr.get('pathButton')) {
+                  Ext.ComponentMgr.get('pathButton').destroy();
+                }
+                for(i=0;i<webmp3.pathButtons.length;i++) {
+                  if(webmp3.pathButtons[i]) {
+                    Ext.ComponentMgr.get(webmp3.pathButtons[i]).destroy();
+                  }
+                }
+                webmp3.pathButtons = new Array();
+
+                // add new buttons
+                webmp3.fileGrid.getTopToolbar().addButton({
+                  text: '/',
+                  tooltip: '/',
+                  handler: webmp3.pathClickHandler,
+                  id: 'pathButton'
+                });
+                var tmpPath   = "/";
+                var allPaths  = webmp3.aktPath.split("/");
+                for(i=0;i<allPaths.length;i++) {
+                  path = allPaths[i];
+                  if(!Ext.isEmpty(path)) {
+                    tmpPath   += path+"/";
+                    btn = new Ext.Toolbar.Button({
+                      text: path + "/",
+                      tooltip: tmpPath,
+                      handler: webmp3.pathClickHandler,
+                      id: 'pathButton-'+i
+                    });
+                    webmp3.pathButtons[i] = 'pathButton-'+i;
+                    webmp3.fileGrid.getTopToolbar().add(btn);
+                  }
+                }
+            },
             loadexception: function(o, arg, e){
                 var exception = e.status+' ' +e.statusText+': ' + e.responseText;
                 webmp3.fireException(this, exception);
@@ -1015,18 +1113,10 @@ webmp3.playingbar = new Ext.Toolbar({
         },
         listeners: {
             celldblclick: function(grid, rowIndex, columnIndex, e) {
-                var record = grid.getStore().getAt(rowIndex);  // Get the Record
-                var fieldName = grid.getColumnModel().getDataIndex(columnIndex); // Get field name
-                //var data = record.get(fieldName);
+                var record = grid.getStore().getAt(rowIndex);
+                var fieldName = grid.getColumnModel().getDataIndex(columnIndex);
                 var data = record.get('file');
-                var filestatus = Ext.get('filestatus');
-                webmp3.aktPath = Ext.util.Format.stripTags(document.getElementById('filestatus').innerHTML);
                 updateFilePic(record.get('file'));
-                filestatus.load({
-                    url: 'webmp3.php',
-                    params: 'action=getPath&aktPath=' + webmp3.aktPath + '&append=' + record.get('file'),
-                    text: 'loading files for '+record.get('file')
-                });
                 if(record.get('type') == "D") {
                     webmp3.FilesystemDataStore.load({
                         url: 'webmp3.php',
@@ -1063,7 +1153,8 @@ webmp3.playingbar = new Ext.Toolbar({
                   new webmp3.SearchField({
                                         store: webmp3.FilesystemDataStore,
                                                         params: {start: 0, limit: 15},
-                                        width: 80
+                                        width: 80,
+                                        id: 'filesearch'
                             }),
                   ' ', '-', ' ', {
                     xtype: 'panel',
@@ -1108,6 +1199,13 @@ webmp3.playingbar = new Ext.Toolbar({
     });
 
 /****************************************
+ * Playlist Loading Mask
+ ***************************************/
+  webmp3.playlistLoadingMask = new Ext.LoadMask('playlistGrid', {
+    store: webmp3.PlaylistDataStore
+  });
+
+/****************************************
  * Playlist Button EventHandler
  ***************************************/
     Ext.get('clearBtn').on("click", function(button, event) {
@@ -1137,7 +1235,7 @@ webmp3.playingbar = new Ext.Toolbar({
     });
 
     Ext.get('refreshBtn').on("click", function(button, event) {
-        webmp3.PlaylistDataStore.load();
+      webmp3.refreshPlaylist();
     });
     Ext.get('infoBtn').on("click", function(button, event) {
         Ext.Msg.show({
@@ -1311,17 +1409,7 @@ webmp3.playingbar = new Ext.Toolbar({
       webmp3.showPictureWindow(document.getElementById('playPic').src, artist+' - '+album);
     });
     Ext.get('filePic').on("click", function(button, event) {
-      webmp3.aktPath = Ext.util.Format.stripTags(document.getElementById('filestatus').innerHTML);
       webmp3.showPictureWindow(document.getElementById('filePic').src, webmp3.aktPath);
-    });
-
-    Ext.get('playlistBtn').on("click", function(button, event) {
-      Ext.Msg.show({
-        title:'Information',
-        msg: "Not implemented yet",
-        icon: Ext.MessageBox.INFO,
-        buttons: Ext.Msg.OK
-     });
     });
 
 /****************************************
@@ -1346,24 +1434,25 @@ webmp3.playingbar = new Ext.Toolbar({
             root: 'results',
             totalProperty: 'total'
         },[
-            {name: 'artist',  mapping: 'artist',   type: 'string'},
-            {name: 'album',   mapping: 'album',    type: 'string'},
-            {name: 'nr',      mapping: 'nr',       type: 'string'},
-            {name: 'title',   mapping: 'title',    type: 'string'},
-            {name: 'length',  mapping: 'length',   type: 'string'},
-            {name: 'token',   mapping: 'token',    type: 'string'},
-            {name: 'volume',  mapping: 'volume',   type: 'int'},
-            {name: 'status',  mapping: 'status',   type: 'string'},
-            {name: 'remMin',  mapping: 'remMin',   type: 'string'},
-            {name: 'remSec',  mapping: 'remSec',   type: 'string'},
-            {name: 'pre',     mapping: 'pre',      type: 'string'},
-            {name: 'play',    mapping: 'play',     type: 'int'},
-            {name: 'pause',   mapping: 'pause',    type: 'int'},
-            {name: 'repeat',  mapping: 'repeat',   type: 'int'},
-            {name: 'mute',    mapping: 'mute',     type: 'int'},
-            {name: 'quiet',   mapping: 'quiet',    type: 'int'},
-            {name: 'stream',  mapping: 'stream',   type: 'int'},
-            {name: 'version', mapping: 'version',  type: 'string'}
+            {name: 'artist',    mapping: 'artist',    type: 'string'},
+            {name: 'album',     mapping: 'album',     type: 'string'},
+            {name: 'nr',        mapping: 'nr',        type: 'string'},
+            {name: 'title',     mapping: 'title',     type: 'string'},
+            {name: 'length',    mapping: 'length',    type: 'string'},
+            {name: 'token',     mapping: 'token',     type: 'string'},
+            {name: 'volume',    mapping: 'volume',    type: 'int'},
+            {name: 'status',    mapping: 'status',    type: 'string'},
+            {name: 'remMin',    mapping: 'remMin',    type: 'string'},
+            {name: 'remSec',    mapping: 'remSec',    type: 'string'},
+            {name: 'pre',       mapping: 'pre',       type: 'string'},
+            {name: 'play',      mapping: 'play',      type: 'int'},
+            {name: 'pause',     mapping: 'pause',     type: 'int'},
+            {name: 'repeat',    mapping: 'repeat',    type: 'int'},
+            {name: 'mute',      mapping: 'mute',      type: 'int'},
+            {name: 'quiet',     mapping: 'quiet',     type: 'int'},
+            {name: 'stream',    mapping: 'stream',    type: 'int'},
+            {name: 'version',   mapping: 'version',   type: 'string'},
+            {name: 'totalTime', mapping: 'totalTime', type: 'string'}
         ]),
         listeners: {
             load: function(store, records, options) {
@@ -1468,7 +1557,6 @@ webmp3.playingbar = new Ext.Toolbar({
       webmp3.hitlistWindow.hide();
     });
 
-
 /****************************************
  * Initialization
  ***************************************/
@@ -1486,5 +1574,8 @@ webmp3.playingbar = new Ext.Toolbar({
 });
 -->
 </script>
+<noscript>
+  WebMP3 only works with enabled JavaScript
+</noscript>
 </body>
 </html>

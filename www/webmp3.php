@@ -469,6 +469,9 @@ function action_getFilesystem()
         $filesystem[] = array("file" => $file, "type" => "F", "icon" => "images/music.png");
     }
 
+    # add aktPath Info
+    array_unshift($filesystem, array("file" => $aktPath,  "type" => "A", "icon" => ""));
+
     if(!isset($count)) {
         $count = count($filesystem);
     }
@@ -781,29 +784,30 @@ function action_getCurStatus()
 
     list($remMin, $remSec, $remaining, $stream, $started) = getRemaining($data);
     $pre = "-";
-    if($stream == 1) {
-      $pre = "";
+    if($stream == 1 or (empty($remSec) and empty($remMin))) {
+      $pre = " ";
     }
 
     $status[] = array(
-            'artist'  => $data['artist'],
-            'album'   => $data['album'],
-            'nr'      => $data['track'],
-            'title'   => $data['title'],
-            'length'  => $data['length'],
-            'token'   => $data['token'],
-            'volume'  => getVolume(),
-            'status'  => $text,
-            'remMin'  => $remMin,
-            'remSec'  => $remSec,
-            'pre'     => $pre,
-            'play'    => $data['play'],
-            'pause'   => $data['pause'],
-            'repeat'  => $data['repeat'],
-            'mute'    => $data['mute'],
-            'quiet'   => $data['quiet'],
-            "stream"  => $data['playingStream'],
-            "version" => $version,
+            'artist'    => $data['artist'],
+            'album'     => $data['album'],
+            'nr'        => $data['track'],
+            'title'     => $data['title'],
+            'length'    => $data['length'],
+            'token'     => $data['token'],
+            'volume'    => getVolume(),
+            'status'    => $text,
+            'remMin'    => $remMin,
+            'remSec'    => $remSec,
+            'pre'       => $pre,
+            'play'      => $data['play'],
+            'pause'     => $data['pause'],
+            'repeat'    => $data['repeat'],
+            'mute'      => $data['mute'],
+            'quiet'     => $data['quiet'],
+            'totalTime' => $data['totalTime'],
+            "stream"    => $data['playingStream'],
+            "version"   => $version,
     );
 
     if(isset($_REQUEST['debug'])) {
