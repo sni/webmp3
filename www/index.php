@@ -141,8 +141,9 @@ function action_default()
             $failed = 1;
         } else {
             $vol = getVolume();
-            if(!is_numeric($vol)) {
+            if(isset($config['lastError'])) {
                 print "ERROR: failed to get volume<br>\n";
+                print "ERROR: ".$config['lastError']."<br>\n";
                 print "ERROR: please check your aumixBin: ".$config["aumixBin"]."<br>\n";
                 print "ERROR: also check if your webserver user is in group audio<br>\n";
                 $failed = 1;
