@@ -29,7 +29,6 @@ error_reporting(2047);
 # getVolume()
 # getData()
 # storeData()
-# redirect()
 # playlistAdd()
 # doPrint()
 # insertSortedInMultiArray()
@@ -117,13 +116,6 @@ function storeData($data) {
         fclose($fp);
         doPrint("wrote data");
     }
-}
-
-#################################################################
-
-function redirect($url)
-{
-    header ("Location: $url");
 }
 
 #################################################################

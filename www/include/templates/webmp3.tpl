@@ -1582,7 +1582,7 @@ webmp3.playingbar = new Ext.Toolbar({
           new Ext.PagingToolbar({
             pageSize: 20,
             autoHeight: true,
-            width: '600',
+            width: '580',
             hideParent: true,
             store: webmp3.HitlistDataStore,
             displayInfo: true,
@@ -1711,7 +1711,7 @@ webmp3.playingbar = new Ext.Toolbar({
           new Ext.PagingToolbar({
             pageSize: 20,
             autoHeight: true,
-            width: '550',
+            width: '580',
             hideParent: true,
             store: webmp3.playlistsLoadDataStore,
             displayInfo: true,
