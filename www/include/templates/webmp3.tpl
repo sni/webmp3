@@ -1333,13 +1333,13 @@ webmp3.playingbar = new Ext.Toolbar({
         closeAction: 'hide',
         buttonAlign: 'center',
         items: [webmp3.streamForm ],
-    buttons: [{
-        text: 'Add',
-        id: 'addStreamAddBtn'
-    },{
-        text: 'Cancel',
-        id: 'addStreamCloseBtn'
-    }]
+        buttons: [{
+            text: 'Add',
+            id: 'addStreamAddBtn'
+        },{
+            text: 'Cancel',
+            id: 'addStreamCloseBtn'
+        }]
     });
 
     Ext.get('addStream').on("click", function(button, event) {
@@ -1371,7 +1371,7 @@ webmp3.playingbar = new Ext.Toolbar({
               xtype: 'panel',
               id: 'picPanel',
               border: false,
-              html: '<img width=120 height=120 id="folderPicHuge" src="'+url+'>',
+              html: '<img width=120 height=120 id="folderPicHuge" src="'+url+'>'
             }],
             buttons: [
                       {
