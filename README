@@ -2,6 +2,7 @@ WebMP3
 
 - installation
 - usage
+- subversion
 - thx
 
 - installation -
@@ -21,6 +22,13 @@ WebMP3
 4. doubleclick in the playlist will play the song
 
 if something is going wrong you should take a look at your logfile (defined in config.php)
+
+- subversion -
+
+1. developement tree
+   you can check out the current developement version with:
+
+   svn co http://svn.nierlein.de/svn/webmp3/trunk
 
 - thx -
 thanks to the guys from extjs (http://extjs.com/products/extjs/)
