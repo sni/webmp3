@@ -294,7 +294,12 @@ function action_getPlaylists()
 
     $list = array();
 
-    if ($handle = opendir($config["plDir"])) {
+    if(!is_dir($config["plDir"])) {
+        echo '({"total":"0", "results":""})';
+        exit;
+    }
+
+    if($handle = opendir($config["plDir"])) {
         while (false !== ($file = readdir($handle))) {
             if (is_file($config["plDir"].$file) AND $file != "." AND $file != "..") {
                 list($fileName,$meta) = split(" - ", $file);
@@ -324,15 +329,24 @@ function action_getPlaylists()
 
 #################################################################
 
-function action_doDelete()
+function action_deletePlaylist()
 {
     global $config;
 
-    $file = $config["plDir"].$_GET["file"];
+    $msg = "playlist not found";
+        doPrint("deleting playlist: ".$_REQUEST["name"]);
+    if(isset($_REQUEST["name"]) AND is_file($config["plDir"].$_REQUEST["name"])) {
+        doPrint("deleting playlist: ".$_REQUEST["name"]);
 
-    unlink($file);
+        if(!preg_match("/\w+ - .*\.playlist/", $_REQUEST["name"])) {
+          doPrint("invalid playlist: ".$_REQUEST["name"]);
+          exit;
+        }
 
-    print "<html><head></head><body><center>file deleted<br><a href='#' onClick='window.close()'>close</a></body></html>";
+        unlink($config["plDir"].$_REQUEST["name"]);
+        $msg = "deleted playlist";
+    }
+    action_getCurStatus($msg);
 }
 
 #################################################################

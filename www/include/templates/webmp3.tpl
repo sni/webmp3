@@ -69,7 +69,6 @@ Ext.onReady(function(){
 
   webmp3.saveToolbarBtnClicker = function() {
     webmp3.savePlaylistWindow.show();
-    webmp3.enterMap.enable();
     Ext.ComponentMgr.get('nameField').setValue('');
     Ext.ComponentMgr.get('nameField').focus(1, 100);
   }
@@ -1298,7 +1297,6 @@ webmp3.playingbar = new Ext.Toolbar({
  * saving playlists
  ***************************************/
   webmp3.savePlaylist = function() {
-    webmp3.enterMap.disable();
     var value=webmp3.urlencode(Ext.ComponentMgr.get('nameField').getValue());
     webmp3.StatusDataStore.load({
         url: 'webmp3.php',
@@ -1351,7 +1349,6 @@ webmp3.playingbar = new Ext.Toolbar({
     });
     Ext.ComponentMgr.get('savePlaylistCloseBtn').on("click", function(button, event) {
       webmp3.savePlaylistWindow.hide();
-      webmp3.enterMap.disable();
     });
 
 /****************************************
@@ -1629,6 +1626,43 @@ webmp3.playingbar = new Ext.Toolbar({
 /****************************************
  * Playlist Load Window
  ***************************************/
+    webmp3.playlistLoadAddRemoveBtn = function(config){
+      Ext.apply(this, config);
+      if(this.rowspan){
+          this.renderer = this.renderer.createDelegate(this);
+      }
+    };
+    webmp3.playlistLoadAddRemoveBtn.prototype = {
+      header: "",
+      width: 23,
+      sortable: false,
+      fixed:true,
+      menuDisabled:true,
+      dataIndex: '',
+      id: 'remove',
+      renderer : function(v, p, record, rowIndex){
+          return "<img src='images/delete.png'>";
+      }
+    };
+    webmp3.playlistLoadAddLoadBtn = function(config){
+      Ext.apply(this, config);
+      if(this.rowspan){
+          this.renderer = this.renderer.createDelegate(this);
+      }
+    };
+    webmp3.playlistLoadAddLoadBtn.prototype = {
+      header: "",
+      width: 23,
+      sortable: false,
+      fixed:true,
+      menuDisabled:true,
+      dataIndex: '',
+      id: 'load',
+      renderer : function(v, p, record, rowIndex){
+          return "<img src='images/folder_go.png'>";
+      }
+    };
+
     webmp3.playlistsLoadDataStore = new Ext.data.Store({
         id: 'PlaylistLoadDataStore',
         autoLoad: false,
@@ -1657,7 +1691,9 @@ webmp3.playingbar = new Ext.Toolbar({
     webmp3.playlistLoadColModel = new Ext.grid.ColumnModel([
        {header: "File", menuDisabled: true, dataIndex: 'file'  },
        {header: "Info", menuDisabled: true, dataIndex: 'info'  },
-       {header: "Date", menuDisabled: true, dataIndex: 'ctime' }
+       {header: "Date", menuDisabled: true, dataIndex: 'ctime' },
+       new webmp3.playlistLoadAddRemoveBtn,
+       new webmp3.playlistLoadAddLoadBtn
     ]);
 
     webmp3.playlistLoadGrid = new Ext.grid.GridPanel({
@@ -1683,17 +1719,48 @@ webmp3.playingbar = new Ext.Toolbar({
           })
         ],
         listeners: {
-            rowdblclick : function ( grid, rowIndex, event ) {
-                                var file = webmp3.playlistsLoadDataStore.getAt(rowIndex).get('file');
-                                var info = webmp3.playlistsLoadDataStore.getAt(rowIndex).get('info')
-                                file = file+" - "+info+".playlist";
-                                webmp3.PlaylistDataStore.load({
-                                        url: 'webmp3.php',
-                                        params: 'action=getPlaylist&loadPlaylist=' + webmp3.urlencode(file),
-                                        text: 'loaded file nr. ' + rowIndex
-                                });
-                                webmp3.playlistLoadWindow.hide();
-            }
+            celldblclick : function ( grid, rowIndex, columnIndex, event ) {
+                                if(columnIndex <= 2) {
+                                  var file = webmp3.playlistsLoadDataStore.getAt(rowIndex).get('file');
+                                  var info = webmp3.playlistsLoadDataStore.getAt(rowIndex).get('info')
+                                  file = file+" - "+info+".playlist";
+                                  webmp3.PlaylistDataStore.load({
+                                          url: 'webmp3.php',
+                                          params: 'action=getPlaylist&loadPlaylist=' + webmp3.urlencode(file),
+                                          text: 'loaded file nr. ' + rowIndex
+                                  });
+                                  webmp3.playlistLoadWindow.hide();
+                                };
+                              },
+            cellclick : function ( grid, rowIndex, columnIndex, event ) {
+                                if(columnIndex == 4) {
+                                  var file = webmp3.playlistsLoadDataStore.getAt(rowIndex).get('file');
+                                  var info = webmp3.playlistsLoadDataStore.getAt(rowIndex).get('info')
+                                  file = file+" - "+info+".playlist";
+                                  webmp3.PlaylistDataStore.load({
+                                          url: 'webmp3.php',
+                                          params: 'action=getPlaylist&loadPlaylist=' + webmp3.urlencode(file),
+                                          text: 'loaded file nr. ' + rowIndex
+                                  });
+                                  webmp3.playlistLoadWindow.hide();
+                                }
+                                if(columnIndex == 3) {
+                                  var file = webmp3.playlistsLoadDataStore.getAt(rowIndex).get('file');
+                                  Ext.Msg.confirm('delete this playlist?', 'really delete '+file+'?', function(btn, text){
+                                    if (btn == 'yes'){
+                                      var file = webmp3.playlistsLoadDataStore.getAt(rowIndex).get('file');
+                                      var info = webmp3.playlistsLoadDataStore.getAt(rowIndex).get('info')
+                                      file = file+" - "+info+".playlist";
+                                      webmp3.StatusDataStore.load({
+                                          url: 'webmp3.php',
+                                          params: 'action=deletePlaylist&name=' + webmp3.urlencode(file),
+                                          text: 'deleting playlist'
+                                      });
+                                      webmp3.playlistsLoadDataStore.load();
+                                    }
+                                  });
+                                }
+                              }
         }
     });
     webmp3.playlistLoadWindow = new Ext.Window({

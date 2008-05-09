@@ -34,13 +34,11 @@ error_reporting(2047);
 # doPrint()
 # insertSortedInMultiArray()
 # sortMultiArray()
-# crossUrlDecode()
 # getPictureForPath()
 # killChild()
 # getNextTrack()
 # recalcTotalPlaytime()
 # addFileToHitlist()
-# getCaller()
 # getTag()
 # formatDateTime()
 # getPath()
@@ -105,8 +103,6 @@ function getData($called = 0, $errMsg = "") {
 
 function storeData($data) {
     global $config;
-
-    getCaller();
 
     if(empty($data) OR !is_array($data) OR count($data) == 0) { die("cannot save nothing"); }
 
@@ -325,53 +321,6 @@ function sortMultiArray($mAr, $col)
 
 #########################################################################################
 
-function crossUrlDecode($source) {
-   $decodedStr = '';
-   $pos = 0;
-   $len = strlen($source);
-
-   while ($pos < $len) {
-       $charAt = substr ($source, $pos, 1);
-       if ($charAt == 'Ã') {
-           $char2 = substr($source, $pos, 2);
-           $decodedStr .= htmlentities(utf8_decode($char2),ENT_QUOTES,'ISO-8859-1');
-           $pos += 2;
-       }
-       elseif(ord($charAt) > 127) {
-           $decodedStr .= "&#".ord($charAt).";";
-           $pos++;
-       }
-       elseif($charAt == '%') {
-           $pos++;
-           $hex2 = substr($source, $pos, 2);
-           $dechex = chr(hexdec($hex2));
-           if($dechex == 'Ã') {
-               $pos += 2;
-               if(substr($source, $pos, 1) == '%') {
-                   $pos++;
-                   $char2a = chr(hexdec(substr($source, $pos, 2)));
-                   $decodedStr .= htmlentities(utf8_decode($dechex . $char2a),ENT_QUOTES,'ISO-8859-1');
-               }
-               else {
-                   $decodedStr .= htmlentities(utf8_decode($dechex));
-               }
-           }
-           else {
-               $decodedStr .= $dechex;
-           }
-           $pos += 2;
-       }
-       else {
-           $decodedStr .= $charAt;
-           $pos++;
-       }
-   }
-
-   return $decodedStr;
-}
-
-#########################################################################################
-
 function getNextTrack($playlist, $token, $repeat = 0)
 {
     if(!is_array($playlist) OR count($playlist) == 0) {
@@ -583,13 +532,6 @@ function addFileToHitlist($file)
         fwrite($fp, $nr.",".$track."\n");
     }
     fclose($fp);
-}
-
-#########################################################################################
-
-function getCaller()
-{
-    $backtrace = debug_backtrace();
 }
 
 #########################################################################################
