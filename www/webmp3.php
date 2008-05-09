@@ -44,17 +44,15 @@ include("include/Action.php");
 # action_default()
 # action_setVolume()
 # action_pic()
-# action_savePl()
-# action_loadPl()
-# action_doLoad()
+# action_savePlaylist()
+# action_getPlaylists()
 # action_doDelete()
-# action_clearHitlist()
 # action_updateTagCache()
-#
 # action_getFilesystem()
 # action_getPlaylist()
 # action_setToggle()
 # action_getPath()
+# action_getCurStatus()
 # action_addPlaylist()
 # action_getHitlist()
 #
@@ -233,21 +231,30 @@ function action_pic() {
 
 #################################################################
 
-function action_savePl()
-{
-    $t = new template();
-    $t -> main("savePl.tpl");
-    $t -> code(array(
-    ));
-    $temp = $t -> return_template();
-    print $temp;
-}
-
-#################################################################
-
-function action_doSave()
+function action_savePlaylist()
 {
     global $config;
+
+    if(!isset($_REQUEST["name"]) OR empty($_REQUEST["name"])) {
+        action_getCurStatus("saving playlist failed");
+        exit;
+    }
+
+    $_REQUEST["name"] = str_replace(".", "", $_REQUEST["name"]);
+    $_REQUEST["name"] = preg_replace("/[^\s\d\w]/", "", $_REQUEST["name"]);
+
+    if(empty($_REQUEST["name"])) {
+        action_getCurStatus("saving playlist failed");
+        exit;
+    }
+
+    doPrint("saving playlist: ".$_REQUEST["name"]);
+    //doPrint($_REQUEST);
+
+    # check if our playlist dir exists
+    if(!file_exists($config["plDir"])) {
+      @mkdir($config["plDir"]);
+    }
 
     $data = getData();
 
@@ -260,69 +267,59 @@ function action_doSave()
         }
     }
 
-    $_POST["name"] .= " ".$data["totalTime"]."min ".count($data["playlist"])." files";
+    $_REQUEST["name"] .= " - ".$data["totalTime"]."min ".count($data["playlist"])." files.playlist";
 
-    $fp = fopen($config["plDir"].$_POST["name"], "a+") or user_error("cannot open file");
+    $saveFile = $config["plDir"]."/".$_REQUEST["name"];
+    $saveFile = preg_replace("/\/+/", "/", $saveFile);
+
+    $fp = fopen($saveFile, "a+") or user_error("cannot open file");
     fputs($fp, $file);
     fclose($fp);
 
-    doPrint("save playlist: ".$_POST["name"]);
-
-    print "<center>saved<br><a href='#' onClick='window.close()'>close</a>";
+    action_getCurStatus("saved playlist to ".$saveFile);
 }
 
 #################################################################
 
-function action_loadPl()
+function action_getPlaylists()
 {
     global $config;
+    #doPrint($_REQUEST);
+
+    $start = 0;
+    $limit = 20;
+    if(isset($_REQUEST['start']) AND is_numeric($_REQUEST['start'])) { $start = $_REQUEST['start']; }
+    if(isset($_REQUEST['limit']) AND is_numeric($_REQUEST['limit'])) { $limit = $_REQUEST['limit']; }
+    doPrint("got json playlist load request (".$start."/".$limit.")");
+
     $list = array();
 
     if ($handle = opendir($config["plDir"])) {
         while (false !== ($file = readdir($handle))) {
             if (is_file($config["plDir"].$file) AND $file != "." AND $file != "..") {
-                $list[] = array(
-                            "name"  => $file,
+                list($fileName,$meta) = split(" - ", $file);
+                $meta = str_replace(".playlist", "", $meta);
+                $list[$fileName] = array(
+                            "file"  => $fileName,
+                            "info"  => $meta,
                             "ctime" => date("d:m:Y H:i", filectime($config["plDir"].$file)),
                 );
             }
         }
         closedir($handle);
     }
+    ksort($list);
+    $list = array_values($list);
 
-    $t = new template();
-    $t -> main("loadPl.tpl");
-    $t -> code(array(
-        "list"  => $list,
-    ));
-    $temp = $t -> return_template();
-    print $temp;
-}
+    $count = count($list);
+    $list = array_slice($list, $start, $limit);
 
-#################################################################
-
-function action_doLoad()
-{
-    global $config;
-
-    if(!is_file($config["plDir"].$_GET["file"])) { user_error("file does not exist"); }
-    $files = file($config["plDir"].$_GET["file"]);
-
-    $playlist = array();
-    foreach($files as $file) {
-        $file = trim($file);
-        if(substr($file, 0, 8) == "STREAM::") {
-            $playlist = playlistAdd($playlist, substr($file, 8));
-        } else {
-            $playlist = playlistAdd($playlist, $config["searchPath"].$file);
-        }
+    if(count($list) > 0) {
+        $data = json_encode($list);
+        echo '({"total":"'.$count.'","results":'.$data.'})';
+    } else {
+        echo '({"total":"0", "results":""})';
     }
-
-    $data = getData();
-    $data["playlist"] = $playlist;
-    storeData($data);
-
-    print "<html><head></head><body onLoad='window.opener.location.reload()'><center>playlist loaded<br><a href='#' onClick='window.close()'>close</a></body></html>";
 }
 
 #################################################################
@@ -336,17 +333,6 @@ function action_doDelete()
     unlink($file);
 
     print "<html><head></head><body><center>file deleted<br><a href='#' onClick='window.close()'>close</a></body></html>";
-}
-
-#################################################################
-
-function action_clearHitlist()
-{
-    $data = getData();
-    $data["mostPlayed"] = array();
-    storeData($data);
-
-    redirect("webmp3.php?action=hitlist&reload=1");
 }
 
 #################################################################
@@ -373,15 +359,6 @@ function action_updateTagCache()
     print "wrote tag cache\n";
     print formatDateTime()."\n";
     doPrint("finished tag cache update...");
-}
-
-#################################################################
-
-function action_search()
-{
-    $_POST["aktPath"] = "";
-    $_GET["aktPath"] = "";
-    action_default();
 }
 
 #################################################################
@@ -577,6 +554,28 @@ function action_getPlaylist()
         storeData($data);
     }
 
+    if(isset($_REQUEST["loadPlaylist"]) AND is_file($config["plDir"].$_REQUEST["loadPlaylist"])) {
+        doPrint("loading playlist: ".$_REQUEST["loadPlaylist"]);
+
+        if(!preg_match("/\w+ - .*\.playlist/", $_REQUEST["loadPlaylist"])) {
+          doPrint("invalid playlist: ".$_REQUEST["loadPlaylist"]);
+          exit;
+        }
+
+        $files = file($config["plDir"].$_REQUEST["loadPlaylist"]);
+        $playlist = array();
+        foreach($files as $file) {
+            $file = trim($file);
+            if(substr($file, 0, 8) == "STREAM::") {
+                $playlist = playlistAdd($playlist, substr($file, 8));
+            } else {
+                $playlist = playlistAdd($playlist, $config["searchPath"].$file);
+            }
+        }
+        $data["playlist"] = $playlist;
+        storeData($data);
+    }
+
     $playlist = array();
     foreach($data['playlist'] as $key => $entry) {
         if(empty($key) or !isset($entry["filename"])) {
@@ -753,7 +752,7 @@ function action_getPath()
 
 #################################################################
 
-function action_getCurStatus()
+function action_getCurStatus($msg = "")
 {
     global $config;
 
@@ -786,6 +785,10 @@ function action_getCurStatus()
     $pre = "-";
     if($stream == 1 or (empty($remSec) and empty($remMin))) {
       $pre = " ";
+    }
+
+    if(!empty($msg)) {
+      $text = $msg;
     }
 
     $status[] = array(
