@@ -54,8 +54,8 @@ function action_default()
     }
 
     if(file_exists("config.php")) {
-        include("config.php");
         global $config;
+        include("config.php");
 
         # check search path
         if(!isset($config["searchPath"])) {
