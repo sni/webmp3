@@ -658,6 +658,10 @@ function getTag($file) {
 
     if(!isset($fileinfo["playtime_string"]))  { $fileinfo["playtime_string"] = ""; }
 
+    if(strpos($track, "/") !== false) {
+      list($track, $totalTracks) = explode("/", $track);
+    }
+
     # track should be at least 2 chars width
     if(strlen($track) == 1) {
         $track = "0".$track;

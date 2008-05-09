@@ -268,6 +268,9 @@ Ext.onReady(function(){
         Ext.ComponentMgr.get('quietBtn').toggle(record.get('quiet'));
         webmp3.noTogggleEvents = 0;
 
+        // set current status
+        document.getElementById('statusbar').innerHTML = record.get('status');
+
         // set current track data
         artist = webmp3.ucFirst(record.get('artist'));
         wikilink = '&nbsp;<a href="http://en.wikipedia.org/wiki/'+artist.replace(" ", "_")+'" target="_blank">'+artist+'<\/a>';
