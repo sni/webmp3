@@ -141,8 +141,8 @@ function action_pic() {
 
     $data = getData();
 
-    $dst_w = $config["picWidth"];
-    $dst_h = $config["picHeight"];
+    $dst_w = 120;
+    $dst_h = 120;
 
     if(isset($_REQUEST['token']) AND isset($data["curTrack"])) {
         if($data["curTrack"] == $_REQUEST['token']) {
