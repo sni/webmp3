@@ -761,7 +761,11 @@ webmp3.playingbar = new Ext.Toolbar({
  ***************************************/
     webmp3.trackRenderer = function(nr) {
       if(nr == "") { return(""); }
-      pre=((nr.length==1)?"0":"");
+      if(nr == null) { return(""); }
+      var pre="";
+      if(nr.length == 1) {
+        pre="0";
+      }
       return(pre+nr);
     }
     webmp3.playlistColModel = new Ext.grid.ColumnModel([
