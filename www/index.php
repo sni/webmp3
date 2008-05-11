@@ -42,6 +42,15 @@ function action_default()
     print "<html><head><title>WebMP3 configuration check...</title></head><body>\n";
     print "doing some sanity checks...<br>";
 
+    # check compiled or loaded modules
+    $exts = array("json", "pcre", "gd");
+    foreach($exts as $ext) {
+      if(!extension_loaded($ext)) {
+          print "ERROR: php extension ".$ext." missing!<br>\n";
+          $failed = 1;
+      }
+    }
+
     if(!file_exists("config.php")) {
         if(file_exists("config.php.sample")) {
           print "INFO: trying to copy config.php.sample to config.php<br>\n";
