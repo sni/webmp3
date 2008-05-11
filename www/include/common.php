@@ -714,16 +714,17 @@ function getChildPids($pid)
 #########################################################################################
 
 function fillInDefaults($data) {
-    if(!isset($data["mute"]))           { $data["mute"]   = 0; }
-    if(!isset($data["repeat"]))         { $data["repeat"] = 0; }
-    if(!isset($data["length"]))         { $data["length"] = ""; }
-    if(!isset($data["start"]))          { $data["start"]  = ""; }
-    if(!isset($data["title"]))          { $data["title"]  = ""; }
-    if(!isset($data["quiet"]))          { $data["quiet"]  = 0; }
-    if(!isset($data["play"]))           { $data["play"]   = 0; }
-    if(!isset($data["pause"]))          { $data["pause"]  = 0; }
+    if(!isset($data["mute"]))           { $data["mute"]           = 0; }
+    if(!isset($data["repeat"]))         { $data["repeat"]         = 0; }
+    if(!isset($data["length"]))         { $data["length"]         = ""; }
+    if(!isset($data["start"]))          { $data["start"]          = ""; }
+    if(!isset($data["title"]))          { $data["title"]          = ""; }
+    if(!isset($data["quiet"]))          { $data["quiet"]          = 0; }
+    if(!isset($data["play"]))           { $data["play"]           = 0; }
+    if(!isset($data["pause"]))          { $data["pause"]          = 0; }
     if(!isset($data["playingStream"]))  { $data["playingStream"]  = 0; }
-    if(!isset($data["filename"]))       { $data["filename"]  = ""; }
+    if(!isset($data["filename"]))       { $data["filename"]       = ""; }
+    if(!isset($data["totalTime"]))      { $data["totalTime"]      = ""; }
 
     if(!isset($data["artist"])) { $data["artist"] = " "; }
     if(!isset($data["album"]))  { $data["album"]  = " "; }

@@ -32,13 +32,13 @@
   <meta name="copyright" content="Sven Nierlein">
   <meta name="description" content="">
   <meta name="keywords" content="">
-  <link rel="stylesheet" type="text/css" href="images/webmp3.css">
   <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico">
   <title><!--php: pageTitle --></title>
-    <script type="text/javascript" src="include/extjs/ext-base.js"></script>
-    <script type="text/javascript" src="include/extjs/ext-all.js"></script>
-    <link rel="stylesheet" type="text/css" href="include/extjs/ext-all.css">
-    <link rel="stylesheet" type="text/css" href="include/extjs/slider.css">
+  <script type="text/javascript" src="include/extjs/ext-base.js"></script>
+  <script type="text/javascript" src="include/extjs/ext-all.js"></script>
+  <link rel="stylesheet" type="text/css" href="include/extjs/ext-all.css">
+  <link rel="stylesheet" type="text/css" href="include/extjs/slider.css">
+  <link rel="stylesheet" type="text/css" href="images/webmp3.css">
 </head>
 <body>
 <div id="viewport"></div>
@@ -75,6 +75,7 @@ Ext.onReady(function(){
 
   webmp3.loadToolbarBtnClicker = function() {
     webmp3.playlistLoadWindow.show();
+    webmp3.playlistLoadWindow.center();
     webmp3.playlistsLoadDataStore.load();
   }
 
@@ -120,6 +121,7 @@ Ext.onReady(function(){
     // replace all html entities to pass them via url
     webmp3.urlencode = function(s)
     {
+      if(s == "") { return(""); }
       s = Ext.util.Format.htmlEncode(s);
       s = s.replace(/ /g, "+");
       return(s);
@@ -398,8 +400,29 @@ Ext.onReady(function(){
           Ext.ComponentMgr.get('muteBtn').setText("Mute");
           webmp3.noTogggleEvents = 0;
         }
+
+     webmp3.fixButtonIcons();
     }
 
+    webmp3.fixButtonIcons = function() {
+      btn = Ext.ComponentMgr.get('repeatBtn');
+      if(btn.text == "Repeat") {
+        if(btn.pressed == true) {
+          btn.el.child('button:first').dom.style.backgroundImage = 'url(images/control_repeat_blue.png)';
+        } else {
+          btn.el.child('button:first').dom.style.backgroundImage = 'url(images/control_norepeat_blue.png)';
+        }
+      }
+
+      btn = Ext.ComponentMgr.get('playBtn');
+      if(btn.text == "Play") {
+        btn.el.child('button:first').dom.style.backgroundImage = 'url(images/control_play_blue.png)';
+      }
+      if(btn.text == "Stop") {
+        btn.el.child('button:first').dom.style.backgroundImage = 'url(images/control_stop_blue.png)';
+      }
+    }
+ 
 /****************************************
  * Volume Slider
  ***************************************/
@@ -471,7 +494,7 @@ Ext.onReady(function(){
                     tooltip: 'Play',
                     enableToggle: true,
                     toggleHandler: onButtonToggle,
-                    cls:"x-btn-text-icon play-btn",
+                    cls:"x-btn-text-icon",
                     id: 'playBtn',
                     pressed: <!--php: play -->
                     }, '-', {
@@ -737,6 +760,7 @@ webmp3.playingbar = new Ext.Toolbar({
  * Playlist Grid
  ***************************************/
     webmp3.trackRenderer = function(nr) {
+      if(nr == "") { return(""); }
       pre=((nr.length==1)?"0":"");
       return(pre+nr);
     }
@@ -867,7 +891,7 @@ webmp3.playingbar = new Ext.Toolbar({
                   {
                     text: 'Repeat',
                     tooltip: 'Repeat',
-                    cls: 'x-btn-text-icon repeat-btn',
+                    cls: 'x-btn-text-icon',
                     enableToggle: true,
                     pressed: <!--php: repeat -->,
                     toggleHandler: onButtonToggle,
@@ -904,7 +928,7 @@ webmp3.playingbar = new Ext.Toolbar({
                               cls: 'x-btn-text-icon',
                               icon: 'images/disk.png',
                               handler: webmp3.saveToolbarBtnClicker
-                            },
+                            }
                             ]}
                   }, '-',{
                     text: 'Hitlist',
@@ -1576,7 +1600,7 @@ webmp3.playingbar = new Ext.Toolbar({
         viewConfig: {
             forceFit: true
         },
-        width: 600,
+        width: 580,
         height:550,
         bbar: [
           new Ext.PagingToolbar({
@@ -1618,6 +1642,7 @@ webmp3.playingbar = new Ext.Toolbar({
     Ext.get('hitlistBtn').on("click", function(button, event) {
       webmp3.HitlistDataStore.load();
       webmp3.hitlistWindow.show();
+      webmp3.hitlistWindow.center();
     });
     Ext.ComponentMgr.get('hitlistWindowCloseBtn').on("click", function(button, event) {
       webmp3.hitlistWindow.hide();
@@ -1702,7 +1727,7 @@ webmp3.playingbar = new Ext.Toolbar({
         viewConfig: {
             forceFit: true
         },
-        width: 600,
+        width: 580,
         height:550,
         loadMask: {
             store: webmp3.playlistsLoadDataStore
@@ -1795,7 +1820,11 @@ webmp3.playingbar = new Ext.Toolbar({
     webmp3.slider.setValue('<!--php: volume -->', 1);
     webmp3.sliderInit = 0;
 
+    // fix buttons in ie
+    webmp3.fixButtonIcons();
+
     window.setTimeout(webmp3.refreshPlaylist,360000);
+
 });
 -->
 </script>
