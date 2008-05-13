@@ -60,6 +60,7 @@ Ext.onReady(function(){
     webmp3.taskDelay            = new Ext.util.DelayedTask();
     webmp3.disablePlayMask      = false;
     webmp3.pathButtons          = new Array();
+    webmp3.pathBeforeSearch     = "";
 
     webmp3.version              = webmp3.version.replace("webmp3.tpl", "WebMP3");
 
@@ -997,8 +998,11 @@ webmp3.playingbar = new Ext.Toolbar({
 
         onTrigger1Click : function(){
             if(this.hasSearch){
+                if(webmp3.pathBeforeSearch != "") {
+                  webmp3.aktPath = webmp3.pathBeforeSearch;
+                }
                 this.el.dom.value = '';
-                var o = {start: 0, limit: 20};
+                var o = {aktPath: webmp3.aktPath};
                 this.store.baseParams = this.store.baseParams || {};
                 this.store.baseParams[this.paramName] = '';
                 this.store.reload({params:o});
@@ -1011,7 +1015,10 @@ webmp3.playingbar = new Ext.Toolbar({
         },
 
         onTrigger2Click : function(){
-            webmp3.aktPath = "";
+            if(webmp3.aktPath != "/") {
+              webmp3.pathBeforeSearch = webmp3.aktPath;
+            }
+            webmp3.aktPath = "/";
             var v = this.getRawValue();
             if(v.length < 1){
                 this.onTrigger1Click();
