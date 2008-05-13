@@ -1109,7 +1109,8 @@ webmp3.playingbar = new Ext.Toolbar({
                   text: '/',
                   tooltip: '/',
                   handler: webmp3.pathClickHandler,
-                  id: 'pathButton'
+                  id: 'pathButton',
+                  cls: 'pathButton'
                 });
                 var tmpPath   = "/";
                 var allPaths  = webmp3.aktPath.split("/");
@@ -1121,7 +1122,8 @@ webmp3.playingbar = new Ext.Toolbar({
                       text: path + "/",
                       tooltip: tmpPath,
                       handler: webmp3.pathClickHandler,
-                      id: 'pathButton-'+i
+                      id: 'pathButton-'+i,
+                      cls: 'pathButton'
                     });
                     webmp3.pathButtons[i] = 'pathButton-'+i;
                     webmp3.fileGrid.getTopToolbar().add(btn);
