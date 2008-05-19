@@ -361,7 +361,7 @@ function action_updateTagCache()
 
     $files = getFilesForDirectory($config["searchPath"]);
 
-    $fp = fopen($config["tagCache"], "w+");
+    $fp = fopen($config["tagCache"], "w+") or die("cannot open tagCache File for writing");
     foreach($files as $file) {
         $fileinfo = getTag($config["searchPath"]."/".$file);
         #$tagCache[$file] = $fileinfo;

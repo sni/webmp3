@@ -248,18 +248,18 @@ Ext.onReady(function(){
         // check server version against client version
         version = record.get('version');
         if(version != webmp3.version) {
-          Ext.Msg.show({
-            title:'new version available',
-            msg: 'server version differs from client<br>-&gt; reload required.<br><br><br><pre>client:'+webmp3.version+'<br>server:'+version+'<\/pre>',
-            icon: Ext.MessageBox.WARNING,
-            buttons: Ext.Msg.OK,
-            minWidth: 450,
-            fn: function(btn, text){
-              if (btn == 'ok'){
+          //Ext.Msg.show({
+          //  title:'new version available',
+          //  msg: 'server version differs from client<br>-&gt; reload required.<br><br><br><pre>client:'+webmp3.version+'<br>server:'+version+'<\/pre>',
+          //  icon: Ext.MessageBox.WARNING,
+          //  buttons: Ext.Msg.OK,
+          //  minWidth: 450,
+          //  fn: function(btn, text){
+          //    if (btn == 'ok'){
                 document.location.reload();
-              }
-            }
-          });
+          //    }
+          //  }
+          //});
         }
 
         // set stream status
