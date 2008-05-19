@@ -64,23 +64,35 @@ function action_default()
     $data["track"]    = $track["tracknum"];
     $data["token"]    = $track["token"];
     $data["filename"] = $track["filename"];
+    if(!isset($track["bitrate"])) { $track["bitrate"] = ""; }
+    $data["bitrate"]  = $track["bitrate"];
     $data["play"]     = 1;
 
     $data["playingPic"] = getPictureForPath(dirname($track["filename"]));
 
     if(isset($config["notifyCommand"])) {
         $tmp = $config["notifyCommand"];
-        $tmpDisp = $track["display"];
-        $tmpDisp = str_replace('\'', '', $tmpDisp);
-        $tmpDisp = str_replace('\"', '', $tmpDisp);
-        $tmpDisp = str_replace(';', '', $tmpDisp);
-        $tmp = str_replace("%T", $tmpDisp, $tmp);
+        $tmpTrack  = $track["tracknum"];
+        $tmpArtist = $track["artist"];
+        $tmpTitle  = $track["title"];
+        $tmpArtist = str_replace('\'', '', $tmpArtist);
+        $tmpArtist = str_replace('\"', '', $tmpArtist);
+        $tmpArtist = str_replace(';',  '', $tmpArtist);
+        $tmpTitle = str_replace('\'', '', $tmpTitle);
+        $tmpTitle = str_replace('\"', '', $tmpTitle);
+        $tmpTitle = str_replace(';',  '', $tmpTitle);
+        $tmpTrack = str_replace('\'', '', $tmpTrack);
+        $tmpTrack = str_replace('\"', '', $tmpTrack);
+        $tmpTrack = str_replace(';',  '', $tmpTrack);
+        $tmp = str_replace("%#", $tmpTrack, $tmp);
+        $tmp = str_replace("%T", $tmpTitle, $tmp);
+        $tmp = str_replace("%A", $tmpArtist, $tmp);
         doPrint("notify: ".$tmp);
         $output = "";
         $rc     = 0;
         exec($tmp, $output, $rc);
         if($rc != 0) {
-          doPrint("notify failed: ".$output);
+          doPrint("notify failed: ".join("\n", $output));
         }
     }
 

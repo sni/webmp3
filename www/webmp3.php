@@ -359,7 +359,6 @@ function action_updateTagCache()
 
     $tagCache = array();
 
-    #$files = getFilesForDirectory($config["searchPath"]."/stonerrock/dozer");
     $files = getFilesForDirectory($config["searchPath"]);
 
     $fp = fopen($config["tagCache"], "w+");
@@ -393,8 +392,9 @@ function action_getFilesystem()
         $append = $_REQUEST['append'];
     }
 
-    $aktPath = getPath($aktPath, $append);
-    doPrint("got json filesystem get request for: ".$aktPath);
+    $newAktPath = getPath($aktPath, $append);
+    doPrint("got json filesystem get request for ('".$aktPath."', '".$append."'): ".$newAktPath);
+    $aktPath = $newAktPath;
 
     if(!file_exists($config["searchPath"].$aktPath)) {
         doPrint("file does not exist: ".$config["searchPath"].$aktPath);
@@ -786,10 +786,14 @@ function action_getCurStatus($msg = "")
         $file = $data['filename'];
         $file = str_replace($config["searchPath"], "", $file);
         if($data['playingStream'] == 0 AND strpos($file, "/") !== 0) { $file = "/".$file; }
+        $bitrate = "";
+        if(isset($data["bitrate"]) AND !empty($data["bitrate"])) {
+          $bitrate = " (".$data["bitrate"]."kb)";
+        }
         if($data['pause']) {
-            $text = "paused (pid: ".$data['ppid']."): ".$file;
+            $text = "paused (pid: ".$data['ppid']."): ".$file.$bitrate;
         } else {
-            $text = "playing (pid: ".$data['ppid']."): ".$file;
+            $text = "playing (pid: ".$data['ppid']."): ".$file.$bitrate;
         }
     } else {
         $data['playingStream'] = 0;

@@ -125,7 +125,7 @@ function playlistAdd($playlist, $toAdd)
     global $config;
 
     if(strpos($toAdd, "http://") === 0) {
-        list($artist,$album,$title,$tracknum,$playtime_string) = getTag($toAdd);
+        list($artist,$album,$title,$tracknum,$playtime_string,$bitrate) = getTag($toAdd);
         //$display = $artist." - ".$album." - ".$title;
         $display = $toAdd;
         $title   = $toAdd;
@@ -146,7 +146,7 @@ function playlistAdd($playlist, $toAdd)
     } elseif(is_file($toAdd)) {
         $toAdd = preg_replace("/\/+/", "/", $toAdd);
 
-        list($artist,$album,$title,$tracknum,$playtime_string) = getTag($toAdd);
+        list($artist,$album,$title,$tracknum,$playtime_string,$bitrate) = getTag($toAdd);
 
         $display = $artist." - ".$album." - ".$tracknum." - ".$title;
         if(empty($title)) {
@@ -169,6 +169,7 @@ function playlistAdd($playlist, $toAdd)
             "tracknum"  => $tracknum,
             "lengths"   => floor($playtime_seconds),
             "length"    => $playtime_string,
+            "bitrate"   => $bitrate,
         );
 
         $playlist[$token] = $newFile;
@@ -364,6 +365,8 @@ function getPrevTrack($playlist, $token)
 
 function getPictureForPath($path)
 {
+    global $config;
+
     if(file_exists($path."/folder.gif")) {
         $return = $path."/folder.gif";
     }
@@ -382,6 +385,13 @@ function getPictureForPath($path)
         }
     }
 
+    if(empty($return)) {
+        $path = str_replace($config['searchPath'], "", $path);
+        $lowerPath = getPath($path."/..");
+        if(getPath($path) != $lowerPath) {
+          $return = getPictureForPath($config['searchPath'].$lowerPath);
+        }
+    }
     if(empty($return)) {
         $return = "images/white.png";
     }
@@ -536,7 +546,8 @@ function getFilesForDirectory($dir) {
         while (false !== ($file = readdir($handle))) {
             if ($file != "." && $file != "..") {
                 if(is_link($dir."/".$file)) {
-                    # skip links
+                    # resolve links
+                    $files = array_merge($files, getFilesForDirectory($dir."/".$file));
                 }
                 elseif(is_dir($dir."/".$file)) {
                     $files = array_merge($files, getFilesForDirectory($dir."/".$file));
@@ -580,6 +591,7 @@ function getTag($file) {
     }
 
     $fileinfo = $getID3->analyze($file);
+    // doPrint($fileinfo);
 
     $neededTags = array("artist", "album", "title", "track");
     foreach($neededTags as $tag) {
@@ -596,12 +608,17 @@ function getTag($file) {
       list($track, $totalTracks) = explode("/", $track);
     }
 
+    $bitrate = "";
+    if(isset($fileinfo["bitrate"])) {
+      $bitrate = round($fileinfo["bitrate"]/1000);
+    }
+
     # track should be at least 2 chars width
     if(strlen($track) == 1) {
         $track = "0".$track;
     }
 
-    return(array($artist,$album,$title,$track,$fileinfo["playtime_string"]));
+    return(array($artist,$album,$title,$track,$fileinfo["playtime_string"],$bitrate));
 }
 
 #########################################################################################
@@ -618,6 +635,9 @@ function getPath($path = "", $append = "") {
     global $config;
 
     # doPrint("getPath('".$path."', '".$append."')");
+    $path   = urldecode($path);
+    $append = urldecode($append);
+
     $path   = strip_tags($path);
     $append = strip_tags($append);
 

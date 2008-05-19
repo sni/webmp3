@@ -123,6 +123,7 @@ Ext.onReady(function(){
     webmp3.urlencode = function(s)
     {
       if(s == "") { return(""); }
+      s = s.replace(/&/g, "%26");
       s = Ext.util.Format.htmlEncode(s);
       s = s.replace(/ /g, "+");
       return(s);
@@ -216,10 +217,10 @@ Ext.onReady(function(){
     }
 
     function updateFilePic(append) {
-        if(document.getElementById('filePic').src == 'webmp3.php?action=pic&pic='+Ext.util.Format.stripTags(webmp3.aktPath)+"/"+append) {
+        if(document.getElementById('filePic').src == 'webmp3.php?action=pic&pic='+webmp3.urlencode(Ext.util.Format.stripTags(webmp3.aktPath)+"/"+append)) {
           return(1);
         }
-        document.getElementById('filePic').src = 'webmp3.php?action=pic&pic='+Ext.util.Format.stripTags(webmp3.aktPath)+"/"+append;
+        document.getElementById('filePic').src = 'webmp3.php?action=pic&pic='+webmp3.urlencode(Ext.util.Format.stripTags(webmp3.aktPath)+"/"+append);
     }
 
     function updatePlayPic() {
@@ -318,6 +319,7 @@ Ext.onReady(function(){
 
         webmp3.highlightCurrentSong();
         updatePlayPic();
+        webmp3.fixButtonIcons();
     }
     webmp3.refreshStatusStore = function() {
         webmp3.lastStatusUpdate = new Date();
@@ -419,7 +421,7 @@ Ext.onReady(function(){
       if(btn.text == "Play") {
         btn.el.child('button:first').dom.style.backgroundImage = 'url(images/control_play_blue.png)';
       }
-      if(btn.text == "Stop") {
+      else {
         btn.el.child('button:first').dom.style.backgroundImage = 'url(images/control_stop_blue.png)';
       }
     }
@@ -1153,6 +1155,9 @@ webmp3.playingbar = new Ext.Toolbar({
         autoExpandColumn: 'file',
         sm: webmp3.fsm,
         store: webmp3.FilesystemDataStore,
+        loadMask: {
+          store: webmp3.FilesystemDataStore
+        },
         columns: [
             {header: ' ', dataIndex: 'icon', renderer: webmp3.iconRenderer, width: 5, menuDisabled: true  },
             {header: 'Files & Directories', dataIndex: 'file', width: 125, menuDisabled: true },
@@ -1170,13 +1175,13 @@ webmp3.playingbar = new Ext.Toolbar({
                 if(record.get('type') == "D") {
                     webmp3.FilesystemDataStore.load({
                         url: 'webmp3.php',
-                        params: 'action=getFilesystem&aktPath=' + webmp3.aktPath + '&append=' + record.get('file'),
+                        params: 'action=getFilesystem&aktPath=' + webmp3.urlencode(webmp3.aktPath) + '&append=' + webmp3.urlencode(record.get('file')),
                         text: 'loading files for '+record.get('file')
                     });
                 } else {
                     webmp3.PlaylistDataStore.load({
                         url: 'webmp3.php',
-                        params: 'action=getPlaylist&aktPath=' + webmp3.aktPath + "&add[]="+record.get('file'),
+                        params: 'action=getPlaylist&aktPath=' + webmp3.urlencode(webmp3.aktPath) + "&add[]="+record.get('file'),
                         text: 'added files to playlist'
                     });
                 }
@@ -1259,11 +1264,10 @@ webmp3.playingbar = new Ext.Toolbar({
  * Playlist Button EventHandler
  ***************************************/
     Ext.get('clearBtn').on("click", function(button, event) {
-        webmp3.PlaylistDataStore.load({
-            url: 'webmp3.php',
-            params: 'action=getPlaylist&clear=1',
-            text: 'cleared playlist'
-        });
+      // first select all, then remove the selected
+      // so we can be sure, to only clear only actual view of playlist items
+      webmp3.psm.selectRange(0, webmp3.PlaylistDataStore.getCount()-1);
+      webmp3.removeFromPlaylist();
     });
     Ext.get('shuffleBtn').on("click", function(button, event) {
         webmp3.PlaylistDataStore.load({
