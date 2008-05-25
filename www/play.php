@@ -7,12 +7,12 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
@@ -54,6 +54,39 @@ function action_default()
         $data["curTrack"] = $track["token"];
     }
     doPrint("playing: ".$track["filename"]);
+
+    # clean up playlist
+    if($data['partymode'] == 1) {
+        # clean everything up to 3 songs after the current one
+        $x = 0;
+        $num = 0;
+        foreach($data['playlist'] as $token => $tr) {
+            if($tr['token'] == $track["token"]) {
+                $num = $x;
+                continue;
+            }
+            $x++;
+        }
+        $num = $num -3;
+        $num = max(0, $num);
+        for($x = 0; $x < $num; $x++) {
+            array_shift($data["playlist"]);
+        }
+    }
+    elseif($data['partymode'] == 2) {
+        # clean everything up to the first song of the cur album
+        $newPlaylist = array();
+        $found = 0;
+        foreach($data['playlist'] as $token => $tr) {
+            if($tr['token'] == $track["token"] or $tr['album'] == $track['album']) {
+                $found = 1;
+            }
+            if($found == 1) {
+                $newPlaylist[$token] = $tr;
+            }
+        }
+        $data['playlist'] = $newPlaylist;
+    }
 
     $data["start"]  = time();
     $data["length"] = $track["lengths"];

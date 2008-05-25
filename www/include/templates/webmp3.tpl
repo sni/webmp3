@@ -61,12 +61,32 @@ Ext.onReady(function(){
     webmp3.disablePlayMask      = false;
     webmp3.pathButtons          = new Array();
     webmp3.pathBeforeSearch     = "";
+    webmp3.partymode            = <!--php: partymode -->;
 
     webmp3.version              = webmp3.version.replace("webmp3.tpl", "WebMP3");
 
 /****************************************
  * Functions
  ***************************************/
+  webmp3.setpartymode = function() {
+    if(webmp3.noTogggleEvents == 1) {
+      return(1);
+    }
+    var msg = Ext.get('statustext');
+    msg.load({
+        url: 'webmp3.php',
+        params: 'action=setToggle&button=partymode&param=' + webmp3.partymode,
+        text: 'setting partymode to '+webmp3.partymode
+    });
+  }
+
+  webmp3.partymodeMenuHandler = function(item, checked) {
+    webmp3.partymode = item.inputValue;
+    if(webmp3.noTogggleEvents == 1) {
+      return(1);
+    }
+    webmp3.taskDelay.delay(50, webmp3.setpartymode, "partymode");
+  }
 
   webmp3.saveToolbarBtnClicker = function() {
     webmp3.savePlaylistWindow.show();
@@ -281,7 +301,6 @@ Ext.onReady(function(){
         }
         Ext.ComponentMgr.get('muteBtn').toggle(record.get('mute'));
         Ext.ComponentMgr.get('quietBtn').toggle(record.get('quiet'));
-        webmp3.noTogggleEvents = 0;
 
         // set current status
         document.getElementById('statusbar').innerHTML = record.get('status');
@@ -301,6 +320,9 @@ Ext.onReady(function(){
         // set total play time
         webmp3.playlistGrid.setTitle("Playlist  -  Files: "+webmp3.PlaylistDataStore.getTotalCount()+"  -  Total: " + record.get('totalTime'));
 
+        // set partymode
+        Ext.ComponentMgr.get('partymode-item'+record.get('partymode')).setChecked(true);
+
         // set volume
         webmp3.sliderInit = 1;
         webmp3.slider.setValue(record.get('volume'), 1);
@@ -317,6 +339,8 @@ Ext.onReady(function(){
             document.title = 'WebMP3';
         }
 
+        webmp3.noTogggleEvents = 0;
+       
         webmp3.highlightCurrentSong();
         updatePlayPic();
         webmp3.fixButtonIcons();
@@ -916,9 +940,8 @@ webmp3.playingbar = new Ext.Toolbar({
                     tooltip: 'Shuffle',
                     id: 'shuffleBtn'
                   }, '-',{
-                    text: 'Playlist',
+                    text: 'Playlists',
                     tooltip: 'Playlist Actions',
-                    handler: webmp3.playlistMenuHandler,
                     menu:{
                           id: 'playlistMenu',
                           items: [
@@ -942,10 +965,42 @@ webmp3.playingbar = new Ext.Toolbar({
                     tooltip: 'Hitlist',
                     id: 'hitlistBtn'
                   }, '-',{
-                    text: 'add Stream',
+                    text: 'Add Stream',
                     tooltip: 'add Stream',
                     id: 'addStream'
-                  }, '-', ' ',{
+                  }, '-',{
+                    text: 'Partymode',
+                    tooltip: 'when enabled, played songs are automatically removed from the playlist',
+                    menu:{
+                          id: 'partymodeMenu',
+                          items: [
+                            {
+                              text: "don't remove songs from the playlist",
+                              checked: true,
+                              group: 'partymode',
+                              checkHandler: webmp3.partymodeMenuHandler,
+                              id: 'partymode-item0',
+                              inputValue: '0'
+                            },
+                            {
+                              text: 'keep last 3 played songs',
+                              group: 'partymode',
+                              checked: false,
+                              checkHandler: webmp3.partymodeMenuHandler,
+                              id: 'partymode-item1',
+                              inputValue: '1'
+                            },
+                            {
+                              text: 'keep current album',
+                              group: 'partymode',
+                              checked: false,
+                              checkHandler: webmp3.partymodeMenuHandler,
+                              id: 'partymode-item2',
+                              inputValue: '2'
+                            }
+                            ]}
+                  },
+                  '->',{
                     text: 'Remove from Playlist',
                     tooltip: 'Remove selected Items from the Playlist',
                     cls: 'x-btn-text-icon',
@@ -1563,7 +1618,8 @@ webmp3.playingbar = new Ext.Toolbar({
             {name: 'quiet',     mapping: 'quiet',     type: 'int'},
             {name: 'stream',    mapping: 'stream',    type: 'int'},
             {name: 'version',   mapping: 'version',   type: 'string'},
-            {name: 'totalTime', mapping: 'totalTime', type: 'string'}
+            {name: 'totalTime', mapping: 'totalTime', type: 'string'},
+            {name: 'partymode', mapping: 'partymode', type: 'int'}
         ]),
         listeners: {
             load: function(store, records, options) {

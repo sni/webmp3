@@ -99,6 +99,7 @@ function action_default()
         "track"         => $data["track"],
         "title"         => htmlspecialchars($data["title"], ENT_QUOTES, "UTF-8"),
         "token"         => $data["token"],
+        "partymode"     => $data["partymode"],
 
         "pre"           => $pre,
         "remMin"        => $remMin,
@@ -367,6 +368,10 @@ function action_updateTagCache()
         #$tagCache[$file] = $fileinfo;
         fwrite($fp, $file.";-;".join(";-;", $fileinfo)."\n");
     }
+
+    $data = getData();
+    $data["lastTagUpdate"] = time();
+    storeData($data);
 
     fclose($fp);
     print "wrote tag cache\n";
@@ -737,6 +742,12 @@ function action_setToggle()
         print "quiet set to ".$param;
         storeData($data);
     }
+
+    if($_REQUEST['button'] == "partymode") {
+        $data["partymode"] = $_REQUEST['param'];
+        print "partymode set to ".$_REQUEST['param'];
+        storeData($data);
+    }
 }
 
 #################################################################
@@ -829,6 +840,7 @@ function action_getCurStatus($msg = "")
             'totalTime' => $data['totalTime'],
             "stream"    => $data['playingStream'],
             "version"   => $version,
+            "partymode" => $data['partymode'],
     );
 
     if(isset($_REQUEST['debug'])) {

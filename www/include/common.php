@@ -744,7 +744,7 @@ function fillInDefaults($data) {
     if(!isset($data["playingStream"]))  { $data["playingStream"]  = 0;  }
     if(!isset($data["filename"]))       { $data["filename"]       = ""; }
     if(!isset($data["totalTime"]))      { $data["totalTime"]      = ""; }
-    if(!isset($data["playlistMode"]))   { $data["playlistMode"]   = 0;  }
+    if(!isset($data["partymode"]))      { $data["partymode"]      = 0;  }
     if(!isset($data["lastTagUpdate"]))  { $data["lastTagUpdate"]  = 0;  }
 
     # current track data
