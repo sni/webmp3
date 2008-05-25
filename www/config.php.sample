@@ -24,7 +24,7 @@ $config["playStrOpt"] = array("-quiet", "-really-quiet");    # additional option
 
 ######################################################
 # volume configuration
-$config["aumixBin"]   = "/usr/bin/aumix";                    # executable to change volume
+$config["volumeBin"]   = "./volume.sh";                      # executable to change volume
 $config["quietVol"]    = "25";                               # volume to set if someone presses the quiet button
 
 ######################################################

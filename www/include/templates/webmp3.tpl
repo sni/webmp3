@@ -425,7 +425,7 @@ Ext.onReady(function(){
         btn.el.child('button:first').dom.style.backgroundImage = 'url(images/control_stop_blue.png)';
       }
     }
- 
+
 /****************************************
  * Volume Slider
  ***************************************/

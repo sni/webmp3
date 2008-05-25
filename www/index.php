@@ -141,20 +141,19 @@ function action_default()
             $failed = 1;
         }
 
-        if(!isset($config["aumixBin"])) {
-            print "ERROR: aumix binary option missing, please set aumixBin in the config.php<br>\n";
+        if(!isset($config["volumeBin"])) {
+            print "ERROR: volume binary option missing, please set volumeBin in the config.php<br>\n";
             $failed = 1;
         }
-        elseif(!is_executable($config["aumixBin"])) {
-            print "ERROR: ".$config["aumixBin"]." is not executable<br>\n";
+        elseif(!is_executable($config["volumeBin"])) {
+            print "ERROR: ".$config["volumeBin"]." is not executable<br>\n";
             $failed = 1;
         } else {
             $vol = getVolume();
             if(isset($config['lastError'])) {
                 print "ERROR: failed to get volume<br>\n";
                 print "ERROR: ".$config['lastError']."<br>\n";
-                print "ERROR: please check your aumixBin: ".$config["aumixBin"]."<br>\n";
-                print "ERROR: also check if your webserver user is in group audio<br>\n";
+                print "ERROR: please check your volumeBin: ".$config["volumeBin"]."<br>\n";
                 $failed = 1;
             }
         }

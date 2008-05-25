@@ -54,14 +54,13 @@ function getVolume()
     global $config;
     $rc = 0;
     $output = array();
-    exec($config["aumixBin"]." -vq 2>&1", $output, $rc);
+    exec($config["volumeBin"]." 2>&1", $output, $rc);
     if($rc != 0 or !isset($output[0]))
     {
-        $config['lastError'] = "getting Volume failed (rc: ".$rc."): ".join('<br />\n', $output);
+        $config['lastError'] = "getting Volume failed (rc: ".$rc."): ".join('<br />', $output);
         $erg = "20";
     } else {
-        list($blah, $vol) = explode(",", $output[0]);
-        $erg = trim($vol);
+        $erg = trim($output[0]);
     }
     return($erg);
 }
@@ -734,23 +733,25 @@ function getChildPids($pid)
 #########################################################################################
 
 function fillInDefaults($data) {
-    if(!isset($data["mute"]))           { $data["mute"]           = 0; }
-    if(!isset($data["repeat"]))         { $data["repeat"]         = 0; }
+    if(!isset($data["mute"]))           { $data["mute"]           = 0;  }
+    if(!isset($data["repeat"]))         { $data["repeat"]         = 0;  }
     if(!isset($data["length"]))         { $data["length"]         = ""; }
     if(!isset($data["start"]))          { $data["start"]          = ""; }
     if(!isset($data["title"]))          { $data["title"]          = ""; }
-    if(!isset($data["quiet"]))          { $data["quiet"]          = 0; }
-    if(!isset($data["play"]))           { $data["play"]           = 0; }
-    if(!isset($data["pause"]))          { $data["pause"]          = 0; }
-    if(!isset($data["playingStream"]))  { $data["playingStream"]  = 0; }
+    if(!isset($data["quiet"]))          { $data["quiet"]          = 0;  }
+    if(!isset($data["play"]))           { $data["play"]           = 0;  }
+    if(!isset($data["pause"]))          { $data["pause"]          = 0;  }
+    if(!isset($data["playingStream"]))  { $data["playingStream"]  = 0;  }
     if(!isset($data["filename"]))       { $data["filename"]       = ""; }
     if(!isset($data["totalTime"]))      { $data["totalTime"]      = ""; }
+    if(!isset($data["playlistMode"]))   { $data["playlistMode"]   = 0;  }
+    if(!isset($data["lastTagUpdate"]))  { $data["lastTagUpdate"]  = 0;  }
 
+    # current track data
     if(!isset($data["artist"])) { $data["artist"] = " "; }
     if(!isset($data["album"]))  { $data["album"]  = " "; }
     if(!isset($data["track"]))  { $data["track"]  = " "; }
     if(!isset($data["title"]))  { $data["title"]  = " "; }
-
     if(empty($data["artist"]))  { $data["artist"] = " "; }
     if(empty($data["album"]))   { $data["album"]  = " "; }
     if(empty($data["track"]))   { $data["track"]  = " "; }

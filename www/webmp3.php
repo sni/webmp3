@@ -129,7 +129,7 @@ function action_setVolume()
         }
         storeData($data);
     }
-    exec($config["aumixBin"]." -v ".escapeshellarg($_REQUEST["vol"]));
+    exec($config["volumeBin"]." ".escapeshellarg($_REQUEST["vol"]));
 
     doPrint("setting volume to ".$_REQUEST["vol"]);
 }
