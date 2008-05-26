@@ -633,7 +633,7 @@ function formatDateTime($time = 0)
 function getPath($path = "", $append = "") {
     global $config;
 
-    # doPrint("getPath('".$path."', '".$append."')");
+    doPrint("getPath('".$path."', '".$append."')");
     $path   = urldecode($path);
     $append = urldecode($append);
 
@@ -664,11 +664,11 @@ function getPath($path = "", $append = "") {
     $aktPath = preg_replace("/\/+/", "/", $aktPath);
     #doPrint("2: ".$aktPath);
 
-    $aktPath = realpath($aktPath);
     # do the realpath thing...
     $origRequest = myRealpath($origRequest);
     $aktPath     = myRealpath($aktPath);
-    #doPrint("3: ".$aktPath);
+    #doPrint("3a: ".$aktPath);
+    #doPrint("3b: ".$origRequest);
 
     if(is_file($aktPath)) {
         $aktPath = dirname($aktPath);
