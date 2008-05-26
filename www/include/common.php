@@ -46,6 +46,7 @@ error_reporting(2047);
 # fillInDefaults($data)
 # getRemaining($data)
 # getPidData($pid)
+# checkForUptodateTagCache()
 #
 #################################################################
 
@@ -820,6 +821,19 @@ function getPidData($pid) {
   $return = ob_get_contents();
   ob_end_clean();
   return($return);
+}
+
+#########################################################################################
+
+function checkForUptodateTagCache() {
+    global $config;
+    $data = getData();
+    if($data["lastTagUpdate"] < time() - 86400) {
+      doPrint("tag Cache is out of date (".formatDateTime($data["lastTagUpdate"])."), starting update...");
+      system($config["cliPHPbinary"].' webmp3.php action=updateTagCache >> '.$config["logfile"].' 2>&1 &');
+    } else {
+      doPrint("tag Cache is ok, last update: ".formatDateTime($data["lastTagUpdate"]));
+    }
 }
 
 #########################################################################################

@@ -33,7 +33,6 @@ include("include/common.php");
 #################################################################
 #
 # action_default()
-# sig_handler()
 #
 #################################################################
 
@@ -187,5 +186,6 @@ function action_default()
 #################################################################
 
 include("include/Action.php");
+checkForUptodateTagCache();
 
 ?>

@@ -68,6 +68,24 @@ Ext.onReady(function(){
 /****************************************
  * Functions
  ***************************************/
+
+  webmp3.jumpToFile = function(key, event) {
+    var index = webmp3.FilesystemDataStore.find("file", String.fromCharCode(event.getKey()), 0, false, false);
+    if(index != -1) {
+      webmp3.fsm.selectRow(index);
+      // helps to scroll to the right position
+      webmp3.fsm.selectNext();
+      webmp3.fsm.selectPrevious();
+    }
+  }
+
+  webmp3.jumpUp = function(key, event) {
+    webmp3.fsm.selectPrevious();
+  }
+  webmp3.jumpDown = function(key, event) {
+    webmp3.fsm.selectNext();
+  }
+
   webmp3.setpartymode = function() {
     if(webmp3.noTogggleEvents == 1) {
       return(1);
@@ -828,24 +846,28 @@ webmp3.playingbar = new Ext.Toolbar({
     }
     webmp3.DropGridPanel = Ext.extend(Ext.grid.GridPanel, {
         droppedItem: function(dd, e, data) {
-            // store them to take a look via firebug
-            webmp3.data = data;
-            webmp3.dd   = dd;
-            webmp3.e    = e;
             var selects = data.selections;
+            webmp3.s = selects;
             var files   = "";
             if(data.grid.id == "playlistGrid") {
               // drag&drop in our playlist
               var ds = webmp3.PlaylistDataStore;
               var rows=webmp3.psm.getSelections();
+              // first remove them
+              var keep = new Array();
+              for(i = rows.length-1; i >= 0; i--) {
+                  rowData=ds.getById(rows[i].id);
+                  keep[i] = rowData;
+                  ds.remove(ds.getById(rows[i].id));
+              };
               var cindex=dd.getDragData(e).rowIndex;
               if (typeof cindex == "undefined") {
                 // move to the end of the list
-                cindex = ds.getCount() - 1;
+                cindex = ds.getCount();
               }
+              // and then add them
               for(i = rows.length-1; i >= 0; i--) {
-                  rowData=ds.getById(rows[i].id);
-                  ds.remove(ds.getById(rows[i].id));
+                  rowData=keep[i];
                   ds.insert(cindex,rowData);
               };
               // commit new sort order
@@ -1275,6 +1297,21 @@ webmp3.playingbar = new Ext.Toolbar({
                 {
                   key: Ext.EventObject.ENTER,
                   fn: webmp3.addSelectedToPlaylist,
+                  scope: this
+                },
+                {
+                  key: '1234567890abcdefghijklmnopqrstuvwxyz',
+                  fn: webmp3.jumpToFile,
+                  scope: this
+                },
+                {
+                  key: Ext.EventObject.DOWN,
+                  fn: webmp3.jumpDown,
+                  scope: this
+                },
+                {
+                  key: Ext.EventObject.UP,
+                  fn: webmp3.jumpUp,
                   scope: this
                 }
         ],

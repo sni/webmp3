@@ -359,15 +359,55 @@ function action_updateTagCache()
     doPrint("starting tag cache update...");
     print formatDateTime()."\n";
 
+    $data = getData();
+    $data["lastTagUpdate"] = time();
+    storeData($data);
+
+    $oldTags = array();
+    foreach(file($config["tagCache"]) as $tag) {
+        $tag = trim($tag);
+        $tagArray = explode(";-;", $tag);
+        if(!isset($tagArray[0]) or count($tagArray) != 8) {
+            doPrint("removed invalid entry in tagcache: ".count($tagArray));
+            doPrint($tagArray);
+        } else {
+            $oldTags[$tagArray[0]] = $tagArray;
+        }
+    }
+    doPrint("got old tag cache");
+
     $tagCache = array();
 
     $files = getFilesForDirectory($config["searchPath"]);
 
+    $new     = 0;
+    $old     = 0;
+    $updates = 0;
+
     $fp = fopen($config["tagCache"], "w+") or die("cannot open tagCache File for writing");
     foreach($files as $file) {
-        $fileinfo = getTag($config["searchPath"]."/".$file);
-        #$tagCache[$file] = $fileinfo;
-        fwrite($fp, $file.";-;".join(";-;", $fileinfo)."\n");
+        $scan = 0;
+        $newTime = filemtime($config["searchPath"]."/".$file);
+        if(!isset($oldTags[$file])) {
+            #doPrint("file is new: ".$file);
+            $scan = 1;
+            $new++;
+        } elseif($newTime != $oldTags[$file][7]) {
+            #doPrint("file changed and needs update: ".$file);
+            $scan = 1;
+            $updates++;
+        } else {
+          #doPrint("file unchanged: ".$file);
+          $old++;
+        }
+        if(!$scan and isset($oldTags[$file])) {
+          $fileinfo = $oldTags[$file];
+        } else {
+          $fileinfo = getTag($config["searchPath"]."/".$file);
+          array_push($fileinfo, $newTime);
+          array_unshift($fileinfo, $file);
+        }
+        fwrite($fp, join(";-;", $fileinfo)."\n");
     }
 
     $data = getData();
@@ -378,6 +418,9 @@ function action_updateTagCache()
     print "wrote tag cache\n";
     print formatDateTime()."\n";
     doPrint("finished tag cache update...");
+    doPrint("new:    ".$new);
+    doPrint("update: ".$updates);
+    doPrint("old:    ".$old);
 }
 
 #################################################################
