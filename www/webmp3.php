@@ -166,6 +166,7 @@ function action_pic() {
 
     $url = $config["searchPath"].getPath($_GET["pic"]);
     $url = preg_replace("/\/+/", "/", $url);
+    $url = preg_replace("/\/$/", "", $url);
     doPrint("got pic request for: ".$url);
 
     # search a folder icon

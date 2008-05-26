@@ -655,8 +655,8 @@ function getPath($path = "", $append = "") {
     #doPrint("1: ".$origRequest);
 
     if(is_file($config["searchPath"]."/".$path."/".$append)) {
-        $aktPath = dirname($config["searchPath"]."/".$path);
-        $origRequest = "/".$path;
+        $aktPath = dirname($config["searchPath"]."/".$path."/".$append);
+        $origRequest = dirname("/".$path."/".$append);
     } else {
         $aktPath = $config["searchPath"]."/".$path."/".$append;
     }
@@ -664,7 +664,7 @@ function getPath($path = "", $append = "") {
     $aktPath = preg_replace("/\/+/", "/", $aktPath);
     #doPrint("2: ".$aktPath);
 
-    #$aktPath = realpath($aktPath);
+    $aktPath = realpath($aktPath);
     # do the realpath thing...
     $origRequest = myRealpath($origRequest);
     $aktPath     = myRealpath($aktPath);

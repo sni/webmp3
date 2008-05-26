@@ -101,14 +101,24 @@ Ext.onReady(function(){
   }
 
   webmp3.pathClickHandler = function(button, event) {
+    webmp3.loadPath(button.initialConfig.tooltip);
+  }
+
+  webmp3.loadPath = function(path) {
     webmp3.FilesystemDataStore.load({
       url: 'webmp3.php',
-      params: 'action=getFilesystem&aktPath=/&append='+webmp3.urlencode(button.initialConfig.tooltip),
-      text: 'loading files for '+record.get('file')
+      params: 'action=getFilesystem&aktPath=/&append='+webmp3.urlencode(path),
+      text: 'loading files for '+ path
     });
+    var blub = webmp3.aktPath;
+    webmp3.aktPath = "/";
+    updateFilePic(path);
+    webmp3.aktPath = blub;
     Ext.ComponentMgr.get('filesearch').reset();
     Ext.ComponentMgr.get('filesearch').triggers[0].hide();
+    webmp3.fileGrid.getColumnModel().getColumnById(3).hidden = true;
     webmp3.fileGrid.getBottomToolbar().hide();
+    webmp3.lastSearch = "";
     webmp3.fileGrid.syncSize();
     webmp3.border.doLayout();
   }
@@ -340,7 +350,7 @@ Ext.onReady(function(){
         }
 
         webmp3.noTogggleEvents = 0;
-       
+
         webmp3.highlightCurrentSong();
         updatePlayPic();
         webmp3.fixButtonIcons();
@@ -1065,6 +1075,8 @@ webmp3.playingbar = new Ext.Toolbar({
                 this.store.reload({params:o});
                 this.triggers[0].hide();
                 this.hasSearch = false;
+                webmp3.lastSearch = "";
+                webmp3.fileGrid.getColumnModel().getColumnById(3).hidden = true;
                 webmp3.fileGrid.getBottomToolbar().hide();
                 webmp3.fileGrid.syncSize();
                 webmp3.border.doLayout();
@@ -1076,11 +1088,13 @@ webmp3.playingbar = new Ext.Toolbar({
               webmp3.pathBeforeSearch = webmp3.aktPath;
             }
             webmp3.aktPath = "/";
-            var v = this.getRawValue();
+            var v = this.getValue();
             if(v.length < 1){
                 this.onTrigger1Click();
                 return;
             }
+            webmp3.fileGrid.getColumnModel().setColumnWidth(1, '90%');
+            webmp3.fileGrid.getColumnModel().getColumnById(3).hidden = false;
             webmp3.fileGrid.getBottomToolbar().show();
             webmp3.fileGrid.syncSize();
             webmp3.border.doLayout();
@@ -1131,6 +1145,10 @@ webmp3.playingbar = new Ext.Toolbar({
 /****************************************
  * Filesystem
  ***************************************/
+    webmp3.jumpRenderer = function(src, p, record) {
+      p.attr = 'ext:qtip="jump to this directory" ext:qtitle="Quick Dir Change!"';
+      return("<img width=16 height=16 src='images/arrow_right.png'>");
+    }
     webmp3.iconRenderer = function(src) {
       return("<img width=16 height=16 src='"+src+"'>");
     }
@@ -1214,14 +1232,22 @@ webmp3.playingbar = new Ext.Toolbar({
           store: webmp3.FilesystemDataStore
         },
         columns: [
-            {header: ' ', dataIndex: 'icon', renderer: webmp3.iconRenderer, width: 5, menuDisabled: true  },
+            {header: ' ', dataIndex: 'icon', renderer: webmp3.iconRenderer, width: 5, menuDisabled: true },
             {header: 'Files & Directories', dataIndex: 'file', width: 125, menuDisabled: true },
-            {header: 'Type', sortable: false, hidden: true, hideable: false,  dataIndex: 'type'}
+            {header: 'Type', sortable: false, hidden: true, hideable: false,  dataIndex: 'type'},
+            {header: 'Jump', sortable: false, hidden: true, hideable: false,  dataIndex: 'file', width: 25, renderer: webmp3.jumpRenderer }
         ],
         viewConfig: {
             forceFit: true
         },
         listeners: {
+            cellclick : function ( grid, rowIndex, columnIndex, event ) {
+                if(columnIndex == 3) {
+                  var record = grid.getStore().getAt(rowIndex);
+                  var data = record.get('file');
+                  webmp3.loadPath(data);
+                }
+            },
             celldblclick: function(grid, rowIndex, columnIndex, e) {
                 var record = grid.getStore().getAt(rowIndex);
                 var fieldName = grid.getColumnModel().getDataIndex(columnIndex);
