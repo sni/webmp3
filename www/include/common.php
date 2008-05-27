@@ -587,10 +587,15 @@ function getTag($file) {
     }
 
     if(!file_exists($file)) {
-        return(array("","","","","0:0"));
+        return(array("","","","","0:0", 192));
     }
 
-    $fileinfo = $getID3->analyze($file);
+    try {
+        $fileinfo = $getID3->analyze($file);
+    } catch (Exception $e) {
+        doPrint("Error in getID3 for ".$file.": ".$e->getMessage());
+        return(array("","","","","0:0", 192));
+    }
     // doPrint($fileinfo);
 
     $neededTags = array("artist", "album", "title", "track");
