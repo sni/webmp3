@@ -1068,10 +1068,14 @@ webmp3.playingbar = new Ext.Toolbar({
                     this.onTrigger2Click();
                 }
             }, this);
+            this.on('keydown', function ( textField, e ) {
+                webmp3.abcMap.disable();
+            }, this);
             this.on('keyup', function ( textField, e ) {
               if(textField.getValue().length == 0 || (textField.getValue().length >= 2 && webmp3.lastSearch != textField.getValue())) {
                 webmp3.lastSearch = textField.getValue();
                 this.onTrigger2Click();
+                webmp3.abcMap.enable();
               }
             }, this);
         },
@@ -1249,6 +1253,7 @@ webmp3.playingbar = new Ext.Toolbar({
         ddGroup : 'playlistDD',
         autoExpandColumn: 'file',
         sm: webmp3.fsm,
+        id: 'fileGridPanel',
         store: webmp3.FilesystemDataStore,
         loadMask: {
           store: webmp3.FilesystemDataStore
@@ -1300,11 +1305,6 @@ webmp3.playingbar = new Ext.Toolbar({
                   scope: this
                 },
                 {
-                  key: '1234567890abcdefghijklmnopqrstuvwxyz',
-                  fn: webmp3.jumpToFile,
-                  scope: this
-                },
-                {
                   key: Ext.EventObject.DOWN,
                   fn: webmp3.jumpDown,
                   scope: this
@@ -1348,7 +1348,6 @@ webmp3.playingbar = new Ext.Toolbar({
           })
         ]
     });
-
 
 /****************************************
  * Main Border Layout Panel
@@ -1942,6 +1941,12 @@ webmp3.playingbar = new Ext.Toolbar({
     Ext.ComponentMgr.get('playlistLoadWindowCloseBtn').on("click", function(button, event) {
       webmp3.playlistLoadWindow.hide();
     });
+
+  webmp3.abcMap = new Ext.KeyMap("fileGridPanel", {
+      key: '1234567890abcdefghijklmnopqrstuvwxyz',
+      fn: webmp3.jumpToFile
+  });
+
 
 /****************************************
  * Initialization
