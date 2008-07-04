@@ -574,7 +574,7 @@ function getTag($file) {
     }
 
    if(strpos($file, "http://") === 0) {
-       return(array("","","","","0:0"));
+       return(array("","","","","0:0", 0));
        if($fp1 = fopen($file, 'rb')) {
             $tempname = tempnam('/tmp', 'foo');
             if ($fp2 = fopen($tempname, 'wb')) {
@@ -587,7 +587,7 @@ function getTag($file) {
     }
 
     if(!file_exists($file)) {
-        return(array("","","","","0:0", 192));
+        return(array("","","","","0:0", 0));
     }
 
     try {
