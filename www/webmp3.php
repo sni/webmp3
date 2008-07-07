@@ -53,7 +53,6 @@ include("include/Action.php");
 # action_setToggle()
 # action_getPath()
 # action_getCurStatus()
-# action_addPlaylist()
 # action_getHitlist()
 #
 #################################################################
@@ -335,8 +334,7 @@ function action_deletePlaylist()
 {
     global $config;
 
-    $msg = "playlist not found";
-        doPrint("deleting playlist: ".$_REQUEST["name"]);
+    doPrint("deleting playlist: ".$_REQUEST["name"]);
     if(isset($_REQUEST["name"]) AND is_file($config["plDir"].$_REQUEST["name"])) {
         doPrint("deleting playlist: ".$_REQUEST["name"]);
 
@@ -346,9 +344,8 @@ function action_deletePlaylist()
         }
 
         unlink($config["plDir"].$_REQUEST["name"]);
-        $msg = "deleted playlist";
     }
-    action_getCurStatus($msg);
+    action_getPlaylists();
 }
 
 #################################################################

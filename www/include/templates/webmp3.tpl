@@ -1911,12 +1911,12 @@ webmp3.playingbar = new Ext.Toolbar({
                                       var file = webmp3.playlistsLoadDataStore.getAt(rowIndex).get('file');
                                       var info = webmp3.playlistsLoadDataStore.getAt(rowIndex).get('info')
                                       file = file+" - "+info+".playlist";
-                                      webmp3.StatusDataStore.load({
+                                      webmp3.playlistsLoadDataStore.load({
+                                      //webmp3.PlaylistDataStore.load({
                                           url: 'webmp3.php',
                                           params: 'action=deletePlaylist&name=' + webmp3.urlencode(file),
                                           text: 'deleting playlist'
                                       });
-                                      webmp3.playlistsLoadDataStore.load();
                                     }
                                   });
                                 }
