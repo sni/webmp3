@@ -45,7 +45,7 @@ else
   # with argument, set the current volume
   if [ $1 -gt 0 -a $1 -lt 100 ]; then 
     if [ $hasOsascript -eq 1 ]; then
-      osascript -e "set volume output volume $1"
+      `osascript -e "set volume output volume $1"`
     fi
     if [ $hasAumix -eq 1 ]; then
       aumix -v $1
