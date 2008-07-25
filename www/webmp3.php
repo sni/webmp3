@@ -447,6 +447,8 @@ function action_getFilesystem()
         return(0);
     }
 
+    $allowed = getAccess($aktPath);
+
     $filesystem = array();
     $files = array();
     $dirs  = array();
@@ -494,7 +496,12 @@ function action_getFilesystem()
     }
     natcasesort($dirs);
     natcasesort($files);
-
+ 
+    if(!$allowed) {
+      $filesystem = array();
+      $files      = array();
+      $dirs       = array();
+    }
     if($aktPath != "" AND $aktPath != "/") {
         array_unshift($filesystem, array("file" => "..",  "type" => "D", "icon" => "images/spacer.png"));
     }
@@ -555,7 +562,11 @@ function action_getPlaylist()
         foreach($_REQUEST["add"] as $file) {
             $file = stripslashes($file);
             $file = trim($file);
-            if(file_exists($config["searchPath"].$aktPath."/".$file)) {
+            $allowed = getAccess($aktPath."/".$file);
+
+            if(!$allowed) {
+              doPrint("ip is not allowed to add ".$aktPath."/".$file);
+            } elseif(file_exists($config["searchPath"].$aktPath."/".$file)) {
                 doPrint("added file ".$aktPath."/".$file);
                 $data["playlist"] = playlistAdd($data["playlist"], $config["searchPath"].$aktPath."/".$file);
             }

@@ -45,4 +45,11 @@ $config["tagCache"]    = "./var/tagCache.dat";               # cache file for mp
 $config["accControl"] = 0;                      # if 1, then ip based access will be used
 $config["allowedIPs"] = array("127.0.0.1", "192.168.0.1", "192.168.0.2", "192.168.0.3");
 
+# this directive allows you to allow only specific ips for some directories
+# the setting is optional, every directory pattern not listed here uses the
+# default access list from 'allowedIPs'
+# $config["allowedDirs"] = array(
+#                                 "/protected" => array("127.0.0.1", "192.168.0.1"),
+#                               );
+
 ?>

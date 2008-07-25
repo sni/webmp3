@@ -47,6 +47,7 @@ error_reporting(2047);
 # getRemaining($data)
 # getPidData($pid)
 # checkForUptodateTagCache()
+# getAccess($path)
 #
 #################################################################
 
@@ -840,6 +841,38 @@ function checkForUptodateTagCache() {
       doPrint("tag Cache is ok, last update: ".formatDateTime($data["lastTagUpdate"]));
     }
 }
+
+#########################################################################################
+
+function getAccess($path) {
+    global $config;
+
+    # check if access control is enabled
+    if($config["accControl"] == 0) {
+      return(1);
+    }
+
+    $allowed = 1;
+    if(isset($config["allowedDirs"])) {
+      foreach($config["allowedDirs"] as $dir => $ips) {
+        if(strpos($path, $dir) !== false) {
+          $allowed = 0;
+          doPrint("path ('".$path."') is protected");
+          if(!isset($_SERVER["REMOTE_ADDR"])) {
+            doPrint("remote ip is not set");
+          }
+          elseif(!in_array($_SERVER["REMOTE_ADDR"], $ips)) {
+            doPrint("ip: ".$_SERVER["REMOTE_ADDR"]." is not allowed");
+          } else {
+            doPrint("ip: ".$_SERVER["REMOTE_ADDR"]." is allowed");
+            $allowed = 1;
+          }
+        }
+      }
+    }
+    return($allowed);
+}
+
 
 #########################################################################################
 
