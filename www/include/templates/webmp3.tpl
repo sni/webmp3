@@ -134,7 +134,7 @@ Ext.onReady(function(){
     webmp3.aktPath = blub;
     Ext.ComponentMgr.get('filesearch').reset();
     Ext.ComponentMgr.get('filesearch').triggers[0].hide();
-    webmp3.fileGrid.getColumnModel().getColumnById(3).hidden = true;
+    webmp3.fileGrid.getColumnModel().getColumnById(0).hidden = true;
     webmp3.fileGrid.getBottomToolbar().hide();
     webmp3.lastSearch = "";
     webmp3.fileGrid.syncSize();
@@ -1102,7 +1102,7 @@ webmp3.playingbar = new Ext.Toolbar({
                 this.triggers[0].hide();
                 this.hasSearch = false;
                 webmp3.lastSearch = "";
-                webmp3.fileGrid.getColumnModel().getColumnById(3).hidden = true;
+                webmp3.fileGrid.getColumnModel().getColumnById(0).hidden = true;
                 webmp3.fileGrid.getBottomToolbar().hide();
                 webmp3.fileGrid.syncSize();
                 webmp3.border.doLayout();
@@ -1119,8 +1119,8 @@ webmp3.playingbar = new Ext.Toolbar({
                 this.onTrigger1Click();
                 return;
             }
-            webmp3.fileGrid.getColumnModel().setColumnWidth(1, '90%');
-            webmp3.fileGrid.getColumnModel().getColumnById(3).hidden = false;
+            webmp3.fileGrid.getColumnModel().setColumnWidth(2, '90%');
+            webmp3.fileGrid.getColumnModel().getColumnById(0).hidden = false;
             webmp3.fileGrid.getBottomToolbar().show();
             webmp3.fileGrid.syncSize();
             webmp3.border.doLayout();
@@ -1259,17 +1259,17 @@ webmp3.playingbar = new Ext.Toolbar({
           store: webmp3.FilesystemDataStore
         },
         columns: [
+            {header: 'Jump', sortable: false, hidden: true, hideable: false,  dataIndex: 'file', width: 25, renderer: webmp3.jumpRenderer },
             {header: ' ', dataIndex: 'icon', renderer: webmp3.iconRenderer, width: 5, menuDisabled: true },
             {header: 'Files & Directories', dataIndex: 'file', width: 125, menuDisabled: true },
-            {header: 'Type', sortable: false, hidden: true, hideable: false,  dataIndex: 'type'},
-            {header: 'Jump', sortable: false, hidden: true, hideable: false,  dataIndex: 'file', width: 25, renderer: webmp3.jumpRenderer }
+            {header: 'Type', sortable: false, hidden: true, hideable: false,  dataIndex: 'type'}
         ],
         viewConfig: {
             forceFit: true
         },
         listeners: {
             cellclick : function ( grid, rowIndex, columnIndex, event ) {
-                if(columnIndex == 3) {
+                if(columnIndex == 0) {
                   var record = grid.getStore().getAt(rowIndex);
                   var data = record.get('file');
                   webmp3.loadPath(data);
