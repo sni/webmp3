@@ -37,6 +37,7 @@ if(isset($_SERVER["REMOTE_ADDR"])) {
 include("include/common.php");
 include("include/Template.php");
 include("include/getid3/getid3.php");
+include("plugins.php");
 include("include/Action.php");
 
 #################################################################
@@ -80,6 +81,8 @@ function action_default()
     if($stream) {
       $pre = "";
     }
+
+    $data = brokerPlugin("main_page_loading", $data);
 
     $t = new template();
     $t -> main("include/templates/webmp3.tpl");
@@ -496,7 +499,7 @@ function action_getFilesystem()
     }
     natcasesort($dirs);
     natcasesort($files);
- 
+
     if(!$allowed) {
       $filesystem = array();
       $files      = array();
@@ -707,6 +710,7 @@ function action_setToggle()
         $data["play"]  = 1;
         $data["pause"] = 0;
         if(isset($_REQUEST["token"])) {
+            $data = brokerPlugin("user_pressed_next", $data);
             $data["curTrack"] = $_REQUEST["token"];
             $data = killChild($data);
         }
@@ -726,6 +730,7 @@ function action_setToggle()
     # Stop
     if($_REQUEST['button'] == "Stop") {
         doPrint("pressed stop");
+        $data = brokerPlugin("user_pressed_stop", $data);
         killChild();
         action_getPlaylist();
     }

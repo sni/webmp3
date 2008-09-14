@@ -29,6 +29,9 @@ declare(ticks = 1);
 include("config.php");
 $config["searchPath"] = realpath($config["searchPath"]);
 include("include/common.php");
+include("plugins.php");
+include("include/Action.php");
+checkForUptodateTagCache();
 
 #################################################################
 #
@@ -87,20 +90,20 @@ function action_default()
         $data['playlist'] = $newPlaylist;
     }
 
-    $data["start"]  = time();
-    $data["length"] = $track["lengths"];
-    $data["title"]  = $track["title"];
+    $data["start"]       = time();
+    $data["length"]      = $track["lengths"];
+    $data["title"]       = $track["title"];
 
-    $data["artist"]   = $track["artist"];
-    $data["album"]    = $track["album"];
-    $data["track"]    = $track["tracknum"];
-    $data["token"]    = $track["token"];
-    $data["filename"] = $track["filename"];
+    $data["artist"]      = $track["artist"];
+    $data["album"]       = $track["album"];
+    $data["track"]       = $track["tracknum"];
+    $data["token"]       = $track["token"];
+    $data["filename"]    = $track["filename"];
     if(!isset($track["bitrate"])) { $track["bitrate"] = ""; }
-    $data["bitrate"]  = $track["bitrate"];
-    $data["play"]     = 1;
-
-    $data["playingPic"] = getPictureForPath(dirname($track["filename"]));
+    $data["bitrate"]     = $track["bitrate"];
+    $data["play"]        = 1;
+    $data["gmtimestart"] = gmdate("U");
+    $data["playingPic"]  = getPictureForPath(dirname($track["filename"]));
 
     if(isset($config["notifyCommand"])) {
         $tmp = $config["notifyCommand"];
@@ -156,12 +159,15 @@ function action_default()
     $data["aktBin"] = $playBin;
     storeData($data);
     $options = array_map("escapeshellarg", $options);
+    $data = brokerPlugin("pre_playing_song", $data);
     doPrint("executing: ".$playBin." ".join(" ", $options));
     system($playBin." ".join(" ", $options).' >> '.$config["logfile"].' 2>&1');
 
     doPrint("finished playing");
 
     $data = getData();
+    $data = brokerPlugin("post_playing_song", $data);
+
     unset($data["ppid"]);
     unset($data["start"]);
     unset($data["length"]);
@@ -184,8 +190,5 @@ function action_default()
 }
 
 #################################################################
-
-include("include/Action.php");
-checkForUptodateTagCache();
 
 ?>

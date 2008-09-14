@@ -48,6 +48,8 @@ error_reporting(2047);
 # getPidData($pid)
 # checkForUptodateTagCache()
 # getAccess($path)
+# register_plugin($name, $instance)
+# brokerPlugin($function, $data)
 #
 #################################################################
 
@@ -210,7 +212,7 @@ function playlistAdd($playlist, $toAdd)
 
 #################################################################
 
-function doPrint($data)
+function doPrint($data, $level = "NOTICE")
 {
     global $config;
 
@@ -221,7 +223,7 @@ function doPrint($data)
     if(isset($_SERVER["REMOTE_ADDR"])) {
          $ip = $_SERVER["REMOTE_ADDR"];
     }
-    $info   = $date." ".$script."[".$pid."][".$ip."]: ";
+    $info   = $date."[".$level."][".$script."][".$pid."][".$ip."]: ";
 
     if(is_string($data)) {
         $text = $info.$data;
@@ -873,6 +875,35 @@ function getAccess($path) {
     return($allowed);
 }
 
+
+#########################################################################################
+
+function register_plugin($name, $instance)
+{
+    global $config;
+    $config['plugins'][$name] = $instance;
+}
+
+#########################################################################################
+
+function brokerPlugin($function, $data) {
+    global $config;
+
+    if(!isset($config['plugins'])) {
+        return($data);
+    }
+
+    foreach($config['plugins'] as $name => $class) {
+        #doPrint("$function : $name");
+        #doPrint("before ".$name);
+        #doPrint($data);
+        $tmp = $class->{$function}($data);
+        if(isset($tmp[0])) { $data = $tmp[0]; }
+        #doPrint("after ".$name);
+        #doPrint($data);
+    }
+    return($data);
+}
 
 #########################################################################################
 
