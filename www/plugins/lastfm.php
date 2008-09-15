@@ -101,7 +101,7 @@ class webmp3PluginLastFM
             $cont = explode("\n", $this->urlSend($url, 1));
             if(isset($cont[0]) AND $cont[0] == "OK") {
               doPrint("lastfm: submission ok");
-            } else {
+           } else {
                 doPrint("lastfm: submission failed: ".join("\n", $cont));
             }
         } else {
@@ -140,7 +140,7 @@ class webmp3PluginLastFM
             doPrint("lastfm: handshake ok");
             unset($data["lastfm_last_error"]);
             unset($data["lastfm_error_count"]);
-
+            doPrint($cont);
             $data["lastfm_sessionid"] = $cont[1];
             $data["lastfm_nowplaying"] = $cont[2];
             $data["lastfm_submission"] = $cont[3];
@@ -153,11 +153,12 @@ class webmp3PluginLastFM
             unset($data["lastfm_sessionid"]);
             unset($data["lastfm_nowplaying"]);
             unset($data["lastfm_submission"]);
+            storeData($data);
         }
         return($data);
     }
 
-    function urlSend($url, $post = 0) {
+    function urlSend($url, $post = 0, $retries = 0) {
         global $config;
 
         $ch = curl_init($url);
@@ -185,6 +186,22 @@ class webmp3PluginLastFM
         ob_end_clean();
         curl_close ($ch);
 
+        $con = explode("\n", $cont);
+        if($con[0] == "BADSESSION") {
+          doPrint("lastfm: session expired, retry(".$retries.")");
+          $data = getData();
+          unset($data["lastfm_sessionid"]);
+          unset($data["lastfm_nowplaying"]);
+          unset($data["lastfm_submission"]);
+          $data = $this->lastFMHandshake($data);
+          if(isset($data['lastfm_submission']) AND isset($data['lastfm_sessionid']) AND $retries <= 0) {
+            $retries++;
+            doPrint("lastfm: trying once more");
+            sleep(2);
+            $this->urlSend($url, $post, $retries);
+          }
+        }
+ 
         if(empty($cont)) {
             $cont = "UNKNOWN";
         }

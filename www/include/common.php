@@ -98,6 +98,8 @@ function getData($called = 0, $errMsg = "") {
     }
     $data['playlist'] = $playlist;
 
+    if(!isset($data['partymode'])) { $data['partymode'] = "0"; }
+
     return($data);
 }
 
