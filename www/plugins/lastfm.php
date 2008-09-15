@@ -33,6 +33,13 @@ class webmp3PluginLastFM
 {
     public function __call($type, $arguments)
     {
+        if(   !isset($config["lastfm_user"]) or empty($config["lastfm_user"]) 
+           or !isset($config["lastfm_pass"]) or empty($config["lastfm_pass"])
+           or !isset($config["lastfm_url"])  or empty($config["lastfm_url"])
+        ) {
+            return($arguments);
+        }
+
         if($type == "pre_playing_song") {
             $data = $arguments[0];
             if(isset($data['playingStream']) AND $data['playingStream'] == 0) {
