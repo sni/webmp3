@@ -33,10 +33,18 @@ class webmp3PluginLastFM
 {
     public function __call($type, $arguments)
     {
+        global $config;
         if(   !isset($config["lastfm_user"]) or empty($config["lastfm_user"]) 
            or !isset($config["lastfm_pass"]) or empty($config["lastfm_pass"])
            or !isset($config["lastfm_url"])  or empty($config["lastfm_url"])
         ) {
+            # no lastfm configuration found
+            return($arguments);
+        }
+
+        if(!extension_loaded("curl")) {
+            # required extension not loaded
+            doPrint("lastfm: plugin requires curl extension", "WARNING");
             return($arguments);
         }
 
@@ -103,6 +111,8 @@ class webmp3PluginLastFM
 
     function lastFMHandshake($data) {
 
+        global $config;
+
         if(isset($data["lastfm_sessionid"])) {
             return($data);
         }
@@ -136,8 +146,9 @@ class webmp3PluginLastFM
             $data["lastfm_submission"] = $cont[3];
             storeData($data);
         } else {
-            doPrint("lastfm: handshake failed".join("\n", $cont));
+            doPrint("lastfm: handshake failed: ".join("\n", $cont), "ERROR");
             $data["lastfm_last_error"] = time();
+            if(!isset($data["lastfm_error_count"])) { $data["lastfm_error_count"] = 0; }
             $data["lastfm_error_count"]++;
             unset($data["lastfm_sessionid"]);
             unset($data["lastfm_nowplaying"]);
@@ -147,11 +158,18 @@ class webmp3PluginLastFM
     }
 
     function urlSend($url, $post = 0) {
+        global $config;
+
         $ch = curl_init($url);
         curl_setopt ($ch, "CURLOPT_USERAGENT", "Mozilla/5.0 (Windows; U; Windows NT 5.1; de; rv:1.8.1.3) Gecko/20070309 Firefox/2.0.0.3");
         curl_setopt ($ch, "CURLOPT_TIMEOUT",   "10");
+        if(isset($config["lastfm_proxy"]) AND !empty($config["lastfm_proxy"])) {
+          curl_setopt($ch, CURLOPT_PROXY, $config["lastfm_proxy"]); 
+        }
         if($post == 1) {
+            $postOpts = preg_replace("/.*?\?/", "", $url);
             curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $postOpts);
         }
 
         doPrint("lastfm: url ".$url);
@@ -159,8 +177,8 @@ class webmp3PluginLastFM
         ob_start();
         if(!curl_exec($ch)) {
             $err = curl_error($ch);
-            doPrint("lastfm: Curl Error");
-            doPrint("lastfm:".curl_error($ch));
+            doPrint("lastfm: Curl Error", "ERROR");
+            doPrint("lastfm: ".curl_error($ch), "ERROR");
             return($err);
         }
         $cont = ob_get_contents();
@@ -180,5 +198,6 @@ class webmp3PluginLastFM
 # initialize this plugin and register it globally
 $lastfm = new webmp3PluginLastFM();
 register_plugin("lastfm", $lastfm);
+#doPrint("lastfm: plugin loaded", "DEBUG");
 
 ?>
