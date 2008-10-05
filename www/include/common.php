@@ -610,6 +610,7 @@ function getTag($file) {
       } else {
         $$tag = "";
       }
+      $$tag = str_replace("_", " ", $$tag);
     }
 
     if(!isset($fileinfo["playtime_string"]))  { $fileinfo["playtime_string"] = ""; }

@@ -34,7 +34,7 @@ class webmp3PluginLastFM
     public function __call($type, $arguments)
     {
         global $config;
-        if(   !isset($config["lastfm_user"]) or empty($config["lastfm_user"]) 
+        if(   !isset($config["lastfm_user"]) or empty($config["lastfm_user"])
            or !isset($config["lastfm_pass"]) or empty($config["lastfm_pass"])
            or !isset($config["lastfm_url"])  or empty($config["lastfm_url"])
         ) {
@@ -93,12 +93,12 @@ class webmp3PluginLastFM
             }
             if($nowplaying == 0) {
                doPrint("lastfm: sending last played song");
-               $url = $data['lastfm_submission']."?s=".$data['lastfm_sessionid']."&a[0]=".urlencode($artist)."&t[0]=".urlencode($title)."&b[0]=".urlencode($album)."&l[0]=".$length."&n[0]=".$track."&i[0]=".$time."&o[0]=P&r[0]=&m=";
+               $url = $data['lastfm_submission']."?a[0]=".urlencode($artist)."&t[0]=".urlencode($title)."&b[0]=".urlencode($album)."&l[0]=".$length."&n[0]=".$track."&i[0]=".$time."&o[0]=P&r[0]=&m=";
             } else {
                doPrint("lastfm: sending current playing song");
-               $url = $data['lastfm_nowplaying']."?s=".$data['lastfm_sessionid']."&a=".urlencode($artist)."&t=".urlencode($title)."&b=".urlencode($album)."&l=".$length."&n=".$track."&m=";
+               $url = $data['lastfm_nowplaying']."?a=".urlencode($artist)."&t=".urlencode($title)."&b=".urlencode($album)."&l=".$length."&n=".$track."&m=";
             }
-            $cont = explode("\n", $this->urlSend($url, 1));
+            $cont = explode("\n", $this->urlSend($url, 1, 0, $data["lastfm_sessionid"]));
             if(isset($cont[0]) AND $cont[0] == "OK") {
               doPrint("lastfm: submission ok");
            } else {
@@ -124,7 +124,7 @@ class webmp3PluginLastFM
             }
         }
 
-        if(   !isset($config["lastfm_user"]) or empty($config["lastfm_user"]) 
+        if(   !isset($config["lastfm_user"]) or empty($config["lastfm_user"])
            or !isset($config["lastfm_pass"]) or empty($config["lastfm_pass"])
            or !isset($config["lastfm_url"])  or empty($config["lastfm_url"])
         ) {
@@ -135,7 +135,7 @@ class webmp3PluginLastFM
         $auth = md5(md5($config["lastfm_pass"]).$now);
 
         $url = $config["lastfm_url"]."?hs=true&p=1.2&c=tst&v=1.0&u=".urlencode($config["lastfm_user"])."&t=".$now."&a=".$auth;
-        $cont = explode("\n", $this->urlSend($url));
+        $cont = explode("\n", $this->urlSend($url, 0, 0, ""));
         if(isset($cont[0]) AND $cont[0] == "OK") {
             doPrint("lastfm: handshake ok");
             unset($data["lastfm_last_error"]);
@@ -158,22 +158,26 @@ class webmp3PluginLastFM
         return($data);
     }
 
-    function urlSend($url, $post = 0, $retries = 0) {
+    function urlSend($url, $post = 0, $retries = 0, $session = "") {
         global $config;
 
-        $ch = curl_init($url);
+        $new_url = $url;
+        if($session != "") {
+            $new_url = $url."&s=".$session;
+        }
+        doPrint("lastfm: url ".$new_url);
+
+        $ch = curl_init($new_url);
         curl_setopt ($ch, "CURLOPT_USERAGENT", "Mozilla/5.0 (Windows; U; Windows NT 5.1; de; rv:1.8.1.3) Gecko/20070309 Firefox/2.0.0.3");
         curl_setopt ($ch, "CURLOPT_TIMEOUT",   "10");
         if(isset($config["lastfm_proxy"]) AND !empty($config["lastfm_proxy"])) {
-          curl_setopt($ch, CURLOPT_PROXY, $config["lastfm_proxy"]); 
+          curl_setopt($ch, CURLOPT_PROXY, $config["lastfm_proxy"]);
         }
         if($post == 1) {
             $postOpts = preg_replace("/.*?\?/", "", $url);
             curl_setopt($ch, CURLOPT_POST, 1);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $postOpts);
         }
-
-        doPrint("lastfm: url ".$url);
 
         ob_start();
         if(!curl_exec($ch)) {
@@ -198,10 +202,10 @@ class webmp3PluginLastFM
             $retries++;
             doPrint("lastfm: trying once more");
             sleep(2);
-            $this->urlSend($url, $post, $retries);
+            $this->urlSend($url, $post, $retries, $data["lastfm_sessionid"]);
           }
         }
- 
+
         if(empty($cont)) {
             $cont = "UNKNOWN";
         }
