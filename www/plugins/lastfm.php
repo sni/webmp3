@@ -134,13 +134,13 @@ class webmp3PluginLastFM
         $now  = time();
         $auth = md5(md5($config["lastfm_pass"]).$now);
 
-        $url = $config["lastfm_url"]."?hs=true&p=1.2&c=tst&v=1.0&u=".urlencode($config["lastfm_user"])."&t=".$now."&a=".$auth;
+        $url = $config["lastfm_url"]."?hs=true&p=1.2&c=27561455e22a38d87ccb9f6a866e12e5&v=2.0&u=".urlencode($config["lastfm_user"])."&t=".$now."&a=".$auth;
         $cont = explode("\n", $this->urlSend($url, 0, 0, ""));
         if(isset($cont[0]) AND $cont[0] == "OK") {
             doPrint("lastfm: handshake ok");
             unset($data["lastfm_last_error"]);
             unset($data["lastfm_error_count"]);
-            doPrint($cont);
+            #doPrint($cont);
             $data["lastfm_sessionid"] = $cont[1];
             $data["lastfm_nowplaying"] = $cont[2];
             $data["lastfm_submission"] = $cont[3];
