@@ -730,7 +730,7 @@ function getChildPids($pid)
     }
     $pids = array();
     $return = array();
-    exec("ps -o pid,ppid -ax | grep ".$pid, $pids);
+    exec("ps -eo pid,ppid | grep ".$pid, $pids);
     foreach($pids as $pidStr) {
         $pidStr = trim($pidStr);
         list($cpid,$egal) = preg_split("/\s+/", $pidStr, 2);
