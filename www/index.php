@@ -74,9 +74,10 @@ function action_default()
         elseif(!is_dir($config["searchPath"])) {
             print "ERROR: ".$config["searchPath"]." is not a valid directory<br>\n";
             $failed = 1;
-        } else {
-            checkForUptodateTagCache();
         }
+        # else {
+        #    checkForUptodateTagCache();
+        #}
 
         # check var path
         if(!isset($config["plDir"])) {
