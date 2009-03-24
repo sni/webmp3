@@ -176,7 +176,8 @@ function action_pic() {
 
     if(file_exists($url)) {
         if(isset($_GET["full"]) AND $_GET["full"] == "yes") {
-            $ext = substr($url, -4);
+            $tmp = explode(".", $url);
+            $ext = "." . array_pop($tmp);
             $ct = "text/plain";
             if($ext == ".png") {
                 $ct = "image/png";
@@ -464,7 +465,8 @@ function action_getFilesystem()
                     if(is_dir($config["searchPath"].$aktPath."/".$file)) {
                         $dirs[] = $file;
                     } else {
-                        $ext = substr($file, -4);
+                        $tmp = explode(".", $file);
+                        $ext = "." . array_pop($tmp);
                         if(in_array($ext, array_keys($config["ext"]))) {
                             $files[] = $file;
                         }

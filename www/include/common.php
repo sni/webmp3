@@ -189,7 +189,8 @@ function playlistAdd($playlist, $toAdd)
                     if(is_dir($toAdd."/".$file)) {
                         $dirs[] = $file;
                     } else {
-                        $ext = substr($file, -4);
+                        $tmp = explode(".", $file);
+                        $ext = "." . array_pop($tmp);
                         if(in_array($ext, array_keys($config["ext"]))) {
                             $files[] = $file;
                         }
@@ -383,7 +384,8 @@ function getPictureForPath($path)
     }
     elseif(is_dir($path) AND $handle = opendir($path)) {
         while (false !== ($file = readdir($handle))) {
-            $ext = substr($file, -4);
+            $tmp = explode(".", $file);
+            $ext = "." . array_pop($tmp);
             if($ext == ".png" OR $ext == ".jpg" OR $ext == ".bmp" OR $ext == ".gif") {
                 $return = $path."/".$file;
             }
@@ -557,7 +559,8 @@ function getFilesForDirectory($dir) {
                 elseif(is_dir($dir."/".$file)) {
                     $files = array_merge($files, getFilesForDirectory($dir."/".$file));
                 } else {
-                    $ext = substr($file, -4);
+                    $tmp = explode(".", $file);
+                    $ext = "." . array_pop($tmp);
                     if(in_array($ext, array_keys($config["ext"]))) {
                         $files[] = str_replace($config["searchPath"], "", $dir."/".$file);
                     }

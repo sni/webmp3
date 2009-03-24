@@ -145,7 +145,8 @@ function action_default()
         $data["playingStream"] = 1;
     } else {
         doPrint("playing normal file");
-        $ext = substr($track["filename"], -4);
+        $tmp = explode(".", $track["filename"]);
+        $ext = "." . array_pop($tmp);
         if(isset($config["ext"][$ext])) {
             $playBin = $config["ext"][$ext]["binary"];
             $options = $config["ext"][$ext]["option"];
