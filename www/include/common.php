@@ -606,7 +606,12 @@ function getTag($file) {
     }
     // doPrint($fileinfo);
 
-    $neededTags = array("artist", "album", "title", "track");
+    if ($fileinfo["fileformat"] == "mp3") {
+      $neededTags = array("artist", "album", "title", "track");
+    } else {
+      $neededTags = array("artist", "album", "title", "tracknumber");
+    }
+
     foreach($neededTags as $tag) {
       if(isset($fileinfo["comments"][$tag][0]) AND !empty($fileinfo["comments"][$tag][0])) {
         $$tag = $fileinfo["comments"][$tag][0];
@@ -614,6 +619,10 @@ function getTag($file) {
         $$tag = "";
       }
       $$tag = str_replace("_", " ", $$tag);
+
+      if ($tag == "tracknumber") {
+      	$track = $$tag;
+      }
     }
 
     if(!isset($fileinfo["playtime_string"]))  { $fileinfo["playtime_string"] = ""; }
