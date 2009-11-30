@@ -148,6 +148,8 @@ function playlistAdd($playlist, $toAdd)
             "length"    => "&infin;",
         );
         $playlist[$token] = $newFile;
+    } elseif(!file_exists($toAdd)) {
+        doPrint("playlistAdd() : '".$toAdd."' does not exist");
     } elseif(is_file($toAdd)) {
         $toAdd = preg_replace("/\/+/", "/", $toAdd);
 
@@ -208,7 +210,7 @@ function playlistAdd($playlist, $toAdd)
             $playlist = playlistAdd($playlist, $toAdd."/".$file);
         }
     } else {
-        doPrint("playlistAdd() : ".$toAdd." is whether file nor dir nor stream");
+        doPrint("playlistAdd() : '".$toAdd."' is whether file nor dir nor stream");
     }
     return($playlist);
 }
@@ -728,7 +730,7 @@ function myRealpath($path) {
         $path = join("/", $pathElems);
     }
     return($path);
-    $path = str_replace("/.", "", $path);
+    #$path = str_replace("/.", "", $path);
 }
 
 #########################################################################################
