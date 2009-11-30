@@ -21,7 +21,12 @@ case $SND in
 	# all devices: amixer scontrols | awk "{gsub(/'/,\"\"); print \$NF}"
 	DEV=Master
 	if [ -z "$1" ]; then
-		amixer sget "$DEV",0 | awk '/Left: Playback/ {gsub(/[\[\]\%]/,""); print $5}'
+		erg=`amixer sget "$DEV",0 | awk '/Mono: Playback/ {gsub(/[\[\]\%]/,""); print $4}'`
+		if [ "$erg" != "" ]; then
+			echo $erg
+		else
+			amixer sget "$DEV",0 | awk '/Left: Playback/ {gsub(/[\[\]\%]/,""); print $4}'
+		fi
 	else
 		amixer -qc 0 set "$DEV" "$1"%
 	fi
