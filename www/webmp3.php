@@ -295,7 +295,7 @@ function action_getPlaylists()
     $limit = 20;
     if(isset($_REQUEST['start']) AND is_numeric($_REQUEST['start'])) { $start = $_REQUEST['start']; }
     if(isset($_REQUEST['limit']) AND is_numeric($_REQUEST['limit'])) { $limit = $_REQUEST['limit']; }
-    doPrint("got json playlist load request (".$start."/".$limit.")");
+    #doPrint("got json playlist load request (".$start."/".$limit.")");
 
     $list = array();
 
@@ -721,7 +721,7 @@ function action_setToggle()
         for($x = 0; $x <= 30; $x++) {
           usleep(50000);
           $data = getData();
-          doPrint("check: ".$x);
+          #doPrint("check: ".$x);
           if(isset($data['aktBin'])) {
             $x = 100;
           }
@@ -846,7 +846,7 @@ function action_getCurStatus($msg = "")
 
     # get client version
     $client = join("", file("include/templates/webmp3.tpl"));
-    $pos1   = strpos($client, '$Id:', $client);
+    $pos1   = strpos($client, '$Id:');
     $pos2   = strpos($client, '$', $pos1 + 1);
     $pos2   = $pos2 + 1;
     $version = str_replace("webmp3.tpl", "WebMP3", substr($client, $pos1, $pos2 - $pos1));
