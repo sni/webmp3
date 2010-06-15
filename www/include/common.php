@@ -119,7 +119,7 @@ function storeData($data) {
         $fp = fopen($config["playlist"], "w+") or user_error("cannot open playlist");
         fwrite($fp, serialize($data)."\n");
         fclose($fp);
-        doPrint("wrote data");
+        #doPrint("wrote data");
     }
 }
 
@@ -659,7 +659,7 @@ function formatDateTime($time = 0)
 function getPath($path = "", $append = "") {
     global $config;
 
-    doPrint("getPath('".$path."', '".$append."')");
+    #doPrint("getPath('".$path."', '".$append."')");
     $path   = urldecode($path);
     $append = urldecode($append);
 
