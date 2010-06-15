@@ -83,17 +83,18 @@ class webmp3PluginLastFMSubmit
         }
         if($nowplaying == 0) {
            doPrint("lastfm: sending last played song");
-           exec(
-             $this->command
+             $cmd = $this->command
                .' --album '   .escapeshellarg($album)
                .' --artist '  .escapeshellarg($artist)
                .' --title '   .escapeshellarg($title)
                .' --length '  .escapeshellarg($length)
+               .' 2>&1';
                //.' --time '    .escapeshellarg($time)
-             , $output=array(), $return
-           );
+           exec( $cmd, $output=array(), $return );
            if($return != 0) {
-             doPrint("lastfm: $output");
+             doPrint("lastfm: $cmd");
+             doPrint($output);
+             doPrint($return);
              return(1);
            }
         } else {
