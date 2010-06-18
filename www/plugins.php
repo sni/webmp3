@@ -23,6 +23,7 @@
 #################################################################
 
 # all loaded plugins must be listed here as include_once
-include_once("plugins/lastfm.php");
+#include_once("plugins/lastfm.php");
+include_once("plugins/lastfmsubmit.php");
 
 ?>

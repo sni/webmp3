@@ -31,38 +31,50 @@
 #
 class webmp3PluginLastFM
 {
+
+    #################################################################
+    # global command handler
     public function __call($type, $arguments)
     {
+        #doPrint($arguments, "INFO");
         global $config;
         if(   !isset($config["lastfm_user"]) or empty($config["lastfm_user"])
            or !isset($config["lastfm_pass"]) or empty($config["lastfm_pass"])
            or !isset($config["lastfm_url"])  or empty($config["lastfm_url"])
         ) {
             # no lastfm configuration found
+            doPrint("lastfm: is deactivated, no config found", "INFO");
             return($arguments);
         }
-
-        if(!extension_loaded("curl")) {
+        elseif(!extension_loaded("curl")) {
             # required extension not loaded
             doPrint("lastfm: plugin requires curl extension", "WARNING");
             return($arguments);
         }
-
-        if($type == "pre_playing_song") {
+        elseif($type == "pre_playing_song") {
             $data = $arguments[0];
             if(isset($data['playingStream']) AND $data['playingStream'] == 0) {
                 $this->sendSongToLastFM($data, 1);
+            } else {
+              doPrint("lastfm: wont send a stream", "WARNING");
             }
         }
-        if($type == "post_playing_song" or $type == "user_pressed_stop" or $type == "user_pressed_next") {
+        elseif($type == "post_playing_song" or $type == "user_pressed_stop" or $type == "user_pressed_next") {
             $data = $arguments[0];
             if(isset($data['playingStream']) AND $data['playingStream'] == 0) {
                 $this->sendSongToLastFM($data);
+            } else {
+              doPrint("lastfm: wont send a stream", "WARNING");
             }
+        }
+        else {
+            doPrint("lastfm: nothing to be done for: ".$type, "INFO");
         }
         return $arguments;
     }
 
+    #################################################################
+    # send a song to last fm
     function sendSongToLastFM($data, $nowplaying = 0) {
         $data = $this->lastFMHandshake($data);
         if(isset($data['lastfm_submission']) AND isset($data['lastfm_sessionid'])) {
@@ -70,6 +82,8 @@ class webmp3PluginLastFM
                or !isset($data["artist"]) or empty($data["artist"])
                or !isset($data["album"])  or empty($data["album"])
             ) {
+                doPrint("lastfm: no valid id3 tags found:");
+                #doPrint($data);
                 return(1);
             }
 
@@ -109,6 +123,8 @@ class webmp3PluginLastFM
         }
     }
 
+    #################################################################
+    # do the last fm handshake
     function lastFMHandshake($data) {
 
         global $config;
@@ -134,7 +150,7 @@ class webmp3PluginLastFM
         $now  = time();
         $auth = md5(md5($config["lastfm_pass"]).$now);
 
-        $url = $config["lastfm_url"]."?hs=true&p=1.2&c=27561455e22a38d87ccb9f6a866e12e5&v=2.0&u=".urlencode($config["lastfm_user"])."&t=".$now."&a=".$auth;
+        $url = $config["lastfm_url"]."?hs=true&p=1.2&c=tst&v=1.0&u=".urlencode($config["lastfm_user"])."&t=".$now."&a=".$auth;
         $cont = explode("\n", $this->urlSend($url, 0, 0, ""));
         if(isset($cont[0]) AND $cont[0] == "OK") {
             doPrint("lastfm: handshake ok");
@@ -158,6 +174,8 @@ class webmp3PluginLastFM
         return($data);
     }
 
+    #################################################################
+    # generic url send function
     function urlSend($url, $post = 0, $retries = 0, $session = "") {
         global $config;
 
