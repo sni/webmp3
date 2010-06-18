@@ -159,6 +159,7 @@ function action_default()
 
     $data["aktBin"] = $playBin;
     storeData($data);
+
     $options = array_map("escapeshellarg", $options);
     $data = brokerPlugin("pre_playing_song", $data);
     doPrint("executing: ".$playBin." ".join(" ", $options));
