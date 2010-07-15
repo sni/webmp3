@@ -335,8 +335,12 @@ Ext.onReady(function(){
 
         // set current track data
         artist = webmp3.ucFirst(record.get('artist'));
-        wikilink   = '&nbsp;<a href="http://en.wikipedia.org/wiki/'+artist.replace(/ /g, "_")+'" target="_blank">'+artist+'<\/a>';
-        lastfmlink = '&nbsp;<a href="http://www.lastfm.de/music/'+artist.replace(/ /g, "_")+'" target="_blank"><img src="images/lastfm.png"><\/a>';
+        wikilink   = '';
+        lastfmlink = '';
+        if(artist != ' ') {
+          wikilink   = '&nbsp;<a href="http://en.wikipedia.org/wiki/'+artist.replace(/ /g, "_")+'" target="_blank">'+artist+'<\/a>';
+          lastfmlink = '&nbsp;<a href="http://www.lastfm.de/music/'+artist.replace(/ /g, "_")+'" target="_blank"><img src="images/lastfm.png"><\/a>';
+        }
         document.getElementById('artistText').innerHTML = wikilink + lastfmlink;
         document.getElementById('albumText').innerHTML = "&nbsp;" + record.get('album');
         document.getElementById('trackText').innerHTML = "&nbsp;" + record.get('nr');
