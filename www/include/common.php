@@ -59,7 +59,7 @@ function getVolume()
     $rc = 0;
     $output = array();
     exec($config["volumeBin"]." 2>&1", $output, $rc);
-    if($rc != 0 or !isset($output[0]))
+    if($rc != 0 or !isset($output[0]) or !is_numeric($output[0]))
     {
         $config['lastError'] = "getting Volume failed (rc: ".$rc."): ".join('<br />', $output);
         $erg = "20";
