@@ -643,7 +643,7 @@ function getTag($file) {
         $track = "0".$track;
     }
 
-    return(array($artist,$album,$title,$track,$fileinfo["playtime_string"],$bitrate));
+    return(array(utf8_decode($artist),utf8_decode($album),utf8_decode($title),$track,$fileinfo["playtime_string"],$bitrate));
 }
 
 #########################################################################################
