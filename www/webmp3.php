@@ -387,6 +387,9 @@ function action_updateTagCache()
 
     $fp = fopen($config["tagCache"], "w+") or die("cannot open tagCache File for writing");
     foreach($files as $file) {
+        if(substr($file, -5) == '.flac') {
+            continue;
+        }
         $scan = 0;
         $newTime = filemtime($config["searchPath"]."/".$file);
         if(!isset($oldTags[$file])) {
@@ -496,6 +499,7 @@ function action_getFilesystem()
                 $filesystem[] = array("file" => $fileArray[0], "type" => "F", "icon" => "images/music.png");
             }
         }
+        sort($filesystem);
         $count = count($filesystem);
         $filesystem = array_slice($filesystem, $start, $limit);
     }
