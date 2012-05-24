@@ -45,6 +45,13 @@
 <script type="text/javascript">
 <!--
 
+/* send debug output to firebug console */
+function debug(str) {
+    if (window.console != undefined) {
+        console.debug(str);
+    }
+}
+
 Ext.onReady(function(){
     Ext.namespace("webmp3");
     webmp3.version              = '$Id$';
@@ -187,6 +194,7 @@ Ext.onReady(function(){
         now=new Date();
         diff_time = now.getTime() - webmp3.lastStatusUpdate.getTime();
         if(diff_time > 300000) {
+            webmp3.lastStatusUpdate = new Date();
             webmp3.disablePlayMask = true;
             webmp3.PlaylistDataStore.load();
         }
@@ -1129,7 +1137,7 @@ webmp3.playingbar = new Ext.Toolbar({
             webmp3.fileGrid.getBottomToolbar().show();
             webmp3.fileGrid.syncSize();
             webmp3.border.doLayout();
-            var o = {start: 0, limit: 15};
+            var o = {start: 0, limit: 100};
             this.store.baseParams = this.store.baseParams || {};
             this.store.baseParams[this.paramName] = v;
             this.store.reload({params:o});
@@ -1330,7 +1338,7 @@ webmp3.playingbar = new Ext.Toolbar({
                   }, '-',
                   new webmp3.SearchField({
                                         store: webmp3.FilesystemDataStore,
-                                                        params: {start: 0, limit: 15},
+                                                        params: {start: 0, limit: 20},
                                         width: 80,
                                         id: 'filesearch'
                             }),
@@ -1343,7 +1351,7 @@ webmp3.playingbar = new Ext.Toolbar({
               ],
         bbar: [
           new Ext.PagingToolbar({
-            pageSize: 20,
+            pageSize: 100,
             autoHeight: true,
             width: 500,
             hideParent: true,
@@ -1601,7 +1609,7 @@ webmp3.playingbar = new Ext.Toolbar({
               xtype: 'panel',
               id: 'picPanel',
               border: false,
-              html: '<img width=120 height=120 id="folderPicHuge" src="'+url+'>'
+              html: '<img width=120 height=120 id="folderPicHuge" src="">'
             }],
             buttons: [
                       {
@@ -1612,7 +1620,7 @@ webmp3.playingbar = new Ext.Toolbar({
         });
         webmp3.preload = Ext.DomHelper.append(document.body, {tag:"img", src:urlFull, id:"fullImg", style:"display:none"}, true);
         webmp3.preload.on('load', function() {
-          //loaded
+        //  //loaded
           webmp3.preload.show();
           Ext.get('folderPicHuge').replaceWith(webmp3.preload);
           webmp3.pictureWindow.setWidth(Ext.get('fullImg').getWidth() + 15);
@@ -1958,6 +1966,7 @@ webmp3.playingbar = new Ext.Toolbar({
  ***************************************/
     // start timer
     webmp3.updateTime();
+    window.setInterval(webmp3.updateTime,301000);
 
     // initialize tool tips
     Ext.QuickTips.init();
