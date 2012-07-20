@@ -554,7 +554,7 @@ function getFilesForDirectory($dir) {
     if($handle = opendir($dir)) {
         while (false !== ($file = readdir($handle))) {
             if ($file != "." && $file != "..") {
-                if(is_link($dir."/".$file)) {
+                if(is_link($dir."/".$file) and is_dir(readlink($dir."/".$file))) {
                     # resolve links
                     $files = array_merge($files, getFilesForDirectory($dir."/".$file));
                 }

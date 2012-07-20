@@ -184,8 +184,7 @@ Ext.onReady(function(){
       return(s);
     }
 
-    webmp3.updateTime = function()
-    {
+    webmp3.updateTime = function() {
         var remMin=document.getElementById('remMin');
         var remSec=document.getElementById('remSec');
         var preMin=document.getElementById('pre');
@@ -200,7 +199,6 @@ Ext.onReady(function(){
         }
 
         if(webmp3.pause == true) {
-            window.setTimeout(webmp3.updateTime, 999);
             return(0);
         }
 
@@ -231,15 +229,12 @@ Ext.onReady(function(){
                 window.setTimeout(webmp3.refreshPlaylist,2000);
                 remSec.innerHTML = "";
                 remMin.innerHTML = "";
-                window.setTimeout(webmp3.updateTime, 999);
                 return(0);
             }
             if(remSec.innerHTML == "" && remMin.innerHTML == "") {
-                window.setTimeout(webmp3.updateTime, 999);
                 return(0);
             }
             if(remSec.innerHTML == "00" && remMin.innerHTML == "0") {
-                window.setTimeout(webmp3.updateTime, 999);
                 return(0);
             }
 
@@ -254,7 +249,6 @@ Ext.onReady(function(){
             remSec.innerHTML = pre_s+remSec.innerHTML;
             remMin.innerHTML = remMin.innerHTML;
         }
-        window.setTimeout(webmp3.updateTime, 999);
     }
 
     webmp3.highlightCurrentSong = function() {
@@ -1965,8 +1959,7 @@ webmp3.playingbar = new Ext.Toolbar({
  * Initialization
  ***************************************/
     // start timer
-    webmp3.updateTime();
-    window.setInterval(webmp3.updateTime,301000);
+    window.setInterval(webmp3.updateTime,999);
 
     // initialize tool tips
     Ext.QuickTips.init();
