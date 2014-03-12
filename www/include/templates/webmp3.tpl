@@ -1217,6 +1217,11 @@ webmp3.playingbar = new Ext.Toolbar({
                     Ext.ComponentMgr.get(webmp3.pathButtons[i]).destroy();
                   }
                 }
+                // remove last two elements (fill el. and update tag cache)
+                if(webmp3.fileGrid.getTopToolbar().items) {
+                  webmp3.fileGrid.getTopToolbar().items.removeAt(webmp3.fileGrid.getTopToolbar().items.length-1).destroy();
+                  webmp3.fileGrid.getTopToolbar().items.removeAt(webmp3.fileGrid.getTopToolbar().items.length-1).destroy();
+                }
                 webmp3.pathButtons = new Array();
 
                 // add new buttons
@@ -1244,6 +1249,35 @@ webmp3.playingbar = new Ext.Toolbar({
                     webmp3.fileGrid.getTopToolbar().add(btn);
                   }
                 }
+
+                // add update tag cache btn
+                webmp3.fileGrid.getTopToolbar().addFill();
+                btn = new Ext.Toolbar.Button({
+                    tooltip: 'Update Tag Cache',
+                    cls: 'x-btn-icon',
+                    id: 'tagCacheUpdateBtn',
+                    icon: 'images/reload.png',
+                    listeners: {
+                        click: function() {
+                            var updateBtn = this;
+                            updateBtn.el.select('BUTTON').setStyle('backgroundImage', 'url(images/loading-icon.gif)');
+                            updateBtn.disable();
+                            Ext.Ajax.request({
+                               url: 'webmp3.php?action=updateTagCache',
+                               success: function() {
+                                    updateBtn.el.select('BUTTON').setStyle('backgroundImage', 'url(images/reload.png)');
+                                    updateBtn.enable();
+                               },
+                               failure: function() {
+                                    updateBtn.el.select('BUTTON').setStyle('backgroundImage', 'url(images/reload.png)');
+                                    updateBtn.enable();
+                               },
+                               params: {}
+                            });
+                        }
+                    }
+                });
+                webmp3.fileGrid.getTopToolbar().add(btn);
             },
             loadexception: function(o, arg, e){
                 var exception = e.status+' ' +e.statusText+': ' + e.responseText;
