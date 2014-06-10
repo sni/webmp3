@@ -308,6 +308,8 @@ function action_getPlaylists()
         while (false !== ($file = readdir($handle))) {
             if (is_file($config["plDir"].$file) AND $file != "." AND $file != "..") {
                 list($fileName,$meta) = split(" - ", $file);
+                $fileName = utf8_encode($fileName);
+                $meta     = utf8_encode($meta);
                 $meta = str_replace(".playlist", "", $meta);
                 $list[$fileName] = array(
                             "file"  => $fileName,
@@ -387,9 +389,9 @@ function action_updateTagCache()
 
     $fp = fopen($config["tagCache"], "w+") or die("cannot open tagCache File for writing");
     foreach($files as $file) {
-        if(substr($file, -5) == '.flac') {
-            continue;
-        }
+        #if(substr($file, -5) == '.flac') {
+        #    continue;
+        #}
         $scan = 0;
         $newTime = filemtime($config["searchPath"]."/".$file);
         if(!isset($oldTags[$file])) {
@@ -663,12 +665,12 @@ function action_getPlaylist()
         }
         $playlist[] = array(
             "tracknum"  => $entry['tracknum'],
-            "artist"    => $entry['artist'],
-            "album"     => $entry['album'],
-            "title"     => $entry['title'],
+            "artist"    => utf8_encode($entry['artist']),
+            "album"     => utf8_encode($entry['album']),
+            "title"     => utf8_encode($entry['title']),
             "length"    => $entry['length'],
             "token"     => $entry['token'],
-            "file"      => $entry['filename'],
+            "file"      => utf8_encode($entry['filename']),
         );
     }
 
