@@ -608,24 +608,41 @@ function getTag($file) {
     }
     // doPrint($fileinfo);
 
-    if ($fileinfo["fileformat"] == "mp3") {
+#    if(empty($fileinfo["fileformat"])) {
+#print "<pre>"; print_r("no fileformat!"); print "</pre>\n";
+#print "<pre>"; print_r($fileinfo); print "</pre>\n";
+#exit;
+#    }
+
+    if(empty($fileinfo["fileformat"]) || empty($fileinfo["tags"])) {
+        return(array("","","","","0:0", 192));
+    }
+
+    if($fileinfo["fileformat"] == "mp3") {
       $neededTags = array("artist", "album", "title", "track");
     } else {
       $neededTags = array("artist", "album", "title", "tracknumber");
     }
 
     foreach($neededTags as $tag) {
-      if(isset($fileinfo["comments"][$tag][0]) AND !empty($fileinfo["comments"][$tag][0])) {
-        $$tag = $fileinfo["comments"][$tag][0];
-      } else {
-        $$tag = "";
+      $$tag = "";
+      foreach($fileinfo["tags"] as $tagname => $tags) {
+        if(isset($fileinfo["tags"][$tagname][$tag][0]) AND !empty($fileinfo["tags"][$tagname][$tag][0])) {
+          $$tag = $fileinfo["tags"][$tagname][$tag][0];
+        }
       }
       $$tag = str_replace("_", " ", $$tag);
 
-      if ($tag == "tracknumber") {
-      	$track = $$tag;
+      if($tag == "tracknumber") {
+        $track = $$tag;
       }
     }
+
+#if($artist == "" && $album == "" && $title == "" && $fileinfo["fileformat"] != "mp3") {
+#print "<pre>"; print_r("empty unknown tag!"); print "</pre>\n";
+#print "<pre>"; print_r($fileinfo); print "</pre>\n";
+#exit;
+#}
 
     if(!isset($fileinfo["playtime_string"]))  { $fileinfo["playtime_string"] = ""; }
 
