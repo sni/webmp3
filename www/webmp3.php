@@ -886,14 +886,14 @@ function action_getCurStatus($msg = "")
     }
 
     $status[] = array(
-            'artist'    => $data['artist'],
-            'album'     => $data['album'],
+            'artist'    => utf8_encode($data['artist']),
+            'album'     => utf8_encode($data['album']),
             'nr'        => $data['track'],
-            'title'     => $data['title'],
+            'title'     => utf8_encode($data['title']),
             'length'    => $data['length'],
             'token'     => $data['token'],
             'volume'    => getVolume(),
-            'status'    => $text,
+            'status'    => utf8_encode($text),
             'remMin'    => $remMin,
             'remSec'    => $remSec,
             'pre'       => $pre,
