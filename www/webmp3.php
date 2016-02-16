@@ -17,10 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #################################################################
-#
-# $Id$
-#
-#################################################################
+
+$WEBMP3_VERSION = "1.1";
 
 error_reporting(2047);
 
@@ -87,6 +85,7 @@ function action_default()
     $t = new template();
     $t -> main("include/templates/webmp3.tpl");
     $t -> code(array(
+        "version"       => "WebMP3 ".$WEBMP3_VERSION,
         "pageTitle"     => htmlspecialchars($pageTitle, ENT_QUOTES, "UTF-8"),
         "volume"        => getVolume(),
         "repeat"        => $data["repeat"],
@@ -850,13 +849,6 @@ function action_getCurStatus($msg = "")
     $data = getData();
     $data = fillInDefaults($data);
 
-    # get client version
-    $client = join("", file("include/templates/webmp3.tpl"));
-    $pos1   = strpos($client, '$Id:');
-    $pos2   = strpos($client, '$', $pos1 + 1);
-    $pos2   = $pos2 + 1;
-    $version = str_replace("webmp3.tpl", "WebMP3", substr($client, $pos1, $pos2 - $pos1));
-
     $text = "idle";
     if(isset($data['ppid'])) {
         $file = $data['filename'];
@@ -904,7 +896,7 @@ function action_getCurStatus($msg = "")
             'quiet'     => $data['quiet'],
             'totalTime' => $data['totalTime'],
             "stream"    => $data['playingStream'],
-            "version"   => $version,
+            "version"   => "WebMP3 ".$WEBMP3_VERSION,
             "partymode" => $data['partymode'],
     );
 

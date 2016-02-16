@@ -54,7 +54,7 @@ function debug(str) {
 
 Ext.onReady(function(){
     Ext.namespace("webmp3");
-    webmp3.version              = '$Id$';
+    webmp3.version              = '<!--php: version -->';
     webmp3.sliderInit           = 1;
     webmp3.lastSliderUpdate     = new Date();
     webmp3.lastStatusUpdate     = new Date();
@@ -69,8 +69,6 @@ Ext.onReady(function(){
     webmp3.pathButtons          = new Array();
     webmp3.pathBeforeSearch     = "";
     webmp3.partymode            = <!--php: partymode -->;
-
-    webmp3.version              = webmp3.version.replace("webmp3.tpl", "WebMP3");
 
 /****************************************
  * Functions
