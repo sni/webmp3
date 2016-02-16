@@ -20,12 +20,11 @@ if something is going wrong you should take a look at your logfile (defined in c
 
 ## source
 
-1. developement tree
-   you can check out the current developement version with:
+you can check out the current developement version with:
 
    git clone https://github.com/sni/webmp3
 
 ## thx
 
-thanks to the guys from extjs (http://extjs.com/products/extjs/)
-thanks to the guy who made all the icons (http://www.famfamfam.com/lab/icons/silk/)
+  - thanks to the guys from extjs (http://extjs.com/products/extjs/)
+  - thanks to the guy who made all the icons (http://www.famfamfam.com/lab/icons/silk/)
