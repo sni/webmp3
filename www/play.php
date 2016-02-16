@@ -160,7 +160,10 @@ function action_default()
     $data["aktBin"] = $playBin;
     storeData($data);
 
+    #$options = array_map("myescapeshellarg", $options);
+    setlocale(LC_CTYPE, "en_US.UTF-8");
     $options = array_map("escapeshellarg", $options);
+
     $data = brokerPlugin("pre_playing_song", $data);
     doPrint("executing: ".$playBin." ".join(" ", $options));
     system($playBin." ".join(" ", $options).' >> '.$config["logfile"].' 2>&1');
@@ -179,16 +182,24 @@ function action_default()
     unset($data["album"]);
     unset($data["aktBin"]);
     unset($data["playingPic"]);
+    $lastToken = $track["token"];
+    $track = "";
+    storeData($data);
 
-    $data["play"]     = 0;
-    $track = getNextTrack($data["playlist"], $track["token"]);
-    if($track) {
-        $data["curTrack"] = $track;
-        storeData($data);
-        action_default();
-    } else {
-        storeData($data);
+    if($data["play"]) {
+        $data["play"] = 0;
+        $track = getNextTrack($data["playlist"], $lastToken);
+        if($track) {
+            $data["curTrack"] = $track;
+            storeData($data);
+            action_default();
+        }
     }
+}
+
+#################################################################
+function myescapeshellarg($arg){
+  return "'".str_replace("'","\\'",$arg)."'";
 }
 
 #################################################################

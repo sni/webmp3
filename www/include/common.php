@@ -162,8 +162,13 @@ function playlistAdd($playlist, $toAdd)
         }
 
         $playtime_seconds = 0;
-        list($min,$sec) = explode(":", $playtime_string);
-        $playtime_seconds = $min * 60 + $sec;
+        list($hour,$min,$sec) = explode(":", $playtime_string);
+        if(empty($sec)) {
+            $sec  = $min;
+            $min  = $hour;
+            $hour = 0;
+        }
+        $playtime_seconds = $hour * 3600 + $min * 60 + $sec;
 
         $token = md5(uniqid(rand(), true));
         $newFile = array(
@@ -243,6 +248,7 @@ function doPrint($data, $level = "NOTICE")
     }
 
     $fp = fopen($config["logfile"], "a");
+    $text = trim($text);
     fwrite($fp, $text."\n");
     fclose($fp);
 }
@@ -410,7 +416,27 @@ function getPictureForPath($path)
 }
 
 #########################################################################################
+# recursive kill childs
+function killProcessAndChilds($pid) {
+    exec("ps -ef| awk '\$3 == '$pid' { print  \$2 }'", $output, $ret);
+    if($ret) return 'you need ps, grep, and awk';
+    while(list(,$t) = each($output)) {
+        if ( $t != $pid ) {
+            killProcessAndChilds($t);
+        }
+    }
+    //echo "killing ".$pid."\n";
+    posix_kill($pid, SIGINT);
+    posix_kill($pid, SIGSTOP);
+    posix_kill($pid, SIGKILL);
+    $err = posix_get_last_error();
+    if($err) {
+        doPrint("failed to signal ".$pid.": ".posix_strerror($err));
+        doPrint(getPidData($pid));
+    }
+}
 
+#########################################################################################
 function killChild($data = "") {
 
     if(empty($data)) {
@@ -418,42 +444,46 @@ function killChild($data = "") {
     }
 
     if(isset($data["ppid"])) {
-        $oridPid = $data["ppid"];
-        $pids = getChildPids($data["ppid"]);
-        posix_kill($data["ppid"], 2);
-        foreach($pids as $pid) {
-             posix_kill($pid, 2);
-        }
-        posix_kill($data["ppid"], 19);
-        foreach($pids as $pid) {
-             posix_kill($pid, 19);
-        }
-        posix_kill($data["ppid"], 9);
-        foreach($pids as $pid) {
-             doPrint("killed -9: ".getPidData($pid));
-             posix_kill($pid, 9);
-        }
+        killProcessAndChilds($data["ppid"]);
+    #    $oridPid = $data["ppid"];
+    #    $pids = getChildPids($data["ppid"]);
+    #    posix_kill($data["ppid"], SIGINT) || doPrint("failed to send signal to ".$data["ppid"]);
+    #    foreach($pids as $pid) {
+    #         posix_kill($pid, SIGINT) || doPrint("failed to send signal to ".$pid);
+    #    }
+    #    posix_kill($data["ppid"], SIGSTOP);
+    #    foreach($pids as $pid) {
+    #         posix_kill($pid, SIGSTOP) || doPrint("failed to send signal to ".$pid);
+    #    }
+    #    posix_kill($data["ppid"], SIGKILL) || doPrint("failed to send signal to ".$data["ppid"]);
+    #    foreach($pids as $pid) {
+    #         doPrint("killed -9: ".getPidData($pid));
+    #         posix_kill($pid, SIGKILL) || doPrint("failed to send signal to ".$pid);
+    #    }
     }
 
-    $stopFailed = 0;
-    if(isset($origPid) and is_numeric($origPid)) {
-        $out = getPidData($origPid);
-        if(!empty($out)) {
-            $stopFailed = 1;
-            doPrint(getPidData($out));
-        }
-        $pids = getChildPids($origPid);
-        foreach($pids as $pid) {
-            $out = getPidData($origPid);
-            if(!empty($out)) {
-                $stopFailed = 1;
-                doPrint(getPidData($out));
-            }
-        }
-    }
-    if($stopFailed == 1) {
-        doPrint("stop failed!");
-    }
+    system("killall mplayer");
+    system("sudo /usr/bin/killall mplayer");
+
+    #$stopFailed = 0;
+    #if(isset($origPid) and is_numeric($origPid)) {
+    #    $out = getPidData($origPid);
+    #    if(!empty($out)) {
+    #        $stopFailed = 1;
+    #        doPrint(getPidData($out));
+    #    }
+    #    $pids = getChildPids($origPid);
+    #    foreach($pids as $pid) {
+    #        $out = getPidData($origPid);
+    #        if(!empty($out)) {
+    #            $stopFailed = 1;
+    #            doPrint(getPidData($out));
+    #        }
+    #    }
+    #}
+    #if($stopFailed == 1) {
+    #    doPrint("stop failed!");
+    #}
 
     unset($data["ppid"]);
     unset($data["start"]);
@@ -859,7 +889,7 @@ function getPidData($pid) {
     return("");
   }
   ob_start();
-  system("ps -p ".$pid." | grep -v 'PID' | tail -1");
+  system("ps -flp ".$pid." | grep -v 'PID' | tail -1");
   $return = ob_get_contents();
   ob_end_clean();
   return($return);
