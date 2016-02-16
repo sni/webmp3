@@ -31,6 +31,10 @@ a:hover
   color:#404040;
 }
 
+img {
+  vertical-align: middle;
+}
+
 .pathButton button{border:0 none;background:transparent;font:normal 11px tahoma,verdana,helvetica;padding-left:0px;padding-right:0px;cursor:pointer;margin:0;overflow:visible;width:auto;-moz-outline:0 none;outline:0 none;}
 .pathButton i{width:0px;height:21px;background:url(../images/spacer.png);}
 .pathButton td{width:0px;height:21px;}
