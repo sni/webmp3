@@ -129,7 +129,7 @@ function playlistAdd($playlist, $toAdd)
 {
     global $config;
 
-    if(strpos($toAdd, "http://") === 0) {
+    if(strpos($toAdd, "http://") === 0 || strpos($toAdd, "https://") === 0) {
         list($artist,$album,$title,$tracknum,$playtime_string,$bitrate) = getTag($toAdd);
         //$display = $artist." - ".$album." - ".$title;
         $display = $toAdd;
@@ -537,7 +537,7 @@ function addFileToHitlist($file)
     $file = str_replace($config['searchPath'], "", $file);
 
     # add leading / when its not a stream
-    if(strpos($file, "http://") === false) {
+    if(strpos($file, "http://") === false || strpos($file, "https://") === false) {
       if(strpos($file, "/") !== 0) {
           $file = "/".$file;
       }
@@ -613,7 +613,7 @@ function getTag($file) {
       $getID3->encoding = 'UTF-8';
     }
 
-   if(strpos($file, "http://") === 0) {
+   if(strpos($file, "http://") === 0 || strpos($file, "https://") === 0) {
        return(array("","","","","0:0", 0));
        if($fp1 = fopen($file, 'rb')) {
             $tempname = tempnam('/tmp', 'foo');
@@ -771,7 +771,7 @@ function getPath($path = "", $append = "") {
 
 function myRealpath($path) {
     while(strpos($path, "..") !== false) {
-        $pathElems = split("/", $path);
+        $pathElems = explode("/", $path);
         $key = array_search('..', $pathElems);
         array_splice($pathElems, $key -1 , 2);
         $path = join("/", $pathElems);

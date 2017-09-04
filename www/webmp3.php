@@ -580,7 +580,7 @@ function action_getPlaylist()
                 doPrint("added file ".$aktPath."/".$file);
                 $data["playlist"] = playlistAdd($data["playlist"], $config["searchPath"].$aktPath."/".$file);
             }
-            elseif(strpos($file, "http://") === 0) {
+            elseif(strpos($file, "http://") === 0 || strpos($file, "https://") === 0) {
                 doPrint("added stream ".$file);
                 $data["playlist"] = playlistAdd($data["playlist"], $file);
             } else {

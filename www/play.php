@@ -155,7 +155,9 @@ function action_default()
         }
         $data["playingStream"] = 0;
     }
-    $options[] = $track["filename"];
+    $size = count($options);
+    $options[$size-1] .= " '".$track["filename"]."'";
+    #$options[] = $track["filename"];
 
     $data["aktBin"] = $playBin;
     storeData($data);
