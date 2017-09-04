@@ -1450,7 +1450,7 @@ webmp3.playingbar = new Ext.Toolbar({
     Ext.get('infoBtn').on("click", function(button, event) {
         Ext.Msg.show({
           title:'About WebMP3',
-          msg: 'WebMP3<br><br>Copyright 2008 Sven Nierlein, sven@nierlein.de<br><br>License: GPL v3<br>Download it at <a href="http://www.nierlein.de/pub/webmp3/" target="_blank">http://www.nierlein.de/pub/webmp3/<\/a><br><br>Version: '+webmp3.version,
+          msg: 'WebMP3<br><br>Copyright 2008 Sven Nierlein, sven@nierlein.de<br><br>License: GPL v3<br>Download it at <a href="https://github.com/sni/webmp3" target="_blank">https://github.com/sni/webmp3<\/a><br><br>Version: '+webmp3.version,
           icon: Ext.MessageBox.INFO,
           buttons: Ext.Msg.OK
         });
