@@ -136,7 +136,7 @@ function action_default()
     # most played
     addFileToHitlist($track["filename"]);
 
-    if(strpos($track["filename"], "http://") === 0) {
+    if(strpos($track["filename"], "http://") === 0 || strpos($track["filename"], "https://") === 0) {
         doPrint("playing stream");
         $options = $config["playStrOpt"];
         $playBin = $config["streamBin"];

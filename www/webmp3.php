@@ -18,7 +18,7 @@
 #
 #################################################################
 
-$WEBMP3_VERSION = "1.1";
+define("WEBMP3_VERSION", "1.1");
 
 error_reporting(2047);
 
@@ -85,7 +85,7 @@ function action_default()
     $t = new template();
     $t -> main("include/templates/webmp3.tpl");
     $t -> code(array(
-        "version"       => "WebMP3 ".$WEBMP3_VERSION,
+        "version"       => "WebMP3 ".WEBMP3_VERSION,
         "pageTitle"     => htmlspecialchars($pageTitle, ENT_QUOTES, "UTF-8"),
         "volume"        => getVolume(),
         "repeat"        => $data["repeat"],
@@ -145,7 +145,6 @@ function action_pic() {
 
     $dst_w = 120;
     $dst_h = 120;
-
     if(isset($_REQUEST['token']) AND isset($data["curTrack"])) {
         if($data["curTrack"] == $_REQUEST['token']) {
             $dir = dirname($data["filename"]);
@@ -394,7 +393,7 @@ function action_updateTagCache()
         $scan = 0;
         $newTime = filemtime($config["searchPath"]."/".$file);
         if(!isset($oldTags[$file])) {
-            #doPrint("file is new: ".$file);
+            doPrint("file is new: ".$file);
             $scan = 1;
             $new++;
         } elseif($newTime != $oldTags[$file][7]) {
@@ -896,8 +895,9 @@ function action_getCurStatus($msg = "")
             'quiet'     => $data['quiet'],
             'totalTime' => $data['totalTime'],
             "stream"    => $data['playingStream'],
-            "version"   => "WebMP3 ".$WEBMP3_VERSION,
+            "version"   => "WebMP3 ".WEBMP3_VERSION,
             "partymode" => $data['partymode'],
+            'thumbnail' => utf8_encode($data['thumbnailurl']),
     );
 
     if(isset($_REQUEST['debug'])) {

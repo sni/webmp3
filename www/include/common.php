@@ -147,6 +147,26 @@ function playlistAdd($playlist, $toAdd)
             "stream"    => "1",
             "length"    => "&infin;",
         );
+        if(file_exists("streaminfo.sh")) {
+            $info = explode("\n", shell_exec("./streaminfo.sh ".escapeshellarg($toAdd)));
+            if(!empty($info[0])) {
+                $newFile["album"] = $info[0];
+            }
+            if(!empty($info[1])) {
+                $newFile["length"] = $info[1];
+                list($hour,$min,$sec) = explode(":", $playtime_string);
+                if(empty($sec)) {
+                    $sec  = $min;
+                    $min  = $hour;
+                    $hour = 0;
+                }
+                $playtime_seconds = $hour * 3600 + $min * 60 + $sec;
+                $newFile["lengths"] = floor($playtime_seconds);
+            }
+            if(!empty($info[2])) {
+                $newFile["thumbnailurl"] = $info[2];
+            }
+        }
         $playlist[$token] = $newFile;
     } elseif(!file_exists($toAdd)) {
         doPrint("playlistAdd() : '".$toAdd."' does not exist");
@@ -636,15 +656,9 @@ function getTag($file) {
         doPrint("Error in getID3 for ".$file.": ".$e->getMessage());
         return(array("","","","","0:0", 192));
     }
-    // doPrint($fileinfo);
+    #doPrint($fileinfo);
 
-#    if(empty($fileinfo["fileformat"])) {
-#print "<pre>"; print_r("no fileformat!"); print "</pre>\n";
-#print "<pre>"; print_r($fileinfo); print "</pre>\n";
-#exit;
-#    }
-
-    if(empty($fileinfo["fileformat"]) || empty($fileinfo["tags"])) {
+    if(empty($fileinfo["fileformat"])) {
         return(array("","","","","0:0", 192));
     }
 
@@ -654,29 +668,29 @@ function getTag($file) {
       $neededTags = array("artist", "album", "title", "tracknumber");
     }
 
-    foreach($neededTags as $tag) {
-      $$tag = "";
-      foreach($fileinfo["tags"] as $tagname => $tags) {
-        if(isset($fileinfo["tags"][$tagname][$tag][0]) AND !empty($fileinfo["tags"][$tagname][$tag][0])) {
-          $$tag = $fileinfo["tags"][$tagname][$tag][0];
+    $track  = "";
+    $artist = "";
+    $album  = "";
+    $title  = "";
+    if(!empty($fileinfo["tags"])) {
+        foreach($neededTags as $tag) {
+            $$tag = "";
+            foreach($fileinfo["tags"] as $tagname => $tags) {
+                if(isset($fileinfo["tags"][$tagname][$tag][0]) AND !empty($fileinfo["tags"][$tagname][$tag][0])) {
+                $$tag = $fileinfo["tags"][$tagname][$tag][0];
+                }
+            }
+            $$tag = str_replace("_", " ", $$tag);
+
+            if($tag == "tracknumber") {
+                $track = $$tag;
+            }
         }
-      }
-      $$tag = str_replace("_", " ", $$tag);
-
-      if($tag == "tracknumber") {
-        $track = $$tag;
-      }
     }
-
-#if($artist == "" && $album == "" && $title == "" && $fileinfo["fileformat"] != "mp3") {
-#print "<pre>"; print_r("empty unknown tag!"); print "</pre>\n";
-#print "<pre>"; print_r($fileinfo); print "</pre>\n";
-#exit;
-#}
 
     if(!isset($fileinfo["playtime_string"]))  { $fileinfo["playtime_string"] = ""; }
 
-    if(strpos($track, "/") !== false) {
+    if(isset($track) && strpos($track, "/") !== false) {
       list($track, $totalTracks) = explode("/", $track);
     }
 
@@ -686,7 +700,7 @@ function getTag($file) {
     }
 
     # track should be at least 2 chars width
-    if(strlen($track) == 1) {
+    if(isset($track) && strlen($track) == 1) {
         $track = "0".$track;
     }
 
@@ -819,6 +833,7 @@ function fillInDefaults($data) {
     if(!isset($data["totalTime"]))      { $data["totalTime"]      = ""; }
     if(!isset($data["partymode"]))      { $data["partymode"]      = 0;  }
     if(!isset($data["lastTagUpdate"]))  { $data["lastTagUpdate"]  = 0;  }
+    if(!isset($data["thumbnailurl"]))   { $data["thumbnailurl"]   = ""; }
 
     # current track data
     if(!isset($data["artist"])) { $data["artist"] = " "; }
