@@ -137,11 +137,11 @@ class Template
         $key  = trim($key);
 
         #replaces this
-        if(isset($input{$key}))
+        if(isset($input[$key]))
         {
         }else
         {
-            $input{$key} = "";
+            $input[$key] = "";
         }
 
         if(strpos($code_row, "<!--php: ".$key." -->") === false)
@@ -150,7 +150,7 @@ class Template
         }
         else
         {
-            return(str_replace("<!--php: $key -->", $input{$key}, $code_row ));
+            return(str_replace("<!--php: $key -->", $input[$key], $code_row ));
         }
     }
 
@@ -167,9 +167,9 @@ class Template
     function do_loop(&$loop_source, &$loop_name, &$input)
     {
         $return = "";
-        if(isset($input{$loop_name}) AND is_array($input{$loop_name}))
+        if(isset($input[$loop_name]) AND is_array($input[$loop_name]))
         {
-            foreach($input{$loop_name} as $name => $row_array)
+            foreach($input[$loop_name] as $name => $row_array)
             {
                 $temp_source = $loop_source;
                 # checks for other loops
@@ -584,7 +584,7 @@ class Template
         $key  = trim($key);
 
         #replaces this
-        if(isset($replacements{$key}) AND is_array($replacements{$key}))
+        if(isset($replacements[$key]) AND is_array($replacements[$key]))
         {
         }
         else
